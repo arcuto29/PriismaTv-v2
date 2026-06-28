@@ -47,15 +47,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} dark`} suppressHydrationWarning>
       <body className="min-h-screen bg-background text-foreground font-sans antialiased" suppressHydrationWarning>
-        <AnimatedBackground />
-        <div className="relative z-10 flex min-h-screen">
-          <Sidebar />
-          <main className="flex-1 lg:ml-[240px] min-h-screen flex flex-col">
-            <TopBar />
-            <div className="flex-1">{children}</div>
-          </main>
-          <GlobalFeatures />
-        </div>
+        {children}
       </body>
     </html>
   );
