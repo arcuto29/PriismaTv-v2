@@ -140,7 +140,7 @@ export default function WelcomePage() {
         className="absolute left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-primary/40 to-transparent z-[3] pointer-events-none"
       />
 
-      {/* 3D Rotating cube wireframe with Jin-Woo video inside */}
+      {/* 3D Rotating cube wireframe */}
       <div className="absolute inset-0 flex items-center justify-center z-[4]" style={{ perspective: "800px" }}>
         <motion.div
           animate={{ rotateX: 360, rotateY: 360 }}
@@ -153,14 +153,7 @@ export default function WelcomePage() {
             "rotateY(90deg) translateZ(125px)", "rotateY(-90deg) translateZ(125px)",
             "rotateX(90deg) translateZ(125px)", "rotateX(-90deg) translateZ(125px)",
           ].map((transform, i) => (
-            <div key={i} className="absolute inset-0 border border-primary/[0.06] rounded-lg overflow-hidden" style={{ transform, backfaceVisibility: "visible" }}>
-              {/* Jin-Woo video on front face */}
-              {i === 0 && (
-                <video autoPlay muted loop playsInline className="w-full h-full object-cover opacity-30">
-                  <source src="/jinwoo-bg.mp4" type="video/mp4" />
-                </video>
-              )}
-            </div>
+            <div key={i} className="absolute inset-0 border border-primary/[0.06] rounded-lg" style={{ transform, backfaceVisibility: "visible" }} />
           ))}
         </motion.div>
       </div>
