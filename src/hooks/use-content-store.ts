@@ -15,7 +15,7 @@ export function useContentStore() {
 
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEYS.CONTENT);
-    const currentVersion = "v2.6"; // Bump this to force refresh
+    const currentVersion = "v2.7"; // Bump this to force refresh
     const storedVersion = localStorage.getItem("priismatv_version");
     
     // ALWAYS force fresh data if version doesn't match
