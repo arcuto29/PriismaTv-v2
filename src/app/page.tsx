@@ -5,6 +5,7 @@ import { useContentStore } from "@/hooks/use-content-store";
 import { HeroSection } from "@/components/content/hero-section";
 import { ContentRow } from "@/components/content/content-row";
 import { Recommendations } from "@/components/content/recommendations";
+import { ContinueWatching } from "@/components/content/continue-watching";
 
 export default function HomePage() {
   const {
@@ -37,6 +38,8 @@ export default function HomePage() {
 
       {/* Content Rows */}
       <div className="-mt-24 relative z-10 space-y-2">
+        <ContinueWatching content={content} history={history} />
+
         <ContentRow
           title="Trending Now"
           icon={<Flame className="w-4 h-4 text-orange-400" />}

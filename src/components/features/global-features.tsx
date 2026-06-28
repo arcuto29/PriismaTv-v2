@@ -6,6 +6,7 @@ import { SpotlightSearch } from "./spotlight-search";
 import { AriseEasterEgg } from "./arise-easter-egg";
 import { LoadingScreen } from "./loading-screen";
 import { KeyboardShortcuts } from "./keyboard-shortcuts";
+import { PipPlayer } from "./pip-player";
 
 export function GlobalFeatures() {
   const { content, isLoaded } = useContentStore();
@@ -23,6 +24,7 @@ export function GlobalFeatures() {
           <SpotlightSearch />
           <AriseEasterEgg />
           <KeyboardShortcuts />
+          <PipPlayer />
         </>
       )}
     </>
