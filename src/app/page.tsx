@@ -164,7 +164,7 @@ export default function WelcomePage() {
     setTimeout(() => router.push("/home"), 3000);
   };
 
-  // If not authenticated, show password screen
+  // If not authenticated, show login screen
   if (!authenticated) {
     return (
       <div className="fixed inset-0 z-[200] bg-[#020204] flex items-center justify-center overflow-hidden">
@@ -186,20 +186,19 @@ export default function WelcomePage() {
           animate={{ opacity: 1, y: 0 }}
           className="relative z-10 text-center px-6 max-w-sm w-full"
         >
-          {/* Lock icon */}
+          {/* Logo */}
           <motion.div
             animate={{ boxShadow: ["0 0 20px rgba(0,212,255,0.2)", "0 0 40px rgba(0,212,255,0.4)", "0 0 20px rgba(0,212,255,0.2)"] }}
             transition={{ duration: 2, repeat: Infinity }}
             className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-primary/20 to-purple-600/20 border border-primary/30 flex items-center justify-center"
           >
-            <svg className="w-7 h-7 text-primary" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+            <svg className="w-7 h-7 text-primary" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M8 5v14l11-7z"/>
             </svg>
           </motion.div>
 
-          <h2 className="text-xl font-bold text-white mb-1">PriismaTv</h2>
-          <p className="text-white/30 text-xs font-mono mb-6">PRIVATE ACCESS ONLY</p>
+          <h2 className="text-2xl font-black text-white mb-1"><span className="text-primary">Priisma</span>Tv</h2>
+          <p className="text-white/30 text-xs font-mono mb-6">ENTER YOUR NAME & ACCESS CODE</p>
 
           <form onSubmit={handlePasswordSubmit} className="space-y-3">
             <input
@@ -209,23 +208,20 @@ export default function WelcomePage() {
               placeholder="Your name..."
               className="w-full px-4 py-3.5 rounded-xl bg-white/5 border border-white/10 text-sm text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
             />
-            <div className="relative">
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter invite code..."
-                autoFocus
-                className={`w-full px-4 py-3.5 rounded-xl bg-white/5 border text-sm text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all ${
-                  passwordError ? "border-red-500" : "border-white/10"
-                }`}
-              />
-            </div>
+            <input
+              type="text"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Access code..."
+              className={`w-full px-4 py-3.5 rounded-xl bg-white/5 border text-sm text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all ${
+                passwordError ? "border-red-500" : "border-white/10"
+              }`}
+            />
             <button
               type="submit"
               className="w-full py-3.5 rounded-xl bg-gradient-to-r from-primary to-purple-600 text-white font-bold text-sm hover:opacity-90 transition-opacity"
             >
-              UNLOCK
+              ENTER
             </button>
           </form>
 
@@ -235,11 +231,11 @@ export default function WelcomePage() {
               animate={{ opacity: 1 }}
               className="text-red-400 text-xs mt-3 font-mono"
             >
-              Wrong code. Try again.
+              Invalid code. Contact the owner for access.
             </motion.p>
           )}
 
-          <p className="text-white/10 text-[9px] font-mono mt-8">Contact the owner for access</p>
+          <p className="text-white/10 text-[9px] font-mono mt-8">priismatv.com</p>
         </motion.div>
       </div>
     );
