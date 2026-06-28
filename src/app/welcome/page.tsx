@@ -267,7 +267,7 @@ export default function WelcomePage() {
         >
           {[
             { value: "423+", label: "TITLES" },
-            { value: "HD/4K", label: "QUALITY" },
+            { value: "HD", label: "QUALITY" },
             { value: "∞", label: "FREE" },
           ].map((stat, i) => (
             <motion.div
