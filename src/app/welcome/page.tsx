@@ -1,6 +1,12 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import dynamic from "next/dynamic";
+
+const DungeonGateScene = dynamic(
+  () => import("@/components/3d/dungeon-gate-scene").then((m) => m.DungeonGateScene),
+  { ssr: false }
+);
 
 export default function WelcomePage() {
   const router = useRouter();
@@ -20,44 +26,24 @@ export default function WelcomePage() {
         ))}
       </div>
 
-      {/* Section 1: Dungeon Gate */}
+      {/* Section 1: Dungeon Gate - 3D */}
       <div className="h-screen flex items-center justify-center relative z-10">
+        {/* 3D Scene behind content */}
+        <div className="absolute inset-0 z-0">
+          <DungeonGateScene />
+        </div>
+
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: false, amount: 0.6 }}
           transition={{ duration: 0.8 }}
-          className="text-center"
+          className="text-center relative z-10"
         >
-          <div className="relative mx-auto mb-8">
-            <motion.div
-              animate={{ opacity: [0.2, 0.5, 0.2] }}
-              transition={{ duration: 3, repeat: Infinity }}
-              className="absolute -inset-8 rounded-full bg-cyan-500/10 blur-2xl"
-            />
-            <div
-              className="w-40 h-60 md:w-52 md:h-80 rounded-t-full border-2 border-cyan-500/40 mx-auto relative overflow-hidden flex items-center justify-center bg-black/50"
-              style={{ boxShadow: "0 0 60px rgba(0,212,255,0.15), inset 0 0 60px rgba(0,212,255,0.08)" }}
-            >
-              <motion.div
-                animate={{ rotate: 360 }}
-                transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
-                className="absolute inset-6 rounded-t-full opacity-40"
-                style={{ background: "conic-gradient(from 0deg, rgba(0,212,255,0.3), transparent, rgba(124,58,237,0.3), transparent, rgba(0,212,255,0.3))" }}
-              />
-              <motion.div
-                animate={{ scale: [1, 1.4, 1], opacity: [0.3, 0.6, 0.3] }}
-                transition={{ duration: 2.5, repeat: Infinity }}
-                className="w-16 h-16 rounded-full bg-cyan-500/20 blur-lg absolute"
-              />
-              <span className="relative text-cyan-400/70 text-[10px] font-mono tracking-[0.3em]">E-RANK</span>
-            </div>
-          </div>
-
           <motion.p
             animate={{ opacity: [0.3, 0.7, 0.3] }}
             transition={{ duration: 4, repeat: Infinity }}
-            className="text-white/50 text-lg md:text-2xl font-light italic"
+            className="text-white/60 text-lg md:text-2xl font-light italic mt-48 md:mt-56"
           >
             &ldquo;You are the weakest hunter...&rdquo;
           </motion.p>
