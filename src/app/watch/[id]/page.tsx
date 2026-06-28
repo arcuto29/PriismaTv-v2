@@ -2,20 +2,56 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
-  Play, Bookmark, Heart, Share2, Star, Clock,
-  Film, ChevronLeft, ExternalLink, Trash2
+  Play, Bookmark, Heart, Star, Clock,
+  Film, ChevronLeft, Trash2, X, Video
 } from "lucide-react";
 import { useContentStore } from "@/hooks/use-content-store";
 import { ContentItem, OWNER_PASSWORD } from "@/data/content";
 import { cn } from "@/lib/utils";
 
 const STREAMING_SERVERS = [
-  { id: "vidsrc", name: "VidSrc", getUrl: (id: string, type: string) => `https://vidsrc.xyz/embed/${type}/${id}` },
-  { id: "vidsrc2", name: "VidSrc 2", getUrl: (id: string, type: string) => `https://vidsrc.to/embed/${type}/${id}` },
-  { id: "embed", name: "2Embed", getUrl: (id: string, type: string) => `https://www.2embed.cc/embed/${id}` },
-  { id: "smashystream", name: "Smashy", getUrl: (id: string, type: string) => `https://player.smashy.stream/${type}/${id}` },
+  {
+    id: "vidsrc",
+    name: "VidSrc",
+    getMovieUrl: (title: string, year: number) =>
+      `https://vidsrc.xyz/embed/movie?tmdb=${encodeURIComponent(title)}`,
+    getTvUrl: (title: string, season: number, episode: number) =>
+      `https://vidsrc.xyz/embed/tv?tmdb=${encodeURIComponent(title)}&season=${season}&episode=${episode}`,
+  },
+  {
+    id: "vidsrc2",
+    name: "VidSrc Pro",
+    getMovieUrl: (title: string, year: number) =>
+      `https://vidsrc.pro/embed/movie/${encodeURIComponent(title)}-${year}`,
+    getTvUrl: (title: string, season: number, episode: number) =>
+      `https://vidsrc.pro/embed/tv/${encodeURIComponent(title)}/${season}/${episode}`,
+  },
+  {
+    id: "embed2",
+    name: "2Embed",
+    getMovieUrl: (title: string, year: number) =>
+      `https://www.2embed.cc/embed/${encodeURIComponent(title.toLowerCase().replace(/[^a-z0-9]+/g, '-'))}-${year}`,
+    getTvUrl: (title: string, season: number, episode: number) =>
+      `https://www.2embed.cc/embedtv/${encodeURIComponent(title.toLowerCase().replace(/[^a-z0-9]+/g, '-'))}&s=${season}&e=${episode}`,
+  },
+  {
+    id: "multiembed",
+    name: "MultiEmbed",
+    getMovieUrl: (title: string, year: number) =>
+      `https://multiembed.mov/directstream.php?video_id=${encodeURIComponent(title)}&s=1&e=1`,
+    getTvUrl: (title: string, season: number, episode: number) =>
+      `https://multiembed.mov/directstream.php?video_id=${encodeURIComponent(title)}&s=${season}&e=${episode}`,
+  },
+  {
+    id: "autoembed",
+    name: "AutoEmbed",
+    getMovieUrl: (title: string, year: number) =>
+      `https://autoembed.co/movie/tmdb/${encodeURIComponent(title)}`,
+    getTvUrl: (title: string, season: number, episode: number) =>
+      `https://autoembed.co/tv/tmdb/${encodeURIComponent(title)}-${season}-${episode}`,
+  },
 ];
 
 export default function WatchPage() {
@@ -24,6 +60,7 @@ export default function WatchPage() {
   const { getContentById, toggleFavorite, toggleWatchlist, addToHistory, favorites, watchlist, removeContent } = useContentStore();
   const [item, setItem] = useState<ContentItem | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [showTrailer, setShowTrailer] = useState(false);
   const [selectedServer, setSelectedServer] = useState(0);
   const [selectedSeason, setSelectedSeason] = useState(1);
   const [selectedEpisode, setSelectedEpisode] = useState(1);
@@ -58,9 +95,17 @@ export default function WatchPage() {
     }
   };
 
-  const getStreamUrl = () => {
-    if (item.video) return item.video;
-    return null;
+  const getPlayerUrl = () => {
+    if (selectedServer === -1 && item.video) return item.video;
+
+    const server = STREAMING_SERVERS[selectedServer];
+    if (!server) return "";
+
+    if (item.type === "movie") {
+      return server.getMovieUrl(item.title, item.year);
+    } else {
+      return server.getTvUrl(item.title, selectedSeason, selectedEpisode);
+    }
   };
 
   return (
@@ -72,6 +117,46 @@ export default function WatchPage() {
       >
         <ChevronLeft className="w-5 h-5" />
       </button>
+
+      {/* Trailer Modal */}
+      <AnimatePresence>
+        {showTrailer && item.trailer && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowTrailer(false)}
+              className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="fixed inset-4 lg:inset-16 z-50 flex items-center justify-center"
+            >
+              <div className="w-full max-w-5xl">
+                <div className="flex justify-end mb-2">
+                  <button
+                    onClick={() => setShowTrailer(false)}
+                    className="p-2 rounded-lg bg-white/10 text-white hover:bg-white/20 transition-colors"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+                <div className="w-full aspect-video rounded-xl overflow-hidden bg-black ring-1 ring-white/10 shadow-2xl">
+                  <iframe
+                    src={`https://www.youtube.com/embed/${item.trailer}?autoplay=1&rel=0`}
+                    className="w-full h-full border-0"
+                    allowFullScreen
+                    allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
+                  />
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       {/* Backdrop */}
       <div className="relative h-[50vh] lg:h-[60vh] w-full overflow-hidden">
@@ -135,14 +220,12 @@ export default function WatchPage() {
               </button>
 
               {item.trailer && (
-                <a
-                  href={`https://www.youtube.com/watch?v=${item.trailer}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <button
+                  onClick={() => setShowTrailer(true)}
                   className="flex items-center gap-2 px-5 py-3 rounded-lg bg-white/10 text-white font-medium hover:bg-white/20 transition-all border border-white/10"
                 >
-                  <ExternalLink className="w-4 h-4" /> Trailer
-                </a>
+                  <Video className="w-4 h-4" /> Trailer
+                </button>
               )}
 
               <button
@@ -171,7 +254,7 @@ export default function WatchPage() {
             </div>
 
             {/* Season/Episode Selector */}
-            {item.seasons && item.seasons > 0 && (
+            {(item.type === "tvshow" || item.type === "anime") && item.seasons && item.seasons > 0 && (
               <div className="mb-6">
                 <h3 className="text-sm font-semibold mb-3">Select Season & Episode</h3>
                 <div className="flex flex-wrap gap-2 mb-3">
@@ -184,28 +267,28 @@ export default function WatchPage() {
                         selectedSeason === s ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-muted/80"
                       )}
                     >
-                      S{s}
+                      Season {s}
                     </button>
                   ))}
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  {Array.from({ length: Math.min(item.episodes ? Math.ceil(item.episodes / (item.seasons || 1)) : 12, 24) }, (_, i) => i + 1).map((ep) => (
+                <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
+                  {Array.from({ length: Math.min(item.episodes ? Math.ceil(item.episodes / (item.seasons || 1)) : 12, 26) }, (_, i) => i + 1).map((ep) => (
                     <button
                       key={ep}
-                      onClick={() => setSelectedEpisode(ep)}
+                      onClick={() => { setSelectedEpisode(ep); setIsPlaying(true); }}
                       className={cn(
                         "px-3 py-1.5 rounded-lg text-xs font-medium transition-all",
                         selectedEpisode === ep ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-muted/80"
                       )}
                     >
-                      E{ep}
+                      Ep {ep}
                     </button>
                   ))}
                 </div>
               </div>
             )}
 
-            {/* Server Selection */}
+            {/* Server Selection & Player */}
             {isPlaying && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -213,6 +296,7 @@ export default function WatchPage() {
                 className="mb-6"
               >
                 <h3 className="text-sm font-semibold mb-3">Select Server</h3>
+                <p className="text-xs text-muted-foreground mb-3">If one server doesn&apos;t work, try another. Some servers work better for certain content.</p>
                 <div className="flex flex-wrap gap-2 mb-4">
                   {STREAMING_SERVERS.map((server, i) => (
                     <button
@@ -240,14 +324,20 @@ export default function WatchPage() {
                 </div>
 
                 {/* Player */}
-                <div className="w-full aspect-video rounded-xl overflow-hidden bg-black ring-1 ring-white/10">
+                <div className="w-full aspect-video rounded-xl overflow-hidden bg-black ring-1 ring-white/10 shadow-2xl">
                   <iframe
-                    src={selectedServer === -1 && item.video ? item.video : STREAMING_SERVERS[selectedServer]?.getUrl(item.id, item.type === "movie" ? "movie" : "tv") || ""}
+                    key={`${selectedServer}-${selectedSeason}-${selectedEpisode}`}
+                    src={getPlayerUrl()}
                     className="w-full h-full border-0"
                     allowFullScreen
                     allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
+                    sandbox="allow-same-origin allow-scripts allow-forms allow-popups"
                   />
                 </div>
+
+                <p className="text-[11px] text-muted-foreground mt-3">
+                  💡 Tip: Use an ad blocker (uBlock Origin) for the best experience. If a server doesn&apos;t load, try switching to another one.
+                </p>
               </motion.div>
             )}
           </div>
