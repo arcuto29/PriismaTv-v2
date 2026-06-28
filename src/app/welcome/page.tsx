@@ -1,59 +1,21 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { motion, useMotionValue, useTransform, useSpring, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function WelcomePage() {
   const router = useRouter();
   const [phase, setPhase] = useState(0);
   const [exiting, setExiting] = useState(false);
-  const [scrollProgress, setScrollProgress] = useState(0);
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  // Mouse position for 3D control
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
-  const smoothX = useSpring(mouseX, { stiffness: 50, damping: 20 });
-  const smoothY = useSpring(mouseY, { stiffness: 50, damping: 20 });
-
-  // Transform mouse to rotation
-  const rotateX = useTransform(smoothY, [-0.5, 0.5], [30, -30]);
-  const rotateY = useTransform(smoothX, [-0.5, 0.5], [-30, 30]);
-  const orbX = useTransform(smoothX, [-0.5, 0.5], [-100, 100]);
-  const orbY = useTransform(smoothY, [-0.5, 0.5], [-100, 100]);
-
-  // Scroll-based transforms
-  const scaleOnScroll = 1 + scrollProgress * 0.5;
-  const opacityOnScroll = Math.max(0, 1 - scrollProgress * 1.5);
 
   useEffect(() => {
     const t1 = setTimeout(() => setPhase(1), 200);
-    const t2 = setTimeout(() => setPhase(2), 800);
-    const t3 = setTimeout(() => setPhase(3), 1500);
-    const t4 = setTimeout(() => setPhase(4), 2200);
-    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(t4); };
+    const t2 = setTimeout(() => setPhase(2), 1000);
+    const t3 = setTimeout(() => setPhase(3), 2000);
+    const t4 = setTimeout(() => setPhase(4), 3000);
+    const t5 = setTimeout(() => setPhase(5), 3800);
+    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(t4); clearTimeout(t5); };
   }, []);
-
-  // Mouse handler
-  const handleMouseMove = (e: React.MouseEvent) => {
-    const rect = containerRef.current?.getBoundingClientRect();
-    if (!rect) return;
-    const x = (e.clientX - rect.left) / rect.width - 0.5;
-    const y = (e.clientY - rect.top) / rect.height - 0.5;
-    mouseX.set(x);
-    mouseY.set(y);
-  };
-
-  // Scroll handler
-  const handleScroll = (e: React.WheelEvent) => {
-    setScrollProgress((prev) => {
-      const next = Math.max(0, Math.min(1, prev + e.deltaY * 0.002));
-      if (next >= 0.95 && !exiting) {
-        enter();
-      }
-      return next;
-    });
-  };
 
   const enter = () => {
     setExiting(true);
@@ -61,147 +23,97 @@ export default function WelcomePage() {
   };
 
   return (
-    <div
-      ref={containerRef}
-      onMouseMove={handleMouseMove}
-      onWheel={handleScroll}
-      className="fixed inset-0 z-[200] bg-[#020204] overflow-hidden cursor-crosshair select-none"
-      style={{ perspective: "1200px" }}
-    >
-      {/* Scroll indicator */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={phase >= 4 ? { opacity: 1 } : {}}
-        className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-1"
-      >
-        <p className="text-[9px] font-mono text-white/30 tracking-widest">SCROLL TO ENTER</p>
-        <motion.div
-          animate={{ y: [0, 6, 0] }}
-          transition={{ duration: 1.5, repeat: Infinity }}
-          className="w-4 h-7 rounded-full border border-white/20 flex items-start justify-center pt-1"
-        >
-          <motion.div
-            animate={{ y: [0, 10, 0], opacity: [1, 0.3, 1] }}
-            transition={{ duration: 1.5, repeat: Infinity }}
-            className="w-1 h-2 rounded-full bg-primary"
-          />
-        </motion.div>
-      </motion.div>
+    <div className="fixed inset-0 z-[200] bg-[#020204] overflow-hidden cursor-default select-none" style={{ perspective: "1200px" }}>
 
-      {/* Scroll progress bar */}
-      <div className="fixed top-0 left-0 right-0 h-[2px] z-50 bg-white/5">
+      {/* 3D Rotating cube wireframe */}
+      <div className="absolute inset-0 flex items-center justify-center" style={{ perspective: "800px" }}>
         <motion.div
-          className="h-full bg-gradient-to-r from-primary to-purple-500"
-          style={{ width: `${scrollProgress * 100}%` }}
+          animate={{ rotateX: 360, rotateY: 360 }}
+          transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
+          className="w-[300px] h-[300px] md:w-[450px] md:h-[450px] relative"
+          style={{ transformStyle: "preserve-3d" }}
+        >
+          {/* Cube faces */}
+          {[
+            { transform: "translateZ(150px)" },
+            { transform: "translateZ(-150px) rotateY(180deg)" },
+            { transform: "rotateY(90deg) translateZ(150px)" },
+            { transform: "rotateY(-90deg) translateZ(150px)" },
+            { transform: "rotateX(90deg) translateZ(150px)" },
+            { transform: "rotateX(-90deg) translateZ(150px)" },
+          ].map((face, i) => (
+            <div
+              key={i}
+              className="absolute inset-0 border border-primary/[0.07] rounded-lg"
+              style={{ transform: face.transform, backfaceVisibility: "visible" }}
+            />
+          ))}
+        </motion.div>
+      </div>
+
+      {/* 3D rotating ring 1 */}
+      <div className="absolute inset-0 flex items-center justify-center" style={{ perspective: "1000px" }}>
+        <motion.div
+          animate={{ rotateX: 75, rotateZ: 360 }}
+          transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
+          className="w-[350px] h-[350px] md:w-[500px] md:h-[500px] rounded-full border border-primary/20 absolute"
+          style={{ transformStyle: "preserve-3d" }}
         />
       </div>
 
-      {/* Interactive 3D scene - responds to mouse */}
-      <motion.div
-        style={{ rotateX, rotateY }}
-        className="absolute inset-0 flex items-center justify-center"
-        // style includes perspective from parent
-      >
-        {/* Central interactive ORB - follows mouse with spring physics */}
+      {/* 3D rotating ring 2 */}
+      <div className="absolute inset-0 flex items-center justify-center" style={{ perspective: "1000px" }}>
         <motion.div
-          style={{ x: orbX, y: orbY }}
-          className="absolute z-10"
-        >
-          <motion.div
-            animate={{
-              boxShadow: [
-                "0 0 30px rgba(0,212,255,0.3), inset 0 0 30px rgba(0,212,255,0.1)",
-                "0 0 60px rgba(0,212,255,0.5), inset 0 0 40px rgba(124,58,237,0.2)",
-                "0 0 30px rgba(0,212,255,0.3), inset 0 0 30px rgba(0,212,255,0.1)",
-              ],
-            }}
-            transition={{ duration: 3, repeat: Infinity }}
-            className="w-32 h-32 md:w-44 md:h-44 rounded-full bg-gradient-to-br from-primary/20 via-blue-500/10 to-purple-600/20 backdrop-blur-sm border border-primary/30 flex items-center justify-center"
-          >
-            {/* Inner orb */}
-            <motion.div
-              animate={{ scale: [1, 1.1, 1], rotate: [0, 180, 360] }}
-              transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
-              className="w-20 h-20 md:w-28 md:h-28 rounded-full bg-gradient-to-br from-primary/40 to-purple-600/40 border border-white/10 flex items-center justify-center"
-            >
-              <svg className="w-10 h-10 md:w-14 md:h-14 text-white" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M8 5v14l11-7z"/>
-              </svg>
-            </motion.div>
-          </motion.div>
-
-          {/* Orbiting particles around the orb */}
-          {[0, 60, 120, 180, 240, 300].map((angle, i) => (
-            <motion.div
-              key={i}
-              animate={{ rotate: 360 }}
-              transition={{ duration: 4 + i, repeat: Infinity, ease: "linear" }}
-              className="absolute inset-0 flex items-center justify-center"
-              style={{ transform: `rotate(${angle}deg)` }}
-            >
-              <motion.div
-                className="absolute w-2 h-2 rounded-full bg-primary shadow-lg shadow-primary/50"
-                style={{ top: "-10px" }}
-                animate={{ scale: [0.5, 1.5, 0.5], opacity: [0.3, 1, 0.3] }}
-                transition={{ duration: 2, repeat: Infinity, delay: i * 0.3 }}
-              />
-            </motion.div>
-          ))}
-        </motion.div>
-
-        {/* Ring 1 - reacts to mouse */}
-        <motion.div
-          animate={{ rotateZ: 360 }}
-          transition={{ duration: 15 - scrollProgress * 10, repeat: Infinity, ease: "linear" }}
-          className="absolute w-[300px] h-[300px] md:w-[450px] md:h-[450px] rounded-full border border-primary/20"
-          style={{ transformStyle: "preserve-3d", rotateX: `${70 + scrollProgress * 20}deg` }}
+          animate={{ rotateX: -60, rotateZ: -360 }}
+          transition={{ duration: 18, repeat: Infinity, ease: "linear" }}
+          className="w-[280px] h-[280px] md:w-[420px] md:h-[420px] rounded-full border border-purple-500/15 absolute"
+          style={{ transformStyle: "preserve-3d" }}
         />
+      </div>
 
-        {/* Ring 2 */}
+      {/* 3D rotating ring 3 - inner */}
+      <div className="absolute inset-0 flex items-center justify-center" style={{ perspective: "1000px" }}>
         <motion.div
-          animate={{ rotateZ: -360 }}
-          transition={{ duration: 20 - scrollProgress * 12, repeat: Infinity, ease: "linear" }}
-          className="absolute w-[250px] h-[250px] md:w-[380px] md:h-[380px] rounded-full border border-purple-500/15"
-          style={{ transformStyle: "preserve-3d", rotateX: `${-60 - scrollProgress * 20}deg` }}
+          animate={{ rotateY: 360, rotateZ: 45 }}
+          transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+          className="w-[200px] h-[200px] md:w-[300px] md:h-[300px] rounded-full border-2 border-cyan-400/10 absolute"
+          style={{ transformStyle: "preserve-3d" }}
         />
+      </div>
 
-        {/* Ring 3 - fastest, most reactive */}
-        <motion.div
-          animate={{ rotateZ: 360 }}
-          transition={{ duration: 8 - scrollProgress * 6, repeat: Infinity, ease: "linear" }}
-          className="absolute w-[180px] h-[180px] md:w-[280px] md:h-[280px] rounded-full border-2 border-cyan-400/10"
-          style={{ transformStyle: "preserve-3d", rotateY: `${45 + scrollProgress * 90}deg` }}
-        />
-      </motion.div>
-
-      {/* Grid floor - tilts with mouse */}
+      {/* Grid floor - 3D perspective */}
       <motion.div
         initial={{ opacity: 0 }}
-        animate={phase >= 1 ? { opacity: 0.6 } : {}}
-        className="absolute bottom-0 left-0 right-0 h-[45%] overflow-hidden pointer-events-none"
+        animate={phase >= 1 ? { opacity: 1 } : {}}
+        className="absolute bottom-0 left-0 right-0 h-[40%] overflow-hidden"
         style={{ perspective: "500px" }}
       >
-        <motion.div
-          style={{ rotateX: useTransform(smoothY, [-0.5, 0.5], [55, 65]) }}
+        <div
           className="w-full h-full origin-bottom"
-        >
-          <div
-            className="w-full h-full"
-            style={{
-              backgroundImage: `linear-gradient(rgba(0,212,255,${0.08 + scrollProgress * 0.15}) 1px, transparent 1px), linear-gradient(90deg, rgba(0,212,255,${0.08 + scrollProgress * 0.15}) 1px, transparent 1px)`,
-              backgroundSize: `${50 - scrollProgress * 20}px ${50 - scrollProgress * 20}px`,
-            }}
-          />
-        </motion.div>
-        <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-primary/10 to-transparent" />
+          style={{
+            transform: "rotateX(60deg)",
+            backgroundImage: `linear-gradient(rgba(0,212,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(0,212,255,0.1) 1px, transparent 1px)`,
+            backgroundSize: "50px 50px",
+          }}
+        />
+        {/* Horizon glow */}
+        <div className="absolute top-0 left-0 right-0 h-20 bg-gradient-to-b from-primary/10 to-transparent" />
       </motion.div>
 
-      {/* Scanning line - speeds up with scroll */}
+      {/* Scanning line */}
       <motion.div
         initial={{ top: "-2%" }}
         animate={{ top: "102%" }}
-        transition={{ duration: Math.max(0.5, 2.5 - scrollProgress * 2), repeat: Infinity, ease: "linear" }}
-        className="absolute left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-primary/50 to-transparent z-10 pointer-events-none"
+        transition={{ duration: 2.5, repeat: Infinity, ease: "linear" }}
+        className="absolute left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-primary/50 to-transparent z-10"
+      />
+
+      {/* Vertical scanning line */}
+      <motion.div
+        initial={{ left: "-2%" }}
+        animate={{ left: "102%" }}
+        transition={{ duration: 3.5, repeat: Infinity, ease: "linear", delay: 1 }}
+        className="absolute top-0 bottom-0 w-[1px] bg-gradient-to-b from-transparent via-purple-500/30 to-transparent z-10"
       />
 
       {/* Particle burst on exit */}
@@ -221,90 +133,199 @@ export default function WelcomePage() {
                     scale: [0, 2, 0],
                     opacity: [1, 1, 0],
                   }}
-                  transition={{ duration: 0.8, ease: "easeOut" }}
-                  className="absolute w-1 h-6 rounded-full"
-                  style={{ background: `linear-gradient(to top, ${i % 3 === 0 ? "#00d4ff" : i % 3 === 1 ? "#7c3aed" : "#fff"}, transparent)` }}
+                  transition={{ duration: 1, ease: "easeOut" }}
+                  className="absolute w-1 h-8 rounded-full origin-bottom"
+                  style={{
+                    background: `linear-gradient(to top, ${i % 3 === 0 ? "#00d4ff" : i % 3 === 1 ? "#7c3aed" : "#ffffff"}, transparent)`,
+                    transform: `rotate(${angle}rad)`,
+                  }}
                 />
               );
             })}
-            <motion.div initial={{ scale: 0, opacity: 0.8 }} animate={{ scale: 6, opacity: 0 }} transition={{ duration: 0.8 }}
-              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-40 h-40 rounded-full border-4 border-primary" />
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: [0, 1, 0] }} transition={{ duration: 0.4 }}
-              className="absolute inset-0 bg-white" />
+            {/* Shockwave */}
+            <motion.div
+              initial={{ scale: 0, opacity: 0.8 }}
+              animate={{ scale: 6, opacity: 0 }}
+              transition={{ duration: 0.8 }}
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-40 h-40 rounded-full border-4 border-primary"
+            />
+            <motion.div
+              initial={{ scale: 0, opacity: 0.6 }}
+              animate={{ scale: 4, opacity: 0 }}
+              transition={{ duration: 0.8, delay: 0.1 }}
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-40 h-40 rounded-full border-2 border-white"
+            />
+            {/* Flash */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: [0, 0.8, 0] }}
+              transition={{ duration: 0.4 }}
+              className="absolute inset-0 bg-white"
+            />
           </>
         )}
       </AnimatePresence>
 
-      {/* HUD corners */}
-      <motion.div initial={{ opacity: 0 }} animate={phase >= 1 ? { opacity: 1 } : {}} className="absolute top-5 left-5 z-20 pointer-events-none">
+      {/* Corner HUD elements */}
+      <motion.div initial={{ opacity: 0 }} animate={phase >= 1 ? { opacity: 1 } : {}} className="absolute top-5 left-5 z-20">
         <div className="w-10 h-10 border-l-2 border-t-2 border-primary/40" />
-        <p className="text-[8px] font-mono text-primary/40 mt-1">SYS.ONLINE</p>
+        <p className="text-[8px] font-mono text-primary/40 mt-1 tracking-widest">SYS.ONLINE</p>
       </motion.div>
-      <motion.div initial={{ opacity: 0 }} animate={phase >= 1 ? { opacity: 1 } : {}} className="absolute top-5 right-5 z-20 pointer-events-none">
+      <motion.div initial={{ opacity: 0 }} animate={phase >= 1 ? { opacity: 1 } : {}} className="absolute top-5 right-5 z-20">
         <div className="w-10 h-10 border-r-2 border-t-2 border-primary/40 ml-auto" />
-        <p className="text-[8px] font-mono text-primary/40 mt-1 text-right">MOUSE.ACTIVE</p>
+        <p className="text-[8px] font-mono text-primary/40 mt-1 tracking-widest text-right">V2.0</p>
       </motion.div>
-      <motion.div initial={{ opacity: 0 }} animate={phase >= 1 ? { opacity: 1 } : {}} className="absolute bottom-5 left-5 z-20 pointer-events-none">
+      <motion.div initial={{ opacity: 0 }} animate={phase >= 1 ? { opacity: 1 } : {}} className="absolute bottom-5 left-5 z-20">
         <div className="w-10 h-10 border-l-2 border-b-2 border-primary/40" />
-        <p className="text-[8px] font-mono text-primary/40 mt-1">SCROLL: {Math.round(scrollProgress * 100)}%</p>
       </motion.div>
-      <motion.div initial={{ opacity: 0 }} animate={phase >= 1 ? { opacity: 1 } : {}} className="absolute bottom-5 right-5 z-20 pointer-events-none">
+      <motion.div initial={{ opacity: 0 }} animate={phase >= 1 ? { opacity: 1 } : {}} className="absolute bottom-5 right-5 z-20">
         <div className="w-10 h-10 border-r-2 border-b-2 border-primary/40 ml-auto" />
       </motion.div>
 
-      {/* Title + button - fades/scales with scroll */}
+      {/* Main content - centered */}
       <motion.div
-        animate={{ opacity: exiting ? 0 : opacityOnScroll, scale: exiting ? 1.5 : scaleOnScroll, filter: exiting ? "blur(20px)" : "blur(0px)" }}
-        className="relative z-30 h-full flex flex-col items-center justify-center px-6 pointer-events-none"
+        animate={{ opacity: exiting ? 0 : 1, scale: exiting ? 1.5 : 1, filter: exiting ? "blur(20px)" : "blur(0px)" }}
+        transition={{ duration: 0.6 }}
+        className="relative z-30 h-full flex flex-col items-center justify-center px-6"
       >
-        <motion.h1
-          initial={{ opacity: 0 }}
-          animate={phase >= 2 ? { opacity: 1 } : {}}
-          className="text-5xl md:text-8xl font-black tracking-tighter mb-2 pointer-events-none"
+        {/* Logo with 3D transform on appear */}
+        <motion.div
+          initial={{ scale: 0, rotateY: 180, opacity: 0 }}
+          animate={phase >= 2 ? { scale: 1, rotateY: 0, opacity: 1 } : {}}
+          transition={{ duration: 0.8, type: "spring", bounce: 0.3 }}
+          className="mb-6"
+          style={{ transformStyle: "preserve-3d" }}
         >
-          {"PRIISMA".split("").map((letter, i) => (
-            <motion.span
-              key={i}
-              initial={{ y: 40, opacity: 0 }}
-              animate={phase >= 2 ? { y: 0, opacity: 1 } : {}}
-              transition={{ delay: i * 0.07, type: "spring" }}
-              className="inline-block text-primary"
-              style={{ textShadow: "0 0 30px rgba(0,212,255,0.5)" }}
-            >
-              {letter}
-            </motion.span>
-          ))}
-          {"TV".split("").map((letter, i) => (
-            <motion.span
-              key={`tv-${i}`}
-              initial={{ y: 40, opacity: 0 }}
-              animate={phase >= 2 ? { y: 0, opacity: 1 } : {}}
-              transition={{ delay: 0.49 + i * 0.07, type: "spring" }}
-              className="inline-block text-white"
-            >
-              {letter}
-            </motion.span>
-          ))}
-        </motion.h1>
+          <div className="relative">
+            <div className="w-24 h-24 md:w-32 md:h-32 rounded-3xl bg-gradient-to-br from-primary via-blue-500 to-purple-600 flex items-center justify-center shadow-[0_0_60px_rgba(0,212,255,0.3)]">
+              <svg className="w-12 h-12 md:w-16 md:h-16 text-white" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M8 5v14l11-7z"/>
+              </svg>
+            </div>
+            {/* Glow rings */}
+            <motion.div
+              animate={{ scale: [1, 1.4, 1], opacity: [0.4, 0, 0.4] }}
+              transition={{ duration: 2, repeat: Infinity }}
+              className="absolute inset-0 rounded-3xl border border-primary/40"
+            />
+            <motion.div
+              animate={{ scale: [1, 1.6, 1], opacity: [0.2, 0, 0.2] }}
+              transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
+              className="absolute inset-0 rounded-3xl border border-purple-500/30"
+            />
+          </div>
+        </motion.div>
 
-        <motion.p
+        {/* Title with staggered letters */}
+        <motion.div
           initial={{ opacity: 0 }}
           animate={phase >= 3 ? { opacity: 1 } : {}}
-          className="text-white/30 text-xs font-mono tracking-[0.3em] uppercase mb-8 pointer-events-none"
+          className="mb-2"
         >
-          [ MOVE YOUR MOUSE • SCROLL TO ENTER ]
+          <h1 className="text-5xl md:text-8xl font-black tracking-tighter">
+            {"PRIISMA".split("").map((letter, i) => (
+              <motion.span
+                key={i}
+                initial={{ y: 50, opacity: 0, rotateX: -90 }}
+                animate={phase >= 3 ? { y: 0, opacity: 1, rotateX: 0 } : {}}
+                transition={{ delay: i * 0.08, duration: 0.5, type: "spring" }}
+                className="inline-block text-primary"
+                style={{ textShadow: "0 0 30px rgba(0,212,255,0.5), 0 0 60px rgba(0,212,255,0.2)" }}
+              >
+                {letter}
+              </motion.span>
+            ))}
+            {"TV".split("").map((letter, i) => (
+              <motion.span
+                key={`tv-${i}`}
+                initial={{ y: 50, opacity: 0, rotateX: -90 }}
+                animate={phase >= 3 ? { y: 0, opacity: 1, rotateX: 0 } : {}}
+                transition={{ delay: 0.56 + i * 0.08, duration: 0.5, type: "spring" }}
+                className="inline-block text-white"
+              >
+                {letter}
+              </motion.span>
+            ))}
+          </h1>
+        </motion.div>
+
+        {/* Subtitle */}
+        <motion.p
+          initial={{ opacity: 0, y: 10 }}
+          animate={phase >= 4 ? { opacity: 1, y: 0 } : {}}
+          className="text-white/30 text-xs md:text-sm font-mono tracking-[0.3em] uppercase mb-10"
+        >
+          [ PREMIUM STREAMING HUB ]
         </motion.p>
 
+        {/* Stats */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={phase >= 4 ? { opacity: 1, y: 0 } : {}}
+          transition={{ delay: 0.3 }}
+          className="flex items-center gap-6 md:gap-10 mb-10"
+        >
+          {[
+            { value: "423+", label: "TITLES" },
+            { value: "HD/4K", label: "QUALITY" },
+            { value: "∞", label: "FREE" },
+          ].map((stat, i) => (
+            <motion.div
+              key={stat.label}
+              initial={{ scale: 0, rotateZ: -10 }}
+              animate={phase >= 4 ? { scale: 1, rotateZ: 0 } : {}}
+              transition={{ delay: 0.4 + i * 0.12, type: "spring", bounce: 0.4 }}
+              className="text-center"
+            >
+              <p className="text-3xl md:text-4xl font-black text-white">{stat.value}</p>
+              <p className="text-[8px] md:text-[9px] tracking-[0.25em] text-white/25 mt-1 font-mono">{stat.label}</p>
+            </motion.div>
+          ))}
+        </motion.div>
+
+        {/* Enter button */}
         <motion.button
           initial={{ opacity: 0, scale: 0.5 }}
-          animate={phase >= 4 ? { opacity: 1, scale: 1 } : {}}
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
+          animate={phase >= 5 ? { opacity: 1, scale: 1 } : {}}
+          transition={{ type: "spring", bounce: 0.5 }}
+          whileHover={{ scale: 1.05, boxShadow: "0 0 40px rgba(0,212,255,0.4)" }}
+          whileTap={{ scale: 0.95 }}
           onClick={enter}
-          className="px-10 py-4 rounded-xl bg-gradient-to-r from-primary to-purple-600 text-white font-black text-lg shadow-2xl shadow-primary/30 pointer-events-auto cursor-pointer"
+          className="relative px-12 py-5 rounded-2xl font-black text-lg md:text-xl text-white overflow-hidden group"
         >
-          ENTER ⚔️
+          {/* Animated gradient bg */}
+          <motion.div
+            animate={{ backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] }}
+            transition={{ duration: 3, repeat: Infinity }}
+            className="absolute inset-0 rounded-2xl"
+            style={{
+              background: "linear-gradient(270deg, #00d4ff, #7c3aed, #00d4ff, #7c3aed)",
+              backgroundSize: "300% 300%",
+            }}
+          />
+          {/* Border glow */}
+          <div className="absolute inset-0 rounded-2xl shadow-[inset_0_0_20px_rgba(255,255,255,0.1)]" />
+          <span className="relative z-10 flex items-center gap-3">
+            ENTER
+            <motion.span
+              animate={{ x: [0, 8, 0] }}
+              transition={{ duration: 1, repeat: Infinity }}
+              className="text-2xl"
+            >
+              ⚔️
+            </motion.span>
+          </span>
         </motion.button>
+
+        {/* Bottom text */}
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={phase >= 5 ? { opacity: 1 } : {}}
+          transition={{ delay: 0.5 }}
+          className="absolute bottom-8 text-[9px] font-mono text-white/10 tracking-widest"
+        >
+          ARISE • CTRL+K SEARCH • TYPE &quot;ARISE&quot; FOR SURPRISE
+        </motion.p>
       </motion.div>
     </div>
   );
