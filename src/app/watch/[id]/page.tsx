@@ -1,69 +1,49 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Play, Bookmark, Heart, Star, Clock,
-  Film, ChevronLeft, Trash2, X, Video
+  Film, ChevronLeft, Trash2, X, Video, Maximize
 } from "lucide-react";
 import { useContentStore } from "@/hooks/use-content-store";
-import { ContentItem, OWNER_PASSWORD } from "@/data/content";
+import { ContentItem, OWNER_PASSWORD, TMDB_API_KEY } from "@/data/content";
 import { cn } from "@/lib/utils";
 
-const STREAMING_SERVERS = [
-  {
-    id: "vidsrc",
-    name: "VidSrc",
-    getMovieUrl: (title: string, year: number) =>
-      `https://vidsrc.xyz/embed/movie?tmdb=${encodeURIComponent(title)}`,
-    getTvUrl: (title: string, season: number, episode: number) =>
-      `https://vidsrc.xyz/embed/tv?tmdb=${encodeURIComponent(title)}&season=${season}&episode=${episode}`,
-  },
-  {
-    id: "vidsrc2",
-    name: "VidSrc Pro",
-    getMovieUrl: (title: string, year: number) =>
-      `https://vidsrc.pro/embed/movie/${encodeURIComponent(title)}-${year}`,
-    getTvUrl: (title: string, season: number, episode: number) =>
-      `https://vidsrc.pro/embed/tv/${encodeURIComponent(title)}/${season}/${episode}`,
-  },
-  {
-    id: "embed2",
-    name: "2Embed",
-    getMovieUrl: (title: string, year: number) =>
-      `https://www.2embed.cc/embed/${encodeURIComponent(title.toLowerCase().replace(/[^a-z0-9]+/g, '-'))}-${year}`,
-    getTvUrl: (title: string, season: number, episode: number) =>
-      `https://www.2embed.cc/embedtv/${encodeURIComponent(title.toLowerCase().replace(/[^a-z0-9]+/g, '-'))}&s=${season}&e=${episode}`,
-  },
-  {
-    id: "multiembed",
-    name: "MultiEmbed",
-    getMovieUrl: (title: string, year: number) =>
-      `https://multiembed.mov/directstream.php?video_id=${encodeURIComponent(title)}&s=1&e=1`,
-    getTvUrl: (title: string, season: number, episode: number) =>
-      `https://multiembed.mov/directstream.php?video_id=${encodeURIComponent(title)}&s=${season}&e=${episode}`,
-  },
-  {
-    id: "autoembed",
-    name: "AutoEmbed",
-    getMovieUrl: (title: string, year: number) =>
-      `https://autoembed.co/movie/tmdb/${encodeURIComponent(title)}`,
-    getTvUrl: (title: string, season: number, episode: number) =>
-      `https://autoembed.co/tv/tmdb/${encodeURIComponent(title)}-${season}-${episode}`,
-  },
-];
+function getServers(imdbId: string, tmdbId: string, type: string, season = 1, episode = 1) {
+  if (type === "movie") {
+    return [
+      { name: "VidSrc", url: `https://vidsrc.xyz/embed/movie/${imdbId}` },
+      { name: "VidSrc.to", url: `https://vidsrc.to/embed/movie/${imdbId}` },
+      { name: "MultiEmbed", url: `https://multiembed.mov/?video_id=${imdbId}&tmdb=1&quality=1080p` },
+      { name: "AutoEmbed", url: `https://autoembed.co/movie/imdb/${imdbId}` },
+      { name: "2Embed", url: `https://www.2embed.cc/embed/${imdbId}` },
+    ];
+  }
+  return [
+    { name: "VidSrc", url: `https://vidsrc.xyz/embed/tv/${imdbId}/${season}/${episode}` },
+    { name: "VidSrc.to", url: `https://vidsrc.to/embed/tv/${imdbId}/${season}/${episode}` },
+    { name: "MultiEmbed", url: `https://multiembed.mov/?video_id=${imdbId}&tmdb=1&s=${season}&e=${episode}&quality=1080p` },
+    { name: "AutoEmbed", url: `https://autoembed.co/tv/imdb/${imdbId}-${season}-${episode}` },
+    { name: "2Embed", url: `https://www.2embed.cc/embedtv/${imdbId}&s=${season}&e=${episode}` },
+  ];
+}
 
 export default function WatchPage() {
   const params = useParams();
   const router = useRouter();
-  const { getContentById, toggleFavorite, toggleWatchlist, addToHistory, favorites, watchlist, removeContent } = useContentStore();
+  const { getContentById, toggleFavorite, toggleWatchlist, addToHistory, favorites, watchlist, removeContent, updateContent } = useContentStore();
   const [item, setItem] = useState<ContentItem | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [showTrailer, setShowTrailer] = useState(false);
   const [selectedServer, setSelectedServer] = useState(0);
   const [selectedSeason, setSelectedSeason] = useState(1);
   const [selectedEpisode, setSelectedEpisode] = useState(1);
+  const [imdbId, setImdbId] = useState<string | null>(null);
+  const [tmdbId, setTmdbId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const trailerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const found = getContentById(params.id as string);
@@ -72,6 +52,63 @@ export default function WatchPage() {
       addToHistory(found.id);
     }
   }, [params.id, getContentById, addToHistory]);
+
+  // Auto-fetch TMDB/IMDB IDs when item loads
+  const fetchIds = useCallback(async () => {
+    if (!item) return;
+    
+    // Check if already cached on the item
+    if ((item as unknown as Record<string, string>).imdbId) {
+      setImdbId((item as unknown as Record<string, string>).imdbId);
+      setTmdbId((item as unknown as Record<string, string>).tmdbId || null);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const searchType = item.type === "movie" ? "movie" : "tv";
+      const searchRes = await fetch(
+        `https://api.themoviedb.org/3/search/${searchType}?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(item.title)}&year=${item.year || ""}`
+      );
+      const searchData = await searchRes.json();
+
+      if (searchData.results && searchData.results.length > 0) {
+        const tmdb = searchData.results[0].id;
+        setTmdbId(String(tmdb));
+
+        const idsRes = await fetch(
+          `https://api.themoviedb.org/3/${searchType}/${tmdb}/external_ids?api_key=${TMDB_API_KEY}`
+        );
+        const idsData = await idsRes.json();
+        const imdb = idsData.imdb_id;
+
+        if (imdb) {
+          setImdbId(imdb);
+          // Cache it on the item for next time
+          updateContent(item.id, { ...item, imdbId: imdb, tmdbId: String(tmdb) } as unknown as Partial<ContentItem>);
+        }
+      }
+    } catch (e) {
+      console.error("Failed to fetch IDs:", e);
+    }
+    setLoading(false);
+  }, [item, updateContent]);
+
+  useEffect(() => {
+    if (item && !imdbId) fetchIds();
+  }, [item, imdbId, fetchIds]);
+
+  // Fullscreen trailer
+  const openTrailerFullscreen = () => {
+    setShowTrailer(true);
+    setTimeout(() => {
+      if (trailerRef.current) {
+        const el = trailerRef.current;
+        if (el.requestFullscreen) el.requestFullscreen();
+        else if ((el as unknown as { webkitRequestFullscreen: () => void }).webkitRequestFullscreen) (el as unknown as { webkitRequestFullscreen: () => void }).webkitRequestFullscreen();
+      }
+    }, 300);
+  };
 
   if (!item) {
     return (
@@ -95,17 +132,12 @@ export default function WatchPage() {
     }
   };
 
+  const servers = imdbId ? getServers(imdbId, tmdbId || "", item.type === "movie" ? "movie" : "tv", selectedSeason, selectedEpisode) : [];
+
   const getPlayerUrl = () => {
     if (selectedServer === -1 && item.video) return item.video;
-
-    const server = STREAMING_SERVERS[selectedServer];
-    if (!server) return "";
-
-    if (item.type === "movie") {
-      return server.getMovieUrl(item.title, item.year);
-    } else {
-      return server.getTvUrl(item.title, selectedSeason, selectedEpisode);
-    }
+    if (servers[selectedServer]) return servers[selectedServer].url;
+    return "";
   };
 
   return (
@@ -118,7 +150,7 @@ export default function WatchPage() {
         <ChevronLeft className="w-5 h-5" />
       </button>
 
-      {/* Trailer Modal */}
+      {/* Trailer Fullscreen Modal */}
       <AnimatePresence>
         {showTrailer && item.trailer && (
           <>
@@ -127,32 +159,27 @@ export default function WatchPage() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setShowTrailer(false)}
-              className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50"
+              className="fixed inset-0 bg-black/90 z-50"
             />
             <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
+              ref={trailerRef}
+              initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              className="fixed inset-4 lg:inset-16 z-50 flex items-center justify-center"
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="fixed inset-0 z-50 flex items-center justify-center bg-black"
             >
-              <div className="w-full max-w-5xl">
-                <div className="flex justify-end mb-2">
-                  <button
-                    onClick={() => setShowTrailer(false)}
-                    className="p-2 rounded-lg bg-white/10 text-white hover:bg-white/20 transition-colors"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
-                </div>
-                <div className="w-full aspect-video rounded-xl overflow-hidden bg-black ring-1 ring-white/10 shadow-2xl">
-                  <iframe
-                    src={`https://www.youtube.com/embed/${item.trailer}?autoplay=1&rel=0`}
-                    className="w-full h-full border-0"
-                    allowFullScreen
-                    allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
-                  />
-                </div>
-              </div>
+              <button
+                onClick={() => { setShowTrailer(false); if (document.fullscreenElement) document.exitFullscreen(); }}
+                className="absolute top-4 right-4 z-10 p-3 rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button>
+              <iframe
+                src={`https://www.youtube.com/embed/${item.trailer}?autoplay=1&rel=0&modestbranding=1&vq=hd1080`}
+                className="w-full h-full border-0"
+                allowFullScreen
+                allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
+              />
             </motion.div>
           </>
         )}
@@ -213,18 +240,23 @@ export default function WatchPage() {
             {/* Action Buttons */}
             <div className="flex flex-wrap items-center gap-3 mb-8">
               <button
-                onClick={() => setIsPlaying(true)}
-                className="flex items-center gap-2 px-6 py-3 rounded-lg bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-all hover:scale-105 active:scale-95"
+                onClick={() => { if (!imdbId && !item.video) { fetchIds(); } setIsPlaying(true); }}
+                disabled={loading}
+                className="flex items-center gap-2 px-6 py-3 rounded-lg bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-all hover:scale-105 active:scale-95 disabled:opacity-50"
               >
-                <Play className="w-5 h-5 fill-current" /> Watch Now
+                {loading ? (
+                  <><div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" /> Finding stream...</>
+                ) : (
+                  <><Play className="w-5 h-5 fill-current" /> Watch Now</>
+                )}
               </button>
 
               {item.trailer && (
                 <button
-                  onClick={() => setShowTrailer(true)}
+                  onClick={openTrailerFullscreen}
                   className="flex items-center gap-2 px-5 py-3 rounded-lg bg-white/10 text-white font-medium hover:bg-white/20 transition-all border border-white/10"
                 >
-                  <Video className="w-4 h-4" /> Trailer
+                  <Maximize className="w-4 h-4" /> Trailer
                 </button>
               )}
 
@@ -295,49 +327,60 @@ export default function WatchPage() {
                 animate={{ opacity: 1, y: 0 }}
                 className="mb-6"
               >
-                <h3 className="text-sm font-semibold mb-3">Select Server</h3>
-                <p className="text-xs text-muted-foreground mb-3">If one server doesn&apos;t work, try another. Some servers work better for certain content.</p>
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {STREAMING_SERVERS.map((server, i) => (
-                    <button
-                      key={server.id}
-                      onClick={() => setSelectedServer(i)}
-                      className={cn(
-                        "px-4 py-2 rounded-lg text-xs font-medium transition-all",
-                        selectedServer === i ? "bg-primary text-primary-foreground glow-cyan" : "bg-muted text-muted-foreground hover:bg-muted/80"
-                      )}
-                    >
-                      {server.name}
-                    </button>
-                  ))}
-                  {item.video && (
-                    <button
-                      onClick={() => setSelectedServer(-1)}
-                      className={cn(
-                        "px-4 py-2 rounded-lg text-xs font-medium transition-all",
-                        selectedServer === -1 ? "bg-primary text-primary-foreground glow-cyan" : "bg-muted text-muted-foreground hover:bg-muted/80"
-                      )}
-                    >
-                      Direct Link
-                    </button>
-                  )}
-                </div>
+                {!imdbId && !item.video && !loading && (
+                  <div className="p-4 rounded-xl bg-muted border border-border text-center">
+                    <p className="text-sm text-muted-foreground mb-3">Could not find streaming source for this title.</p>
+                    <button onClick={fetchIds} className="text-sm text-primary hover:underline">Try again</button>
+                  </div>
+                )}
 
-                {/* Player */}
-                <div className="w-full aspect-video rounded-xl overflow-hidden bg-black ring-1 ring-white/10 shadow-2xl">
-                  <iframe
-                    key={`${selectedServer}-${selectedSeason}-${selectedEpisode}`}
-                    src={getPlayerUrl()}
-                    className="w-full h-full border-0"
-                    allowFullScreen
-                    allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
-                    sandbox="allow-same-origin allow-scripts allow-forms allow-popups"
-                  />
-                </div>
+                {(imdbId || item.video) && (
+                  <>
+                    <h3 className="text-sm font-semibold mb-3">Select Server</h3>
+                    <p className="text-xs text-muted-foreground mb-3">If one server doesn&apos;t work, try another one.</p>
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      {servers.map((server, i) => (
+                        <button
+                          key={server.name}
+                          onClick={() => setSelectedServer(i)}
+                          className={cn(
+                            "px-4 py-2 rounded-lg text-xs font-medium transition-all",
+                            selectedServer === i ? "bg-primary text-primary-foreground glow-cyan" : "bg-muted text-muted-foreground hover:bg-muted/80"
+                          )}
+                        >
+                          {server.name}
+                        </button>
+                      ))}
+                      {item.video && (
+                        <button
+                          onClick={() => setSelectedServer(-1)}
+                          className={cn(
+                            "px-4 py-2 rounded-lg text-xs font-medium transition-all",
+                            selectedServer === -1 ? "bg-primary text-primary-foreground glow-cyan" : "bg-muted text-muted-foreground hover:bg-muted/80"
+                          )}
+                        >
+                          Direct Link
+                        </button>
+                      )}
+                    </div>
 
-                <p className="text-[11px] text-muted-foreground mt-3">
-                  💡 Tip: Use an ad blocker (uBlock Origin) for the best experience. If a server doesn&apos;t load, try switching to another one.
-                </p>
+                    {/* Player */}
+                    <div className="w-full aspect-video rounded-xl overflow-hidden bg-black ring-1 ring-white/10 shadow-2xl">
+                      <iframe
+                        key={`${selectedServer}-${selectedSeason}-${selectedEpisode}-${imdbId}`}
+                        src={getPlayerUrl()}
+                        className="w-full h-full border-0"
+                        allowFullScreen
+                        allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
+                        sandbox="allow-same-origin allow-scripts allow-forms allow-popups"
+                      />
+                    </div>
+
+                    <p className="text-[11px] text-muted-foreground mt-3">
+                      Use an ad blocker (uBlock Origin) for the best experience. If a server doesn&apos;t load, switch to another.
+                    </p>
+                  </>
+                )}
               </motion.div>
             )}
           </div>
