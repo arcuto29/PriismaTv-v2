@@ -17,7 +17,7 @@ export function GlobalFeatures() {
 
   return (
     <>
-      <LoadingScreen />
+      {/* Removed LoadingScreen - welcome page already serves as intro */}
       {isLoaded && (
         <>
           <SpinWheel items={movies} />

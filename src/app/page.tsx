@@ -148,7 +148,7 @@ export default function WelcomePage() {
     if (!authenticated) return;
     const autoEnter = setTimeout(() => {
       enter();
-    }, 5500); // Auto-shatter after 5.5 seconds
+    }, 3000); // Auto-shatter after 3 seconds
     return () => clearTimeout(autoEnter);
   }, [authenticated]); // eslint-disable-line react-hooks/exhaustive-deps
 
