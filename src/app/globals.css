@@ -176,3 +176,46 @@ body {
 .pulse-glow {
   animation: pulse-glow 2s ease-in-out infinite;
 }
+
+
+/* Cursor light follow effect */
+.cursor-light {
+  position: fixed;
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0, 212, 255, 0.06) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 1;
+  transform: translate(-50%, -50%);
+  transition: opacity 0.3s;
+}
+
+.light .cursor-light {
+  background: radial-gradient(circle, rgba(2, 132, 199, 0.04) 0%, transparent 70%);
+}
+
+/* Jin-Woo fog/mist layer animation */
+@keyframes fog-drift {
+  0% { transform: translateX(0); }
+  50% { transform: translateX(-5%); }
+  100% { transform: translateX(0); }
+}
+
+.fog-layer {
+  animation: fog-drift 20s ease-in-out infinite;
+}
+
+/* Arise text animation */
+@keyframes arise-glow {
+  0%, 100% {
+    text-shadow: 0 0 10px rgba(0, 212, 255, 0.5), 0 0 30px rgba(0, 212, 255, 0.3), 0 0 60px rgba(0, 212, 255, 0.1);
+  }
+  50% {
+    text-shadow: 0 0 20px rgba(0, 212, 255, 0.8), 0 0 50px rgba(0, 212, 255, 0.5), 0 0 100px rgba(0, 212, 255, 0.2);
+  }
+}
+
+.arise-glow {
+  animation: arise-glow 3s ease-in-out infinite;
+}

@@ -4,6 +4,7 @@ import "./globals.css";
 import { Sidebar } from "@/components/layout/sidebar";
 import { TopBar } from "@/components/layout/top-bar";
 import { GlobalFeatures } from "@/components/features/global-features";
+import { AnimatedBackground } from "@/components/layout/animated-background";
 
 const inter = Inter({
   variable: "--font-geist-sans",
@@ -35,7 +36,8 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} dark`} suppressHydrationWarning>
       <body className="min-h-screen bg-background text-foreground font-sans antialiased">
-        <div className="flex min-h-screen">
+        <AnimatedBackground />
+        <div className="relative z-10 flex min-h-screen">
           <Sidebar />
           <main className="flex-1 lg:ml-[240px] min-h-screen flex flex-col">
             <TopBar />
