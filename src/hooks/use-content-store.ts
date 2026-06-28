@@ -47,6 +47,64 @@ export function useContentStore() {
     localStorage.setItem(STORAGE_KEYS.CONTENT, JSON.stringify(items));
   }, []);
 
+  // Auto-fix broken poster URLs from TMDB
+  useEffect(() => {
+    if (!isLoaded || content.length === 0) return;
+    
+    let didFix = false;
+    const fixPosters = async () => {
+      const TMDB_KEY = "2dca580c2a14b55200e784d157207b4d";
+      const updated = [...content];
+      
+      for (let i = 0; i < updated.length; i++) {
+        const item = updated[i];
+        // Skip if already verified or no poster needed
+        if ((item as unknown as Record<string, boolean>).posterOk) continue;
+        
+        try {
+          // Test if poster loads
+          if (item.poster) {
+            const test = await fetch(item.poster, { method: "HEAD" });
+            if (test.ok) {
+              (item as unknown as Record<string, boolean>).posterOk = true;
+              continue;
+            }
+          }
+          
+          // Poster is broken or missing — fetch from TMDB
+          const searchType = item.type === "movie" ? "movie" : "tv";
+          const res = await fetch(
+            `https://api.themoviedb.org/3/search/${searchType}?api_key=${TMDB_KEY}&query=${encodeURIComponent(item.title)}&year=${item.year || ""}`
+          );
+          const data = await res.json();
+          if (data.results && data.results.length > 0) {
+            const r = data.results[0];
+            if (r.poster_path) {
+              item.poster = `https://image.tmdb.org/t/p/w500${r.poster_path}`;
+              didFix = true;
+            }
+            if (r.backdrop_path) {
+              item.backdrop = `https://image.tmdb.org/t/p/original${r.backdrop_path}`;
+            }
+            (item as unknown as Record<string, boolean>).posterOk = true;
+          }
+          // Rate limit - small delay
+          await new Promise((r) => setTimeout(r, 200));
+        } catch {
+          // Skip failures silently
+        }
+      }
+      
+      if (didFix) {
+        setContent(updated);
+        localStorage.setItem(STORAGE_KEYS.CONTENT, JSON.stringify(updated));
+        console.log("[PriismaTv] Fixed broken poster images from TMDB");
+      }
+    };
+    
+    fixPosters();
+  }, [isLoaded]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const addContent = useCallback((item: ContentItem) => {
     setContent((prev) => {
       const updated = [item, ...prev];
