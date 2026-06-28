@@ -16,7 +16,7 @@ export function useContentStore() {
   useEffect(() => {
     // NUCLEAR FIX: Always force fresh content on load
     // This guarantees poster images are loaded correctly
-    const currentVersion = "v5.0-fixed-posters";
+    const currentVersion = "v6.0-mega";
     const storedVersion = localStorage.getItem("priismatv_version");
     
     if (storedVersion !== currentVersion) {
