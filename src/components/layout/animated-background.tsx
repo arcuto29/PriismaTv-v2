@@ -85,29 +85,25 @@ export function AnimatedBackground() {
       <div ref={cursorRef} className="cursor-light hidden lg:block" />
 
       {/* Jin-Woo Video Background */}
-      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
-        <video
-          autoPlay
-          muted
-          loop
-          playsInline
-          className="absolute inset-0 w-full h-full object-cover opacity-[0.18]"
-        >
-          <source src="/jinwoo-bg.mp4" type="video/mp4" />
-        </video>
-        {/* Fog/mist overlay on video */}
-        <div className="absolute inset-0 fog-layer bg-gradient-to-br from-primary/5 via-transparent to-purple-900/5" />
-      </div>
+      <video
+        autoPlay
+        muted
+        loop
+        playsInline
+        className="fixed inset-0 w-full h-full object-cover z-0 pointer-events-none opacity-30"
+      >
+        <source src="/jinwoo-bg.mp4" type="video/mp4" />
+      </video>
 
       {/* Animated stars on top */}
       <canvas
         ref={canvasRef}
         className="fixed inset-0 z-0 pointer-events-none"
-        style={{ opacity: 0.5 }}
+        style={{ opacity: 0.4 }}
       />
 
       {/* Dark gradient overlay for readability */}
-      <div className="fixed inset-0 z-0 pointer-events-none bg-gradient-to-b from-background/70 via-background/60 to-background/90" />
+      <div className="fixed inset-0 z-0 pointer-events-none bg-gradient-to-b from-background/60 via-background/50 to-background/80" />
     </>
   );
 }
