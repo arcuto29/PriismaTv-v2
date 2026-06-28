@@ -5,6 +5,7 @@ import { ChatWidget } from "./chat-widget";
 import { SpotlightSearch } from "./spotlight-search";
 import { AriseEasterEgg } from "./arise-easter-egg";
 import { LoadingScreen } from "./loading-screen";
+import { KeyboardShortcuts } from "./keyboard-shortcuts";
 
 export function GlobalFeatures() {
   const { content, isLoaded } = useContentStore();
@@ -21,6 +22,7 @@ export function GlobalFeatures() {
           <ChatWidget />
           <SpotlightSearch />
           <AriseEasterEgg />
+          <KeyboardShortcuts />
         </>
       )}
     </>

@@ -4,11 +4,12 @@ import { Flame, Clock, Star, Sword, Film, Tv, Sparkles } from "lucide-react";
 import { useContentStore } from "@/hooks/use-content-store";
 import { HeroSection } from "@/components/content/hero-section";
 import { ContentRow } from "@/components/content/content-row";
+import { Recommendations } from "@/components/content/recommendations";
 
 export default function HomePage() {
   const {
-    trending, recentlyAdded, topRated, anime, movies, tvshows,
-    favorites, watchlist, toggleFavorite, toggleWatchlist, isLoaded,
+    content, trending, recentlyAdded, topRated, anime, movies, tvshows,
+    favorites, watchlist, history, toggleFavorite, toggleWatchlist, isLoaded,
   } = useContentStore();
 
   if (!isLoaded) {
@@ -45,6 +46,15 @@ export default function HomePage() {
           onWatchlist={toggleWatchlist}
           favorites={favorites}
           watchlist={watchlist}
+        />
+
+        <Recommendations
+          content={content}
+          history={history}
+          favorites={favorites}
+          watchlist={watchlist}
+          onFavorite={toggleFavorite}
+          onWatchlist={toggleWatchlist}
         />
 
         <ContentRow
