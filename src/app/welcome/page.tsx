@@ -23,17 +23,20 @@ export default function WelcomePage() {
     return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(t4); clearTimeout(t5); };
   }, []);
 
-  // Typing animation
+  // Typing animation - runs once only
   useEffect(() => {
     if (phase < 2) return;
     let i = 0;
-    const interval = setInterval(() => {
-      setTypedText(fullText.slice(0, i + 1));
+    let cancelled = false;
+    const type = () => {
+      if (cancelled || i >= fullText.length) return;
       i++;
-      if (i >= fullText.length) clearInterval(interval);
-    }, 50);
-    return () => clearInterval(interval);
-  }, [phase]);
+      setTypedText(fullText.slice(0, i));
+      setTimeout(type, 50);
+    };
+    type();
+    return () => { cancelled = true; };
+  }, [phase >= 2]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Random glitch flicker
   useEffect(() => {
