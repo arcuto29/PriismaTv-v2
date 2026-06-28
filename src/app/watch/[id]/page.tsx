@@ -8,7 +8,9 @@ import {
   Film, ChevronLeft, Trash2, X, Video, Maximize, Edit3, Save, Wand2
 } from "lucide-react";
 import { useContentStore } from "@/hooks/use-content-store";
+import { useRatings } from "@/hooks/use-ratings";
 import { ContentItem, OWNER_PASSWORD, TMDB_API_KEY } from "@/data/content";
+import { StarRating } from "@/components/features/star-rating";
 import { cn } from "@/lib/utils";
 
 function getServers(imdbId: string, tmdbId: string, type: string, season = 1, episode = 1) {
@@ -34,6 +36,7 @@ export default function WatchPage() {
   const params = useParams();
   const router = useRouter();
   const { getContentById, toggleFavorite, toggleWatchlist, addToHistory, favorites, watchlist, removeContent, updateContent } = useContentStore();
+  const { getRating, rateContent } = useRatings();
   const [item, setItem] = useState<ContentItem | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [showTrailer, setShowTrailer] = useState(false);
@@ -243,6 +246,12 @@ export default function WatchPage() {
             <p className="text-muted-foreground text-sm lg:text-base leading-relaxed mb-6 max-w-2xl">
               {item.description}
             </p>
+
+            {/* Your Rating */}
+            <div className="mb-6 flex items-center gap-3">
+              <span className="text-sm font-medium text-muted-foreground">Your Rating:</span>
+              <StarRating rating={getRating(item.id)} onRate={(r) => rateContent(item.id, r)} />
+            </div>
 
             {/* Action Buttons */}
             <div className="flex flex-wrap items-center gap-3 mb-8">

@@ -1,22 +1,33 @@
 "use client";
-import { Settings, Moon, Sun, Smartphone, Share2, Download, Shield, ImageOff } from "lucide-react";
-import { useTheme } from "@/hooks/use-theme";
+import { useState } from "react";
+import { Settings, Moon, Sun, Smartphone, Share2, Download, Shield, ImageOff, Palette, UserPlus, X } from "lucide-react";
+import { useTheme, ThemeColor } from "@/hooks/use-theme";
+import { useProfiles } from "@/hooks/use-profiles";
 import { useContentStore } from "@/hooks/use-content-store";
-import { OWNER_PASSWORD, STORAGE_KEYS } from "@/data/content";
-import { SAMPLE_CONTENT } from "@/data/sample-content";
+import { STORAGE_KEYS } from "@/data/content";
+
+const THEME_OPTIONS: { id: ThemeColor; label: string; color: string }[] = [
+  { id: "cyan", label: "Cyan (Default)", color: "bg-cyan-500" },
+  { id: "purple", label: "Purple", color: "bg-purple-500" },
+  { id: "red", label: "Red", color: "bg-red-500" },
+  { id: "green", label: "Green", color: "bg-green-500" },
+  { id: "gold", label: "Gold", color: "bg-yellow-500" },
+  { id: "seasonal", label: "Seasonal Auto", color: "bg-gradient-to-r from-orange-500 to-red-500" },
+];
 
 export default function SettingsPage() {
-  const { theme, toggleTheme } = useTheme();
+  const { theme, toggleTheme, themeColor, changeColor, seasonalName } = useTheme();
+  const { profiles, activeProfile, addProfile, removeProfile, switchProfile, updateProfile, AVATARS, COLORS } = useProfiles();
   const { content } = useContentStore();
+  const [newName, setNewName] = useState("");
+  const [newAvatar, setNewAvatar] = useState("🐉");
+  const [newColor, setNewColor] = useState("from-cyan-500 to-blue-600");
+  const [showAddProfile, setShowAddProfile] = useState(false);
 
   const handleFixImages = () => {
     localStorage.removeItem(STORAGE_KEYS.CONTENT);
     localStorage.removeItem("priismatv_version");
     window.location.reload();
-  };
-
-  const handleInstallPWA = () => {
-    alert("To install PriismaTv as an app:\n\n1. Open this site in Chrome/Edge\n2. Click the install icon in the address bar\n3. Or go to browser menu > Install App");
   };
 
   const handleExport = () => {
@@ -28,6 +39,13 @@ export default function SettingsPage() {
     URL.revokeObjectURL(url);
   };
 
+  const handleCreateProfile = () => {
+    if (!newName.trim()) return;
+    addProfile(newName.trim(), newAvatar, newColor);
+    setNewName("");
+    setShowAddProfile(false);
+  };
+
   return (
     <div className="px-4 lg:px-8 py-6">
       <div className="flex items-center gap-2 mb-6">
@@ -36,16 +54,37 @@ export default function SettingsPage() {
       </div>
 
       <div className="max-w-2xl space-y-4">
-        {/* Appearance */}
+        {/* Theme Color */}
+        <div className="p-5 rounded-xl bg-card border border-border">
+          <h3 className="font-semibold mb-4 flex items-center gap-2"><Palette className="w-4 h-4" /> Theme Color</h3>
+          <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 mb-3">
+            {THEME_OPTIONS.map((t) => (
+              <button
+                key={t.id}
+                onClick={() => changeColor(t.id)}
+                className={`p-3 rounded-xl text-center transition-all border-2 ${
+                  themeColor === t.id ? "border-foreground scale-105" : "border-transparent hover:border-white/20"
+                }`}
+              >
+                <div className={`w-8 h-8 rounded-full ${t.color} mx-auto mb-1`} />
+                <p className="text-[10px] font-medium">{t.label}</p>
+              </button>
+            ))}
+          </div>
+          {themeColor === "seasonal" && (
+            <p className="text-xs text-muted-foreground">Current season: {seasonalName}</p>
+          )}
+        </div>
+
+        {/* Dark/Light Mode */}
         <div className="p-5 rounded-xl bg-card border border-border">
           <h3 className="font-semibold mb-4 flex items-center gap-2">
-            {theme === "dark" ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
-            Appearance
+            {theme === "dark" ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />} Appearance
           </h3>
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium">Dark Mode</p>
-              <p className="text-xs text-muted-foreground">Solo Leveling inspired dark theme with cyan accents</p>
+              <p className="text-xs text-muted-foreground">Solo Leveling dark theme</p>
             </div>
             <button
               onClick={toggleTheme}
@@ -56,48 +95,109 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        {/* PWA */}
+        {/* User Profiles */}
         <div className="p-5 rounded-xl bg-card border border-border">
-          <h3 className="font-semibold mb-4 flex items-center gap-2"><Smartphone className="w-4 h-4" /> Install as App</h3>
-          <p className="text-sm text-muted-foreground mb-3">Install PriismaTv on your device for a native app experience.</p>
-          <button onClick={handleInstallPWA} className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-all">
-            Install PriismaTv
-          </button>
+          <h3 className="font-semibold mb-4 flex items-center gap-2"><UserPlus className="w-4 h-4" /> Profiles</h3>
+          <div className="flex flex-wrap gap-3 mb-4">
+            {profiles.map((p) => (
+              <div key={p.id} className="relative group">
+                <button
+                  onClick={() => switchProfile(p)}
+                  className={`flex flex-col items-center p-3 rounded-xl transition-all border-2 ${
+                    activeProfile.id === p.id ? "border-primary bg-primary/10" : "border-transparent hover:border-white/10"
+                  }`}
+                >
+                  <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${p.color} flex items-center justify-center text-xl mb-1`}>
+                    {p.avatar}
+                  </div>
+                  <p className="text-xs font-medium">{p.name}</p>
+                </button>
+                {p.id !== "default" && (
+                  <button
+                    onClick={() => removeProfile(p.id)}
+                    className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                )}
+              </div>
+            ))}
+            <button
+              onClick={() => setShowAddProfile(!showAddProfile)}
+              className="flex flex-col items-center p-3 rounded-xl border-2 border-dashed border-border hover:border-primary/50 transition-colors"
+            >
+              <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center text-xl mb-1">+</div>
+              <p className="text-xs font-medium text-muted-foreground">Add</p>
+            </button>
+          </div>
+
+          {showAddProfile && (
+            <div className="p-4 rounded-lg bg-muted space-y-3">
+              <input type="text" value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Profile name..."
+                className="w-full px-3 py-2 rounded-lg bg-background border border-border text-sm focus:outline-none focus:ring-1 focus:ring-primary" />
+              <div>
+                <p className="text-xs text-muted-foreground mb-2">Choose Avatar:</p>
+                <div className="flex flex-wrap gap-2">
+                  {AVATARS.map((a) => (
+                    <button key={a} onClick={() => setNewAvatar(a)}
+                      className={`w-9 h-9 rounded-lg flex items-center justify-center text-lg transition-all ${newAvatar === a ? "bg-primary/20 ring-2 ring-primary" : "bg-background hover:bg-background/80"}`}>
+                      {a}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground mb-2">Choose Color:</p>
+                <div className="flex flex-wrap gap-2">
+                  {COLORS.map((c) => (
+                    <button key={c} onClick={() => setNewColor(c)}
+                      className={`w-8 h-8 rounded-full bg-gradient-to-br ${c} transition-all ${newColor === c ? "ring-2 ring-white scale-110" : "hover:scale-105"}`} />
+                  ))}
+                </div>
+              </div>
+              <button onClick={handleCreateProfile} className="w-full py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium">Create Profile</button>
+            </div>
+          )}
         </div>
 
         {/* Fix Images */}
         <div className="p-5 rounded-xl bg-card border border-border">
           <h3 className="font-semibold mb-4 flex items-center gap-2"><ImageOff className="w-4 h-4" /> Fix Cover Images</h3>
-          <p className="text-sm text-muted-foreground mb-3">If cover images aren&apos;t showing, click this to reload all content with fresh poster URLs.</p>
+          <p className="text-sm text-muted-foreground mb-3">If covers aren&apos;t showing, click to reload fresh data.</p>
           <button onClick={handleFixImages} className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-all">
             Fix Images Now
+          </button>
+        </div>
+
+        {/* PWA */}
+        <div className="p-5 rounded-xl bg-card border border-border">
+          <h3 className="font-semibold mb-4 flex items-center gap-2"><Smartphone className="w-4 h-4" /> Install as App</h3>
+          <p className="text-sm text-muted-foreground mb-3">Install PriismaTv on your device for a native app experience.</p>
+          <button onClick={() => alert("Open in Chrome/Edge → Click install icon in address bar → Or go to menu → Install App")} className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-all">
+            Install PriismaTv
           </button>
         </div>
 
         {/* Data */}
         <div className="p-5 rounded-xl bg-card border border-border">
           <h3 className="font-semibold mb-4 flex items-center gap-2"><Download className="w-4 h-4" /> Data Management</h3>
-          <div className="space-y-3">
-            <button onClick={handleExport} className="w-full py-2.5 rounded-lg bg-muted text-sm font-medium text-foreground hover:bg-muted/80 transition-colors flex items-center justify-center gap-2">
-              <Share2 className="w-4 h-4" /> Export All Data
-            </button>
-            <p className="text-xs text-muted-foreground">Your content: {content.length} items total</p>
-          </div>
+          <button onClick={handleExport} className="w-full py-2.5 rounded-lg bg-muted text-sm font-medium text-foreground hover:bg-muted/80 transition-colors flex items-center justify-center gap-2">
+            <Share2 className="w-4 h-4" /> Export All Data
+          </button>
+          <p className="text-xs text-muted-foreground mt-2">Library: {content.length} titles</p>
         </div>
 
         {/* Security */}
         <div className="p-5 rounded-xl bg-card border border-border">
           <h3 className="font-semibold mb-4 flex items-center gap-2"><Shield className="w-4 h-4" /> Security</h3>
-          <p className="text-sm text-muted-foreground">Admin actions (add/edit/delete content) are protected by owner password.</p>
-          <p className="text-xs text-muted-foreground mt-2">Once authenticated, access persists for the session.</p>
+          <p className="text-sm text-muted-foreground">Admin actions are protected by owner password.</p>
         </div>
 
         {/* About */}
         <div className="p-5 rounded-xl bg-card border border-border">
-          <h3 className="font-semibold mb-2">About PriismaTv</h3>
-          <p className="text-sm text-muted-foreground">Version 2.0 — Complete redesign with Next.js, Tailwind CSS, Framer Motion.</p>
-          <p className="text-sm text-muted-foreground mt-1">Solo Leveling / Jin-Woo inspired theme.</p>
-          <p className="text-xs text-primary mt-3">Built with love. Arise!</p>
+          <h3 className="font-semibold mb-2">About PriismaTv v2</h3>
+          <p className="text-sm text-muted-foreground">423+ titles • Next.js • Tailwind • Framer Motion</p>
+          <p className="text-xs text-primary mt-2">Solo Leveling inspired. Arise! ⚔️</p>
         </div>
       </div>
     </div>
