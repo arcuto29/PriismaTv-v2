@@ -128,22 +128,64 @@ export default function WelcomePage() {
         className="absolute left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-primary/40 to-transparent z-[3] pointer-events-none"
       />
 
-      {/* 3D Rotating cube wireframe */}
+      {/* 3D Rotating sphere with wireframe */}
       <div className="absolute inset-0 flex items-center justify-center z-[4]" style={{ perspective: "800px" }}>
+        {/* Outer wireframe sphere - horizontal lines */}
         <motion.div
-          animate={{ rotateX: 360, rotateY: 360 }}
-          transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
-          className="w-[250px] h-[250px] md:w-[350px] md:h-[350px] relative"
+          animate={{ rotateY: 360 }}
+          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+          className="absolute w-[200px] h-[200px] md:w-[300px] md:h-[300px]"
           style={{ transformStyle: "preserve-3d" }}
         >
-          {[
-            "translateZ(125px)", "translateZ(-125px) rotateY(180deg)",
-            "rotateY(90deg) translateZ(125px)", "rotateY(-90deg) translateZ(125px)",
-            "rotateX(90deg) translateZ(125px)", "rotateX(-90deg) translateZ(125px)",
-          ].map((transform, i) => (
-            <div key={i} className="absolute inset-0 border border-primary/[0.06] rounded-lg" style={{ transform, backfaceVisibility: "visible" }} />
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div
+              key={`h-${i}`}
+              className="absolute inset-0 rounded-full border border-primary/20"
+              style={{
+                transform: `rotateX(${i * 22.5}deg)`,
+                transformStyle: "preserve-3d",
+              }}
+            />
           ))}
         </motion.div>
+
+        {/* Vertical lines rotating opposite */}
+        <motion.div
+          animate={{ rotateX: 360 }}
+          transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+          className="absolute w-[200px] h-[200px] md:w-[300px] md:h-[300px]"
+          style={{ transformStyle: "preserve-3d" }}
+        >
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div
+              key={`v-${i}`}
+              className="absolute inset-0 rounded-full border border-purple-500/15"
+              style={{
+                transform: `rotateY(${i * 22.5}deg)`,
+                transformStyle: "preserve-3d",
+              }}
+            />
+          ))}
+        </motion.div>
+
+        {/* Inner glowing core */}
+        <motion.div
+          animate={{ scale: [1, 1.15, 1], opacity: [0.4, 0.7, 0.4] }}
+          transition={{ duration: 3, repeat: Infinity }}
+          className="absolute w-[80px] h-[80px] md:w-[120px] md:h-[120px] rounded-full"
+          style={{
+            background: "radial-gradient(circle, rgba(0,212,255,0.4) 0%, rgba(124,58,237,0.2) 50%, transparent 70%)",
+            boxShadow: "0 0 40px rgba(0,212,255,0.3), 0 0 80px rgba(0,212,255,0.15), inset 0 0 30px rgba(0,212,255,0.2)",
+          }}
+        />
+
+        {/* Bright center dot */}
+        <motion.div
+          animate={{ scale: [1, 1.3, 1] }}
+          transition={{ duration: 2, repeat: Infinity }}
+          className="absolute w-4 h-4 md:w-6 md:h-6 rounded-full bg-white/80"
+          style={{ boxShadow: "0 0 20px #00d4ff, 0 0 40px #00d4ff, 0 0 60px rgba(0,212,255,0.5)" }}
+        />
       </div>
 
       {/* Orbiting rings */}
