@@ -11,8 +11,34 @@ export default function WelcomePage() {
   const [countdown, setCountdown] = useState<number | null>(null);
   const [glitch, setGlitch] = useState(false);
   const [shards, setShards] = useState<{ x: number; y: number; w: number; h: number; rx: number; ry: number; delay: number }[]>([]);
+  const [authenticated, setAuthenticated] = useState(false);
+  const [password, setPassword] = useState("");
+  const [passwordError, setPasswordError] = useState(false);
+
+  // Site password - change this whenever you want
+  const SITE_PASSWORD = "shadowmonarch";
 
   const fullText = "> INITIALIZING PRIISMATV...";
+
+  // Check if already authenticated this session
+  useEffect(() => {
+    if (sessionStorage.getItem("priismatv_auth") === "true") {
+      setAuthenticated(true);
+    }
+  }, []);
+
+  const handlePasswordSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (password === SITE_PASSWORD) {
+      setAuthenticated(true);
+      sessionStorage.setItem("priismatv_auth", "true");
+      setPasswordError(false);
+    } else {
+      setPasswordError(true);
+      setPassword("");
+      setTimeout(() => setPasswordError(false), 2000);
+    }
+  };
 
   useEffect(() => {
     const t1 = setTimeout(() => setPhase(1), 200);
@@ -88,6 +114,78 @@ export default function WelcomePage() {
     }, 1800);
     setTimeout(() => router.push("/home"), 3000);
   };
+
+  // If not authenticated, show password screen
+  if (!authenticated) {
+    return (
+      <div className="fixed inset-0 z-[200] bg-[#020204] flex items-center justify-center overflow-hidden">
+        {/* Background particles */}
+        <div className="absolute inset-0 pointer-events-none">
+          {[20, 40, 60, 80, 30, 50, 70, 90].map((left, i) => (
+            <motion.div
+              key={i}
+              animate={{ y: [0, -20, 0], opacity: [0.1, 0.3, 0.1] }}
+              transition={{ duration: 3 + i % 3, repeat: Infinity, delay: i * 0.3 }}
+              className="absolute w-1 h-1 rounded-full bg-primary"
+              style={{ left: `${left}%`, top: `${30 + (i % 4) * 15}%` }}
+            />
+          ))}
+        </div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="relative z-10 text-center px-6 max-w-sm w-full"
+        >
+          {/* Lock icon */}
+          <motion.div
+            animate={{ boxShadow: ["0 0 20px rgba(0,212,255,0.2)", "0 0 40px rgba(0,212,255,0.4)", "0 0 20px rgba(0,212,255,0.2)"] }}
+            transition={{ duration: 2, repeat: Infinity }}
+            className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-primary/20 to-purple-600/20 border border-primary/30 flex items-center justify-center"
+          >
+            <svg className="w-7 h-7 text-primary" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+            </svg>
+          </motion.div>
+
+          <h2 className="text-xl font-bold text-white mb-1">PriismaTv</h2>
+          <p className="text-white/30 text-xs font-mono mb-6">PRIVATE ACCESS ONLY</p>
+
+          <form onSubmit={handlePasswordSubmit} className="space-y-3">
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Enter access code..."
+              autoFocus
+              className={`w-full px-4 py-3.5 rounded-xl bg-white/5 border text-sm text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all ${
+                passwordError ? "border-red-500" : "border-white/10"
+              }`}
+            />
+            <button
+              type="submit"
+              className="w-full py-3.5 rounded-xl bg-gradient-to-r from-primary to-purple-600 text-white font-bold text-sm hover:opacity-90 transition-opacity"
+            >
+              UNLOCK
+            </button>
+          </form>
+
+          {passwordError && (
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-red-400 text-xs mt-3 font-mono"
+            >
+              Wrong code. Try again.
+            </motion.p>
+          )}
+
+          <p className="text-white/10 text-[9px] font-mono mt-8">Contact the owner for access</p>
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
     <div className={`fixed inset-0 z-[200] bg-[#020204] overflow-hidden select-none ${glitch ? "translate-x-[2px] skew-x-[0.3deg]" : ""}`}
