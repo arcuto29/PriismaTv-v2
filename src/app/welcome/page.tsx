@@ -386,7 +386,7 @@ export default function WelcomePage() {
         {/* Bottom text */}
         <motion.p initial={{ opacity: 0 }} animate={phase >= 5 ? { opacity: 1 } : {}} transition={{ delay: 0.5 }}
           className="absolute bottom-8 text-[9px] font-mono text-white/10 tracking-widest">
-          ARISE • CTRL+K SEARCH • TYPE &quot;ARISE&quot; FOR SURPRISE
+          priismatv.com
         </motion.p>
       </motion.div>
     </div>
