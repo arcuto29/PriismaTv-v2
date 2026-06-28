@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
@@ -23,6 +23,7 @@ export function ContentCard({
 }: ContentCardProps) {
   const [imageError, setImageError] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const cardRef = useRef<HTMLDivElement>(null);
 
   return (
     <motion.div
@@ -31,13 +32,27 @@ export function ContentCard({
       transition={{ duration: 0.5, delay: Math.min(index * 0.05, 0.5), ease: [0.25, 0.46, 0.45, 0.94] }}
       onHoverStart={() => setIsHovered(true)}
       onHoverEnd={() => setIsHovered(false)}
+      onMouseMove={(e) => {
+        if (!cardRef.current) return;
+        const rect = cardRef.current.getBoundingClientRect();
+        const x = (e.clientX - rect.left) / rect.width - 0.5;
+        const y = (e.clientY - rect.top) / rect.height - 0.5;
+        cardRef.current.style.transform = `perspective(800px) rotateY(${x * 8}deg) rotateX(${-y * 8}deg) scale(1.05)`;
+      }}
+      onMouseLeave={() => {
+        if (cardRef.current) {
+          cardRef.current.style.transform = "perspective(800px) rotateY(0deg) rotateX(0deg) scale(1)";
+        }
+        setIsHovered(false);
+      }}
+      ref={cardRef}
       className={cn(
-        "relative group rounded-xl overflow-hidden cursor-pointer",
-        "transition-all duration-500 ease-[cubic-bezier(0.25,0.46,0.45,0.94)]",
-        "hover:scale-[1.08] hover:-translate-y-3 hover:z-20",
-        "hover:shadow-[0_20px_60px_rgba(0,0,0,0.7),0_0_40px_rgba(0,212,255,0.1)]",
+        "relative group rounded-xl overflow-hidden cursor-pointer shine-effect",
+        "transition-shadow duration-500",
+        "hover:z-20 hover:shadow-[0_20px_60px_rgba(0,0,0,0.7),0_0_40px_rgba(0,212,255,0.15)]",
         variant === "wide" ? "aspect-video" : "aspect-[2/3]",
       )}
+      style={{ transformStyle: "preserve-3d", transition: "transform 0.15s ease-out, box-shadow 0.3s ease" }}
     >
       <Link href={`/watch/${item.id}`} className="block w-full h-full">
         {/* Poster Image */}

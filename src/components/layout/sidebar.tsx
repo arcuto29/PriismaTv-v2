@@ -77,7 +77,7 @@ export function Sidebar() {
             <motion.span
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="font-bold text-lg tracking-tight"
+              className="font-bold text-lg tracking-tight glitch-text"
             >
               <span className="text-primary">Priisma</span>
               <span className="text-foreground">Tv</span>

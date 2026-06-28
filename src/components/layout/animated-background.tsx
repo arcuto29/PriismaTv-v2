@@ -24,15 +24,20 @@ export function AnimatedBackground() {
     if (!ctx) return;
 
     let animationId: number;
-    const STAR_COUNT = 200;
-    let stars: {
-      x: number;
-      y: number;
-      radius: number;
-      alpha: number;
-      alphaSpeed: number;
-      alphaDir: number;
-    }[] = [];
+    const STAR_COUNT = 150;
+    const PARTICLE_COUNT = 30;
+
+    interface Star {
+      x: number; y: number; radius: number;
+      alpha: number; alphaSpeed: number; alphaDir: number;
+    }
+    interface Particle {
+      x: number; y: number; vx: number; vy: number;
+      radius: number; alpha: number; color: string;
+    }
+
+    let stars: Star[] = [];
+    let particles: Particle[] = [];
 
     const resize = () => {
       canvas.width = window.innerWidth;
@@ -53,36 +58,101 @@ export function AnimatedBackground() {
       }
     };
 
+    const createParticles = () => {
+      particles = [];
+      const colors = ["rgba(0,212,255,", "rgba(124,58,237,", "rgba(14,165,233,", "rgba(168,85,247,"];
+      for (let i = 0; i < PARTICLE_COUNT; i++) {
+        particles.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          vx: (Math.random() - 0.5) * 0.3,
+          vy: (Math.random() - 0.5) * 0.2 - 0.1,
+          radius: Math.random() * 2 + 1,
+          alpha: Math.random() * 0.4 + 0.1,
+          color: colors[Math.floor(Math.random() * colors.length)],
+        });
+      }
+    };
+
     const animate = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Stars
       stars.forEach((star) => {
         star.alpha += star.alphaSpeed * star.alphaDir;
         if (star.alpha >= 1) { star.alpha = 1; star.alphaDir = -1; }
         if (star.alpha <= 0.1) { star.alpha = 0.1; star.alphaDir = 1; }
-
         ctx.beginPath();
         ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(0, 212, 255, ${star.alpha * 0.4})`;
+        ctx.fillStyle = `rgba(0, 212, 255, ${star.alpha * 0.35})`;
         ctx.fill();
       });
+
+      // Floating particles
+      particles.forEach((p) => {
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.x < 0) p.x = canvas.width;
+        if (p.x > canvas.width) p.x = 0;
+        if (p.y < 0) p.y = canvas.height;
+        if (p.y > canvas.height) p.y = 0;
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fillStyle = `${p.color}${p.alpha})`;
+        ctx.fill();
+
+        // Glow
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius * 3, 0, Math.PI * 2);
+        ctx.fillStyle = `${p.color}${p.alpha * 0.2})`;
+        ctx.fill();
+      });
+
+      // Draw connecting lines between close particles
+      for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+          const dx = particles[i].x - particles[j].x;
+          const dy = particles[i].y - particles[j].y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 150) {
+            ctx.beginPath();
+            ctx.moveTo(particles[i].x, particles[i].y);
+            ctx.lineTo(particles[j].x, particles[j].y);
+            ctx.strokeStyle = `rgba(0, 212, 255, ${0.08 * (1 - dist / 150)})`;
+            ctx.lineWidth = 0.5;
+            ctx.stroke();
+          }
+        }
+      }
+
       animationId = requestAnimationFrame(animate);
     };
 
     resize();
     createStars();
+    createParticles();
     animate();
-    window.addEventListener("resize", () => { resize(); createStars(); });
 
+    const handleResize = () => { resize(); createStars(); createParticles(); };
+    window.addEventListener("resize", handleResize);
     return () => {
       cancelAnimationFrame(animationId);
-      window.removeEventListener("resize", resize);
+      window.removeEventListener("resize", handleResize);
     };
   }, []);
 
   return (
     <>
-      {/* Cursor glow light */}
+      {/* Cursor glow */}
       <div ref={cursorRef} className="cursor-light hidden lg:block" />
+
+      {/* Morphing gradient blobs */}
+      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+        <div className="absolute -top-1/4 -left-1/4 w-[600px] h-[600px] rounded-full bg-primary/10 blur-[120px] animate-blob" />
+        <div className="absolute -bottom-1/4 -right-1/4 w-[500px] h-[500px] rounded-full bg-purple-600/10 blur-[120px] animate-blob animation-delay-2000" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] rounded-full bg-cyan-500/5 blur-[100px] animate-blob animation-delay-4000" />
+      </div>
 
       {/* Jin-Woo Video Background */}
       <video
@@ -90,19 +160,18 @@ export function AnimatedBackground() {
         muted
         loop
         playsInline
-        className="fixed inset-0 w-full h-full object-cover z-0 pointer-events-none opacity-30"
+        className="fixed inset-0 w-full h-full object-cover z-0 pointer-events-none opacity-25"
       >
         <source src="/jinwoo-bg.mp4" type="video/mp4" />
       </video>
 
-      {/* Animated stars on top */}
+      {/* Particle canvas */}
       <canvas
         ref={canvasRef}
         className="fixed inset-0 z-0 pointer-events-none"
-        style={{ opacity: 0.4 }}
       />
 
-      {/* Dark gradient overlay for readability */}
+      {/* Overlay */}
       <div className="fixed inset-0 z-0 pointer-events-none bg-gradient-to-b from-background/60 via-background/50 to-background/80" />
     </>
   );
