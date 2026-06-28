@@ -53,23 +53,35 @@ export default function WelcomePage() {
     }
   }, [phase]);
 
-  // Generate shards for shatter effect
+  // Generate crack lines for shatter effect
   const generateShards = () => {
     const newShards = [];
-    const cols = 8;
-    const rows = 6;
-    for (let r = 0; r < rows; r++) {
-      for (let c = 0; c < cols; c++) {
-        newShards.push({
-          x: (c / cols) * 100,
-          y: (r / rows) * 100,
-          w: 100 / cols + 1,
-          h: 100 / rows + 1,
-          rx: (Math.random() - 0.5) * 120,
-          ry: (Math.random() - 0.5) * 120,
-          delay: Math.random() * 0.3,
-        });
-      }
+    // Create crack lines that spread from center
+    const numCracks = 12;
+    for (let i = 0; i < numCracks; i++) {
+      const angle = (i / numCracks) * Math.PI * 2;
+      const length = 60 + Math.random() * 40;
+      newShards.push({
+        x: 50,
+        y: 50,
+        w: 2,
+        h: length,
+        rx: angle * (180 / Math.PI),
+        ry: 0,
+        delay: i * 0.03,
+      });
+    }
+    // Create fragments that fall
+    for (let i = 0; i < 30; i++) {
+      newShards.push({
+        x: 20 + Math.random() * 60,
+        y: 20 + Math.random() * 60,
+        w: 5 + Math.random() * 10,
+        h: 5 + Math.random() * 10,
+        rx: (Math.random() - 0.5) * 180,
+        ry: (Math.random() - 0.5) * 180,
+        delay: 0.3 + Math.random() * 0.4,
+      });
     }
     return newShards;
   };
@@ -191,38 +203,69 @@ export default function WelcomePage() {
         <div className="w-10 h-10 border-r-2 border-b-2 border-primary/40 ml-auto" />
       </motion.div>
 
-      {/* SCREEN SHATTER EXIT */}
+      {/* SCREEN CRACK EXIT */}
       <AnimatePresence>
         {exiting && shards.length > 0 && (
           <>
-            {shards.map((shard, i) => (
+            {/* Crack lines spreading from center */}
+            {shards.filter((s) => s.w === 2).map((shard, i) => (
               <motion.div
-                key={i}
-                initial={{ opacity: 1, x: 0, y: 0, rotateX: 0, rotateY: 0, scale: 1 }}
-                animate={{
-                  x: (shard.x - 50) * 8 + (Math.random() - 0.5) * 200,
-                  y: (shard.y - 50) * 8 + 300 + Math.random() * 200,
-                  rotateX: shard.rx,
-                  rotateY: shard.ry,
-                  opacity: 0,
-                  scale: 0.5,
+                key={`crack-${i}`}
+                initial={{ scaleY: 0, opacity: 0 }}
+                animate={{ scaleY: 1, opacity: [0, 1, 1] }}
+                transition={{ duration: 0.4, delay: shard.delay, ease: "easeOut" }}
+                className="fixed z-[100] origin-top"
+                style={{
+                  left: `${shard.x}%`,
+                  top: `${shard.y}%`,
+                  width: "2px",
+                  height: `${shard.h}%`,
+                  background: "linear-gradient(to bottom, rgba(0,212,255,0.9), rgba(124,58,237,0.6), transparent)",
+                  transform: `rotate(${shard.rx}deg)`,
+                  boxShadow: "0 0 8px rgba(0,212,255,0.8), 0 0 20px rgba(0,212,255,0.4)",
                 }}
-                transition={{ duration: 1.2, delay: shard.delay, ease: "easeIn" }}
-                className="fixed bg-[#020204] border border-primary/10 z-[100]"
+              />
+            ))}
+
+            {/* Fragments that fall after cracks */}
+            {shards.filter((s) => s.w !== 2).map((shard, i) => (
+              <motion.div
+                key={`frag-${i}`}
+                initial={{ opacity: 1, y: 0, rotateX: 0, rotateZ: 0, scale: 1 }}
+                animate={{
+                  y: 800,
+                  rotateX: shard.rx,
+                  rotateZ: shard.ry * 0.5,
+                  opacity: [1, 1, 0],
+                  scale: [1, 0.8, 0.3],
+                }}
+                transition={{ duration: 1.5, delay: shard.delay, ease: "easeIn" }}
+                className="fixed bg-[#020204] border border-primary/20 z-[100]"
                 style={{
                   left: `${shard.x}%`,
                   top: `${shard.y}%`,
                   width: `${shard.w}%`,
                   height: `${shard.h}%`,
+                  transformStyle: "preserve-3d",
                 }}
               />
             ))}
-            {/* Flash behind shards */}
+
+            {/* Light bleeding through cracks */}
             <motion.div
               initial={{ opacity: 0 }}
-              animate={{ opacity: [0, 1, 0.8] }}
-              transition={{ duration: 0.3, delay: 0.2 }}
-              className="fixed inset-0 bg-primary/20 z-[99]"
+              animate={{ opacity: [0, 0.3, 0.6, 1] }}
+              transition={{ duration: 1.2, delay: 0.2 }}
+              className="fixed inset-0 z-[99]"
+              style={{ background: "radial-gradient(circle at center, rgba(0,212,255,0.15) 0%, transparent 70%)" }}
+            />
+
+            {/* Final bright flash */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: [0, 0, 0, 1, 0] }}
+              transition={{ duration: 1.5, delay: 0.8, times: [0, 0.5, 0.7, 0.85, 1] }}
+              className="fixed inset-0 bg-white z-[101]"
             />
           </>
         )}
