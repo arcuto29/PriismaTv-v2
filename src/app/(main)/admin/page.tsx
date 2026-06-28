@@ -1,12 +1,54 @@
 "use client";
 import { useState } from "react";
-import { PlusCircle, Download, Upload, RefreshCw, Trash2, Wand2 } from "lucide-react";
+import { PlusCircle, Download, Upload, RefreshCw, Trash2, Wand2, Lock } from "lucide-react";
 import { useContentStore } from "@/hooks/use-content-store";
 import { ContentItem, OWNER_PASSWORD, TMDB_API_KEY, STORAGE_KEYS } from "@/data/content";
 import { SAMPLE_CONTENT } from "@/data/sample-content";
 
 export default function AdminPage() {
   const { content, addContent, saveContent } = useContentStore();
+  const [isOwner, setIsOwner] = useState(() => sessionStorage.getItem("priismatv_owner") === "true");
+  const [ownerInput, setOwnerInput] = useState("");
+  const [ownerError, setOwnerError] = useState(false);
+
+  // Owner gate
+  if (!isOwner) {
+    return (
+      <div className="px-4 lg:px-8 py-6 flex items-center justify-center min-h-[60vh]">
+        <div className="text-center max-w-sm w-full">
+          <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-primary/10 border border-primary/30 flex items-center justify-center">
+            <Lock className="w-6 h-6 text-primary" />
+          </div>
+          <h2 className="text-xl font-bold mb-1">Owner Access Only</h2>
+          <p className="text-sm text-muted-foreground mb-6">Enter the owner password to manage content.</p>
+          <form onSubmit={(e) => {
+            e.preventDefault();
+            if (ownerInput === OWNER_PASSWORD) {
+              setIsOwner(true);
+              sessionStorage.setItem("priismatv_owner", "true");
+            } else {
+              setOwnerError(true);
+              setOwnerInput("");
+              setTimeout(() => setOwnerError(false), 2000);
+            }
+          }} className="space-y-3">
+            <input
+              type="password"
+              value={ownerInput}
+              onChange={(e) => setOwnerInput(e.target.value)}
+              placeholder="Owner password..."
+              className={`w-full px-4 py-3 rounded-xl bg-muted border text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 ${ownerError ? "border-red-500" : "border-border"}`}
+            />
+            <button type="submit" className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-bold text-sm">
+              UNLOCK
+            </button>
+          </form>
+          {ownerError && <p className="text-red-400 text-xs mt-3">Wrong password.</p>}
+        </div>
+      </div>
+    );
+  }
+
   const [form, setForm] = useState({
     title: "", type: "movie" as "movie" | "anime" | "tvshow",
     year: "", rating: "", genre: "action", description: "",
