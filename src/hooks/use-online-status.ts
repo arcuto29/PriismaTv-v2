@@ -24,8 +24,8 @@ export function useOnlineStatus() {
     const interval = setInterval(sendHeartbeat, 30000);
 
     // Mark offline when leaving
-    const handleBeforeUnload = () => {
-      navigator.sendBeacon && supabase
+    const handleBeforeUnload = async () => {
+      await supabase
         .from("visitors")
         .update({ is_online: false })
         .eq("name", username);
