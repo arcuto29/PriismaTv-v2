@@ -51,6 +51,9 @@ export default function WelcomePage() {
       setAuthenticated(true);
       sessionStorage.setItem("priismatv_auth", "true");
       sessionStorage.setItem("priismatv_user", displayName);
+      // Remember everyone permanently
+      localStorage.setItem("priismatv_remember", "true");
+      localStorage.setItem("priismatv_user", displayName);
       logVisit(displayName, code);
       setPasswordError(false);
     } else {
