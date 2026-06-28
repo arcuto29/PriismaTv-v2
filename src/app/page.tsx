@@ -17,10 +17,13 @@ export default function WelcomePage() {
   // Master password (always works for owner) + invite codes from database
   const MASTER_PASSWORD = "shadowmonarch";
 
-  // Check if already authenticated this session
+  // Check if already authenticated (session OR permanent)
   useEffect(() => {
-    if (sessionStorage.getItem("priismatv_auth") === "true") {
+    if (sessionStorage.getItem("priismatv_auth") === "true" || localStorage.getItem("priismatv_remember") === "true") {
       setAuthenticated(true);
+      // Restore username
+      const user = sessionStorage.getItem("priismatv_user") || localStorage.getItem("priismatv_user") || "Owner";
+      sessionStorage.setItem("priismatv_user", user);
     }
   }, []);
 
@@ -34,6 +37,9 @@ export default function WelcomePage() {
       setAuthenticated(true);
       sessionStorage.setItem("priismatv_auth", "true");
       sessionStorage.setItem("priismatv_user", displayName || "Owner");
+      // Owner gets permanent login
+      localStorage.setItem("priismatv_remember", "true");
+      localStorage.setItem("priismatv_user", displayName || "Owner");
       logVisit(displayName || "Owner");
       setPasswordError(false);
       return;
