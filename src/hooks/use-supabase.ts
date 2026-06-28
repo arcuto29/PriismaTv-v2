@@ -96,7 +96,9 @@ export function useChat(roomId: string) {
   }, [roomId]);
 
   useEffect(() => {
+    if (!roomId) return;
     fetchMessages();
+
     // Real-time subscription
     const channel = supabase.channel(`room-${roomId}`).on(
       "postgres_changes",
@@ -106,12 +108,21 @@ export function useChat(roomId: string) {
       }
     ).subscribe();
 
-    return () => { supabase.removeChannel(channel); };
+    // Polling fallback every 3 seconds (in case realtime isn't enabled)
+    const pollInterval = setInterval(fetchMessages, 3000);
+
+    return () => {
+      supabase.removeChannel(channel);
+      clearInterval(pollInterval);
+    };
   }, [roomId, fetchMessages]);
 
   const sendMessage = useCallback(async (username: string, message: string) => {
     if (!roomId || !message.trim()) return;
     await supabase.from("messages").insert({ room_id: roomId, username, message: message.trim() });
+    // Immediately fetch to show own message
+    const { data } = await supabase.from("messages").select("*").eq("room_id", roomId).order("created_at", { ascending: true }).limit(100);
+    if (data) setMessages(data);
   }, [roomId]);
 
   return { messages, sendMessage };
