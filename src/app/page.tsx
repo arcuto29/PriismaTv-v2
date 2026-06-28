@@ -8,9 +8,7 @@ export default function WelcomePage() {
   const [phase, setPhase] = useState(0);
   const [exiting, setExiting] = useState(false);
   const [typedText, setTypedText] = useState("");
-  const [countdown, setCountdown] = useState<number | null>(null);
   const [glitch, setGlitch] = useState(false);
-  const [shards, setShards] = useState<{ x: number; y: number; w: number; h: number; rx: number; ry: number; delay: number }[]>([]);
   const [authenticated, setAuthenticated] = useState(false);
   const [password, setPassword] = useState("");
   const [passwordError, setPasswordError] = useState(false);
@@ -34,9 +32,9 @@ export default function WelcomePage() {
     if (code === MASTER_PASSWORD) {
       setAuthenticated(true);
       sessionStorage.setItem("priismatv_auth", "true");
-      sessionStorage.setItem("priismatv_user", "Owner");
+      sessionStorage.setItem("priismatv_user", name || "Owner");
       // Log visit
-      logVisit("Owner");
+      logVisit(name || "Owner");
       setPasswordError(false);
       return;
     }
@@ -122,47 +120,15 @@ export default function WelcomePage() {
     }
   }, [phase]);
 
-  // Generate shards for shatter effect
-  const generateShards = () => {
-    const newShards = [];
-    const cols = 8;
-    const rows = 6;
-    for (let r = 0; r < rows; r++) {
-      for (let c = 0; c < cols; c++) {
-        newShards.push({
-          x: (c / cols) * 100,
-          y: (r / rows) * 100,
-          w: 100 / cols + 1,
-          h: 100 / rows + 1,
-          rx: (Math.random() - 0.5) * 120,
-          ry: (Math.random() - 0.5) * 120,
-          delay: Math.random() * 0.3,
-        });
-      }
-    }
-    return newShards;
-  };
-
-  // Auto-enter after animations finish (no button needed)
+  // Auto-enter smoothly after 3.5 seconds
   useEffect(() => {
     if (!authenticated) return;
     const autoEnter = setTimeout(() => {
-      enter();
-    }, 3000); // Auto-shatter after 3 seconds
+      setExiting(true);
+      setTimeout(() => router.push("/home"), 800);
+    }, 3500);
     return () => clearTimeout(autoEnter);
   }, [authenticated]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const enter = () => {
-    setCountdown(3);
-    setTimeout(() => setCountdown(2), 600);
-    setTimeout(() => setCountdown(1), 1200);
-    setTimeout(() => {
-      setCountdown(0);
-      setShards(generateShards());
-      setExiting(true);
-    }, 1800);
-    setTimeout(() => router.push("/home"), 3000);
-  };
 
   // If not authenticated, show login screen
   if (!authenticated) {
@@ -376,72 +342,22 @@ export default function WelcomePage() {
         <div className="w-10 h-10 border-r-2 border-b-2 border-primary/40 ml-auto" />
       </motion.div>
 
-      {/* SCREEN SHATTER EXIT */}
+      {/* Smooth fade exit */}
       <AnimatePresence>
-        {exiting && shards.length > 0 && (
-          <>
-            {shards.map((shard, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 1, x: 0, y: 0, rotateX: 0, rotateY: 0, scale: 1 }}
-                animate={{
-                  x: (shard.x - 50) * 8 + (Math.random() - 0.5) * 200,
-                  y: (shard.y - 50) * 8 + 300 + Math.random() * 200,
-                  rotateX: shard.rx,
-                  rotateY: shard.ry,
-                  opacity: 0,
-                  scale: 0.5,
-                }}
-                transition={{ duration: 1.2, delay: shard.delay, ease: "easeIn" }}
-                className="fixed bg-[#020204] border border-primary/10 z-[100]"
-                style={{
-                  left: `${shard.x}%`,
-                  top: `${shard.y}%`,
-                  width: `${shard.w}%`,
-                  height: `${shard.h}%`,
-                }}
-              />
-            ))}
-            {/* Flash behind shards */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: [0, 0.5, 0.3] }}
-              transition={{ duration: 0.4, delay: 0.1 }}
-              className="fixed inset-0 bg-primary/20 z-[99]"
-            />
-            {/* Final white flash */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: [0, 0, 1, 0] }}
-              transition={{ duration: 1.2, delay: 0.6, times: [0, 0.5, 0.8, 1] }}
-              className="fixed inset-0 bg-white z-[101]"
-            />
-          </>
-        )}
-      </AnimatePresence>
-
-      {/* Countdown overlay */}
-      <AnimatePresence>
-        {countdown !== null && countdown > 0 && (
+        {exiting && (
           <motion.div
-            key={countdown}
-            initial={{ scale: 2, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.5, opacity: 0 }}
-            transition={{ duration: 0.4 }}
-            className="fixed inset-0 flex items-center justify-center z-[80] pointer-events-none"
-          >
-            <span className="text-8xl md:text-[12rem] font-black text-primary" style={{ textShadow: "0 0 60px rgba(0,212,255,0.8)" }}>
-              {countdown}
-            </span>
-          </motion.div>
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.8, ease: "easeInOut" }}
+            className="fixed inset-0 bg-background z-[100]"
+          />
         )}
       </AnimatePresence>
 
-      {/* Main content - hide during countdown */}
+      {/* Main content */}
       <motion.div
-        animate={{ opacity: exiting || (countdown !== null && countdown > 0) ? 0 : 1, scale: exiting ? 1.1 : 1 }}
-        transition={{ duration: 0.3 }}
+        animate={{ opacity: exiting ? 0 : 1, scale: exiting ? 0.95 : 1 }}
+        transition={{ duration: 0.5 }}
         className="relative z-30 h-full flex flex-col items-center justify-center px-6"
       >
         {/* Typing text */}
