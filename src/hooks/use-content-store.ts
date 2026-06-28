@@ -15,22 +15,29 @@ export function useContentStore() {
 
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEYS.CONTENT);
-    const currentVersion = "v2.4"; // Bump this to force refresh
+    const currentVersion = "v2.6"; // Bump this to force refresh
     const storedVersion = localStorage.getItem("priismatv_version");
     
-    if (stored && storedVersion === currentVersion) {
+    // ALWAYS force fresh data if version doesn't match
+    // This guarantees poster images are loaded
+    if (storedVersion !== currentVersion) {
+      console.log("[PriismaTv] Refreshing content library to v2.6...");
+      setContent(SAMPLE_CONTENT);
+      localStorage.setItem(STORAGE_KEYS.CONTENT, JSON.stringify(SAMPLE_CONTENT));
+      localStorage.setItem("priismatv_version", currentVersion);
+    } else if (stored) {
       const parsed = JSON.parse(stored);
-      // Extra check: if first item has no poster, data is stale
-      if (parsed[0] && parsed[0].poster) {
-        setContent(parsed);
-      } else {
-        // Stale data - force refresh
+      // Extra safety: if most items don't have posters, force refresh
+      const withPosters = parsed.filter((i: ContentItem) => i.poster && i.poster.includes("tmdb"));
+      if (withPosters.length < parsed.length * 0.5) {
+        console.log("[PriismaTv] Stale data detected, forcing refresh...");
         setContent(SAMPLE_CONTENT);
         localStorage.setItem(STORAGE_KEYS.CONTENT, JSON.stringify(SAMPLE_CONTENT));
         localStorage.setItem("priismatv_version", currentVersion);
+      } else {
+        setContent(parsed);
       }
     } else {
-      // Force load fresh sample content
       setContent(SAMPLE_CONTENT);
       localStorage.setItem(STORAGE_KEYS.CONTENT, JSON.stringify(SAMPLE_CONTENT));
       localStorage.setItem("priismatv_version", currentVersion);

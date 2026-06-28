@@ -63,13 +63,10 @@ export function ContentCard({
               className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
               onError={() => setImageError(true)}
               loading="lazy"
-              referrerPolicy="no-referrer"
-              crossOrigin="anonymous"
-              style={{ display: "block", width: "100%", height: "100%", objectFit: "cover" }}
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-muted to-card">
-              <Play className="w-8 h-8 text-muted-foreground/50" />
+            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-muted via-card to-muted">
+              <span className="text-3xl font-black text-muted-foreground/30">{item.title[0]}</span>
             </div>
           )}
         </div>
