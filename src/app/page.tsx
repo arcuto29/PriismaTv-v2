@@ -6,6 +6,7 @@ import { HeroSection } from "@/components/content/hero-section";
 import { ContentRow } from "@/components/content/content-row";
 import { Recommendations } from "@/components/content/recommendations";
 import { ContinueWatching } from "@/components/content/continue-watching";
+import { SeasonalPicks } from "@/components/content/seasonal-picks";
 
 export default function HomePage() {
   const {
@@ -39,6 +40,14 @@ export default function HomePage() {
       {/* Content Rows */}
       <div className="-mt-24 relative z-10 space-y-2">
         <ContinueWatching content={content} history={history} />
+
+        <SeasonalPicks
+          content={content}
+          favorites={favorites}
+          watchlist={watchlist}
+          onFavorite={toggleFavorite}
+          onWatchlist={toggleWatchlist}
+        />
 
         <ContentRow
           title="Trending Now"
