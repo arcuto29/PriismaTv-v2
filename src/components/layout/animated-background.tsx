@@ -6,7 +6,6 @@ export function AnimatedBackground() {
   const cursorRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Cursor light effect
     const cursor = cursorRef.current;
     if (cursor) {
       const handleMouse = (e: MouseEvent) => {
@@ -84,24 +83,31 @@ export function AnimatedBackground() {
     <>
       {/* Cursor glow light */}
       <div ref={cursorRef} className="cursor-light hidden lg:block" />
-      {/* Animated stars */}
+
+      {/* Jin-Woo Video Background */}
+      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+        <video
+          autoPlay
+          muted
+          loop
+          playsInline
+          className="absolute inset-0 w-full h-full object-cover opacity-[0.18]"
+        >
+          <source src="/jinwoo-bg.mp4" type="video/mp4" />
+        </video>
+        {/* Fog/mist overlay on video */}
+        <div className="absolute inset-0 fog-layer bg-gradient-to-br from-primary/5 via-transparent to-purple-900/5" />
+      </div>
+
+      {/* Animated stars on top */}
       <canvas
         ref={canvasRef}
         className="fixed inset-0 z-0 pointer-events-none"
-        style={{ opacity: 0.6 }}
+        style={{ opacity: 0.5 }}
       />
-      {/* Jin-Woo dark atmosphere overlay */}
-      <div
-        className="fixed inset-0 z-0 pointer-events-none opacity-[0.15] fog-layer"
-        style={{
-          backgroundImage: `url('https://i.imgur.com/8QZGmHj.jpg')`,
-          backgroundSize: "cover",
-          backgroundPosition: "center top",
-          backgroundRepeat: "no-repeat",
-        }}
-      />
-      {/* Dark gradient overlay to keep readability */}
-      <div className="fixed inset-0 z-0 pointer-events-none bg-gradient-to-b from-background/80 via-background/70 to-background/95" />
+
+      {/* Dark gradient overlay for readability */}
+      <div className="fixed inset-0 z-0 pointer-events-none bg-gradient-to-b from-background/70 via-background/60 to-background/90" />
     </>
   );
 }
