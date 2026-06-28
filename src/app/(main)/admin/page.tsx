@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { PlusCircle, Download, Upload, RefreshCw, Trash2, Wand2, Lock } from "lucide-react";
 import { useContentStore } from "@/hooks/use-content-store";
 import { ContentItem, OWNER_PASSWORD, TMDB_API_KEY, STORAGE_KEYS } from "@/data/content";
@@ -7,7 +7,13 @@ import { SAMPLE_CONTENT } from "@/data/sample-content";
 
 export default function AdminPage() {
   const { content, addContent, saveContent } = useContentStore();
-  const [isOwner, setIsOwner] = useState(() => sessionStorage.getItem("priismatv_owner") === "true");
+  const [isOwner, setIsOwner] = useState(false);
+
+  useEffect(() => {
+    if (sessionStorage.getItem("priismatv_owner") === "true") {
+      setIsOwner(true);
+    }
+  }, []);
   const [ownerInput, setOwnerInput] = useState("");
   const [ownerError, setOwnerError] = useState(false);
 
