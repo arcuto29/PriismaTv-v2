@@ -1,332 +1,318 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useRef } from "react";
 import { useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
 
 export default function WelcomePage() {
   const router = useRouter();
-  const [phase, setPhase] = useState(0);
-  const [exiting, setExiting] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({ target: containerRef });
 
-  useEffect(() => {
-    const t1 = setTimeout(() => setPhase(1), 200);
-    const t2 = setTimeout(() => setPhase(2), 1000);
-    const t3 = setTimeout(() => setPhase(3), 2000);
-    const t4 = setTimeout(() => setPhase(4), 3000);
-    const t5 = setTimeout(() => setPhase(5), 3800);
-    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(t4); clearTimeout(t5); };
-  }, []);
+  // Section transforms based on scroll
+  const gateOpacity = useTransform(scrollYProgress, [0, 0.15], [1, 0]);
+  const gateScale = useTransform(scrollYProgress, [0, 0.15], [1, 1.5]);
+  const systemOpacity = useTransform(scrollYProgress, [0.15, 0.25, 0.4], [0, 1, 1]);
+  const systemY = useTransform(scrollYProgress, [0.15, 0.25], [50, 0]);
+  const ariseOpacity = useTransform(scrollYProgress, [0.4, 0.5, 0.65], [0, 1, 1]);
+  const ariseScale = useTransform(scrollYProgress, [0.4, 0.55], [0.5, 1]);
+  const shadowsOpacity = useTransform(scrollYProgress, [0.6, 0.7, 0.85], [0, 1, 1]);
+  const shadowsY = useTransform(scrollYProgress, [0.6, 0.75], [100, 0]);
+  const enterOpacity = useTransform(scrollYProgress, [0.8, 0.9], [0, 1]);
+  const enterScale = useTransform(scrollYProgress, [0.8, 0.95], [0.8, 1]);
+  const bgBrightness = useTransform(scrollYProgress, [0, 0.5, 0.7], [0.3, 0.5, 0.8]);
 
   const enter = () => {
-    setExiting(true);
-    setTimeout(() => router.push("/"), 1200);
+    router.push("/");
   };
 
   return (
-    <div className="fixed inset-0 z-[200] bg-[#020204] overflow-hidden cursor-default select-none" style={{ perspective: "1200px" }}>
-
-      {/* 3D Rotating cube wireframe */}
-      <div className="absolute inset-0 flex items-center justify-center" style={{ perspective: "800px" }}>
+    <div ref={containerRef} className="relative h-[500vh] bg-[#020204]">
+      {/* Fixed viewport */}
+      <div className="fixed inset-0 overflow-hidden">
+        {/* Background that brightens with scroll */}
         <motion.div
-          animate={{ rotateX: 360, rotateY: 360 }}
-          transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
-          className="w-[300px] h-[300px] md:w-[450px] md:h-[450px] relative"
-          style={{ transformStyle: "preserve-3d" }}
-        >
-          {/* Cube faces */}
-          {[
-            { transform: "translateZ(150px)" },
-            { transform: "translateZ(-150px) rotateY(180deg)" },
-            { transform: "rotateY(90deg) translateZ(150px)" },
-            { transform: "rotateY(-90deg) translateZ(150px)" },
-            { transform: "rotateX(90deg) translateZ(150px)" },
-            { transform: "rotateX(-90deg) translateZ(150px)" },
-          ].map((face, i) => (
-            <div
+          style={{ opacity: bgBrightness }}
+          className="absolute inset-0 bg-gradient-to-b from-blue-950/50 via-[#020204] to-purple-950/30"
+        />
+
+        {/* Floating particles throughout */}
+        <div className="absolute inset-0 pointer-events-none">
+          {[15, 35, 55, 75, 25, 45, 65, 85, 10, 90, 30, 70, 50, 20, 80].map((left, i) => (
+            <motion.div
               key={i}
-              className="absolute inset-0 border border-primary/[0.07] rounded-lg"
-              style={{ transform: face.transform, backfaceVisibility: "visible" }}
+              animate={{ y: [0, -30, 0], opacity: [0.2, 0.6, 0.2] }}
+              transition={{ duration: 3 + i % 3, repeat: Infinity, delay: i * 0.4 }}
+              className="absolute w-1 h-1 rounded-full bg-primary"
+              style={{ left: `${left}%`, top: `${30 + (i % 5) * 15}%` }}
             />
           ))}
-        </motion.div>
-      </div>
+        </div>
 
-      {/* 3D rotating ring 1 */}
-      <div className="absolute inset-0 flex items-center justify-center" style={{ perspective: "1000px" }}>
+        {/* === SECTION 1: Dungeon Gate === */}
         <motion.div
-          animate={{ rotateX: 75, rotateZ: 360 }}
-          transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
-          className="w-[350px] h-[350px] md:w-[500px] md:h-[500px] rounded-full border border-primary/20 absolute"
-          style={{ transformStyle: "preserve-3d" }}
-        />
-      </div>
-
-      {/* 3D rotating ring 2 */}
-      <div className="absolute inset-0 flex items-center justify-center" style={{ perspective: "1000px" }}>
-        <motion.div
-          animate={{ rotateX: -60, rotateZ: -360 }}
-          transition={{ duration: 18, repeat: Infinity, ease: "linear" }}
-          className="w-[280px] h-[280px] md:w-[420px] md:h-[420px] rounded-full border border-purple-500/15 absolute"
-          style={{ transformStyle: "preserve-3d" }}
-        />
-      </div>
-
-      {/* 3D rotating ring 3 - inner */}
-      <div className="absolute inset-0 flex items-center justify-center" style={{ perspective: "1000px" }}>
-        <motion.div
-          animate={{ rotateY: 360, rotateZ: 45 }}
-          transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
-          className="w-[200px] h-[200px] md:w-[300px] md:h-[300px] rounded-full border-2 border-cyan-400/10 absolute"
-          style={{ transformStyle: "preserve-3d" }}
-        />
-      </div>
-
-      {/* Grid floor - 3D perspective */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={phase >= 1 ? { opacity: 1 } : {}}
-        className="absolute bottom-0 left-0 right-0 h-[40%] overflow-hidden"
-        style={{ perspective: "500px" }}
-      >
-        <div
-          className="w-full h-full origin-bottom"
-          style={{
-            transform: "rotateX(60deg)",
-            backgroundImage: `linear-gradient(rgba(0,212,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(0,212,255,0.1) 1px, transparent 1px)`,
-            backgroundSize: "50px 50px",
-          }}
-        />
-        {/* Horizon glow */}
-        <div className="absolute top-0 left-0 right-0 h-20 bg-gradient-to-b from-primary/10 to-transparent" />
-      </motion.div>
-
-      {/* Scanning line */}
-      <motion.div
-        initial={{ top: "-2%" }}
-        animate={{ top: "102%" }}
-        transition={{ duration: 2.5, repeat: Infinity, ease: "linear" }}
-        className="absolute left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-primary/50 to-transparent z-10"
-      />
-
-      {/* Vertical scanning line */}
-      <motion.div
-        initial={{ left: "-2%" }}
-        animate={{ left: "102%" }}
-        transition={{ duration: 3.5, repeat: Infinity, ease: "linear", delay: 1 }}
-        className="absolute top-0 bottom-0 w-[1px] bg-gradient-to-b from-transparent via-purple-500/30 to-transparent z-10"
-      />
-
-      {/* Particle burst on exit */}
-      <AnimatePresence>
-        {exiting && (
-          <>
-            {Array.from({ length: 80 }).map((_, i) => {
-              const angle = (i / 80) * Math.PI * 2;
-              const distance = 500 + Math.random() * 300;
-              return (
-                <motion.div
-                  key={i}
-                  initial={{ x: "50vw", y: "50vh", scale: 0, opacity: 1 }}
-                  animate={{
-                    x: `calc(50vw + ${Math.cos(angle) * distance}px)`,
-                    y: `calc(50vh + ${Math.sin(angle) * distance}px)`,
-                    scale: [0, 2, 0],
-                    opacity: [1, 1, 0],
-                  }}
-                  transition={{ duration: 1, ease: "easeOut" }}
-                  className="absolute w-1 h-8 rounded-full origin-bottom"
-                  style={{
-                    background: `linear-gradient(to top, ${i % 3 === 0 ? "#00d4ff" : i % 3 === 1 ? "#7c3aed" : "#ffffff"}, transparent)`,
-                    transform: `rotate(${angle}rad)`,
-                  }}
-                />
-              );
-            })}
-            {/* Shockwave */}
-            <motion.div
-              initial={{ scale: 0, opacity: 0.8 }}
-              animate={{ scale: 6, opacity: 0 }}
-              transition={{ duration: 0.8 }}
-              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-40 h-40 rounded-full border-4 border-primary"
-            />
-            <motion.div
-              initial={{ scale: 0, opacity: 0.6 }}
-              animate={{ scale: 4, opacity: 0 }}
-              transition={{ duration: 0.8, delay: 0.1 }}
-              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-40 h-40 rounded-full border-2 border-white"
-            />
-            {/* Flash */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: [0, 0.8, 0] }}
-              transition={{ duration: 0.4 }}
-              className="absolute inset-0 bg-white"
-            />
-          </>
-        )}
-      </AnimatePresence>
-
-      {/* Corner HUD elements */}
-      <motion.div initial={{ opacity: 0 }} animate={phase >= 1 ? { opacity: 1 } : {}} className="absolute top-5 left-5 z-20">
-        <div className="w-10 h-10 border-l-2 border-t-2 border-primary/40" />
-        <p className="text-[8px] font-mono text-primary/40 mt-1 tracking-widest">SYS.ONLINE</p>
-      </motion.div>
-      <motion.div initial={{ opacity: 0 }} animate={phase >= 1 ? { opacity: 1 } : {}} className="absolute top-5 right-5 z-20">
-        <div className="w-10 h-10 border-r-2 border-t-2 border-primary/40 ml-auto" />
-        <p className="text-[8px] font-mono text-primary/40 mt-1 tracking-widest text-right">V2.0</p>
-      </motion.div>
-      <motion.div initial={{ opacity: 0 }} animate={phase >= 1 ? { opacity: 1 } : {}} className="absolute bottom-5 left-5 z-20">
-        <div className="w-10 h-10 border-l-2 border-b-2 border-primary/40" />
-      </motion.div>
-      <motion.div initial={{ opacity: 0 }} animate={phase >= 1 ? { opacity: 1 } : {}} className="absolute bottom-5 right-5 z-20">
-        <div className="w-10 h-10 border-r-2 border-b-2 border-primary/40 ml-auto" />
-      </motion.div>
-
-      {/* Main content - centered */}
-      <motion.div
-        animate={{ opacity: exiting ? 0 : 1, scale: exiting ? 1.5 : 1, filter: exiting ? "blur(20px)" : "blur(0px)" }}
-        transition={{ duration: 0.6 }}
-        className="relative z-30 h-full flex flex-col items-center justify-center px-6"
-      >
-        {/* Logo with 3D transform on appear */}
-        <motion.div
-          initial={{ scale: 0, rotateY: 180, opacity: 0 }}
-          animate={phase >= 2 ? { scale: 1, rotateY: 0, opacity: 1 } : {}}
-          transition={{ duration: 0.8, type: "spring", bounce: 0.3 }}
-          className="mb-6"
-          style={{ transformStyle: "preserve-3d" }}
+          style={{ opacity: gateOpacity, scale: gateScale }}
+          className="absolute inset-0 flex flex-col items-center justify-center"
         >
+          {/* Gate frame */}
           <div className="relative">
-            <div className="w-24 h-24 md:w-32 md:h-32 rounded-3xl bg-gradient-to-br from-primary via-blue-500 to-purple-600 flex items-center justify-center shadow-[0_0_60px_rgba(0,212,255,0.3)]">
-              <svg className="w-12 h-12 md:w-16 md:h-16 text-white" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M8 5v14l11-7z"/>
-              </svg>
+            {/* Outer glow */}
+            <motion.div
+              animate={{ opacity: [0.3, 0.6, 0.3] }}
+              transition={{ duration: 3, repeat: Infinity }}
+              className="absolute -inset-8 rounded-3xl bg-primary/10 blur-xl"
+            />
+            {/* Gate arch */}
+            <div className="w-48 h-72 md:w-64 md:h-96 rounded-t-full border-2 border-primary/40 relative overflow-hidden flex items-center justify-center"
+              style={{ boxShadow: "0 0 40px rgba(0,212,255,0.2), inset 0 0 40px rgba(0,212,255,0.1)" }}>
+              {/* Swirling energy inside gate */}
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
+                className="absolute inset-4 rounded-t-full bg-gradient-conic from-primary/20 via-purple-600/10 via-transparent to-primary/20"
+              />
+              {/* Gate center glow */}
+              <motion.div
+                animate={{ scale: [1, 1.2, 1], opacity: [0.5, 0.8, 0.5] }}
+                transition={{ duration: 2, repeat: Infinity }}
+                className="w-20 h-20 rounded-full bg-primary/30 blur-lg"
+              />
+              <p className="absolute text-primary/60 text-xs font-mono tracking-widest">E-RANK</p>
             </div>
-            {/* Glow rings */}
+          </div>
+
+          <motion.p
+            animate={{ opacity: [0.4, 0.8, 0.4] }}
+            transition={{ duration: 3, repeat: Infinity }}
+            className="mt-8 text-white/40 text-sm md:text-base font-mono text-center"
+          >
+            You are the weakest hunter...
+          </motion.p>
+          <p className="mt-3 text-white/20 text-xs">↓ Scroll to awaken ↓</p>
+        </motion.div>
+
+        {/* === SECTION 2: System Notification === */}
+        <motion.div
+          style={{ opacity: systemOpacity, y: systemY }}
+          className="absolute inset-0 flex items-center justify-center"
+        >
+          <div className="max-w-md w-full mx-4">
+            {/* System window */}
             <motion.div
-              animate={{ scale: [1, 1.4, 1], opacity: [0.4, 0, 0.4] }}
-              transition={{ duration: 2, repeat: Infinity }}
-              className="absolute inset-0 rounded-3xl border border-primary/40"
-            />
-            <motion.div
-              animate={{ scale: [1, 1.6, 1], opacity: [0.2, 0, 0.2] }}
-              transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
-              className="absolute inset-0 rounded-3xl border border-purple-500/30"
-            />
+              className="bg-[#0a1628]/90 border border-primary/40 rounded-lg p-6 backdrop-blur-sm relative overflow-hidden"
+              style={{ boxShadow: "0 0 30px rgba(0,212,255,0.15), inset 0 1px 0 rgba(0,212,255,0.2)" }}
+            >
+              {/* Header bar */}
+              <div className="flex items-center gap-2 mb-4 pb-3 border-b border-primary/20">
+                <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                <span className="text-[10px] font-mono text-primary/80 uppercase tracking-widest">System Notification</span>
+              </div>
+
+              {/* Messages */}
+              <div className="space-y-3 font-mono text-sm">
+                <motion.p
+                  initial={{ opacity: 0, x: -10 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.2 }}
+                  className="text-white/70"
+                >
+                  <span className="text-primary">[System]</span> Player has met the requirements.
+                </motion.p>
+                <motion.p
+                  initial={{ opacity: 0, x: -10 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.5 }}
+                  className="text-white/70"
+                >
+                  <span className="text-primary">[System]</span> Beginning player reawakening...
+                </motion.p>
+                <motion.p
+                  initial={{ opacity: 0, x: -10 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.8 }}
+                  className="text-yellow-400"
+                >
+                  <span className="text-primary">[System]</span> Class assigned: <span className="text-white font-bold">Shadow Monarch</span>
+                </motion.p>
+                <motion.p
+                  initial={{ opacity: 0, x: -10 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 1.1 }}
+                  className="text-white/70"
+                >
+                  <span className="text-primary">[System]</span> Ability unlocked: <span className="text-cyan-400">Arise</span>
+                </motion.p>
+              </div>
+
+              {/* Progress bar */}
+              <div className="mt-5 pt-3 border-t border-primary/20">
+                <div className="flex justify-between text-[9px] font-mono text-primary/60 mb-1">
+                  <span>AWAKENING PROGRESS</span>
+                  <span>100%</span>
+                </div>
+                <div className="h-1.5 rounded-full bg-primary/10 overflow-hidden">
+                  <motion.div
+                    initial={{ width: "0%" }}
+                    whileInView={{ width: "100%" }}
+                    transition={{ duration: 2, delay: 0.5 }}
+                    className="h-full rounded-full bg-gradient-to-r from-primary to-purple-500"
+                  />
+                </div>
+              </div>
+            </motion.div>
           </div>
         </motion.div>
 
-        {/* Title with staggered letters */}
+        {/* === SECTION 3: ARISE === */}
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={phase >= 3 ? { opacity: 1 } : {}}
-          className="mb-2"
+          style={{ opacity: ariseOpacity, scale: ariseScale }}
+          className="absolute inset-0 flex items-center justify-center"
         >
-          <h1 className="text-5xl md:text-8xl font-black tracking-tighter">
-            {"PRIISMA".split("").map((letter, i) => (
-              <motion.span
-                key={i}
-                initial={{ y: 50, opacity: 0, rotateX: -90 }}
-                animate={phase >= 3 ? { y: 0, opacity: 1, rotateX: 0 } : {}}
-                transition={{ delay: i * 0.08, duration: 0.5, type: "spring" }}
-                className="inline-block text-primary"
-                style={{ textShadow: "0 0 30px rgba(0,212,255,0.5), 0 0 60px rgba(0,212,255,0.2)" }}
-              >
-                {letter}
-              </motion.span>
-            ))}
-            {"TV".split("").map((letter, i) => (
-              <motion.span
-                key={`tv-${i}`}
-                initial={{ y: 50, opacity: 0, rotateX: -90 }}
-                animate={phase >= 3 ? { y: 0, opacity: 1, rotateX: 0 } : {}}
-                transition={{ delay: 0.56 + i * 0.08, duration: 0.5, type: "spring" }}
-                className="inline-block text-white"
-              >
-                {letter}
-              </motion.span>
-            ))}
-          </h1>
+          <div className="text-center">
+            {/* Rising shadows behind text */}
+            <div className="absolute inset-0 flex items-end justify-center pointer-events-none">
+              {[...Array(8)].map((_, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ height: 0, opacity: 0 }}
+                  whileInView={{ height: `${40 + Math.random() * 30}%`, opacity: 0.3 }}
+                  transition={{ delay: i * 0.1, duration: 1 }}
+                  className="w-4 mx-1 bg-gradient-to-t from-purple-900/50 to-transparent rounded-t-full"
+                />
+              ))}
+            </div>
+
+            <motion.h1
+              className="text-7xl md:text-[10rem] font-black text-primary relative"
+              style={{
+                textShadow: "0 0 40px rgba(0,212,255,0.8), 0 0 80px rgba(0,212,255,0.4), 0 0 120px rgba(124,58,237,0.3)",
+              }}
+              animate={{ textShadow: [
+                "0 0 40px rgba(0,212,255,0.8), 0 0 80px rgba(0,212,255,0.4)",
+                "0 0 60px rgba(0,212,255,1), 0 0 120px rgba(0,212,255,0.6), 0 0 200px rgba(124,58,237,0.4)",
+                "0 0 40px rgba(0,212,255,0.8), 0 0 80px rgba(0,212,255,0.4)",
+              ]}}
+              transition={{ duration: 3, repeat: Infinity }}
+            >
+              ARISE
+            </motion.h1>
+            <motion.p
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+              className="text-white/30 text-sm font-mono mt-4 tracking-widest"
+            >
+              — Sung Jinwoo, Shadow Monarch
+            </motion.p>
+          </div>
         </motion.div>
 
-        {/* Subtitle */}
-        <motion.p
-          initial={{ opacity: 0, y: 10 }}
-          animate={phase >= 4 ? { opacity: 1, y: 0 } : {}}
-          className="text-white/30 text-xs md:text-sm font-mono tracking-[0.3em] uppercase mb-10"
-        >
-          [ PREMIUM STREAMING HUB ]
-        </motion.p>
-
-        {/* Stats */}
+        {/* === SECTION 4: Shadow Army === */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={phase >= 4 ? { opacity: 1, y: 0 } : {}}
-          transition={{ delay: 0.3 }}
-          className="flex items-center gap-6 md:gap-10 mb-10"
+          style={{ opacity: shadowsOpacity, y: shadowsY }}
+          className="absolute inset-0 flex items-center justify-center"
         >
-          {[
-            { value: "423+", label: "TITLES" },
-            { value: "HD/4K", label: "QUALITY" },
-            { value: "∞", label: "FREE" },
-          ].map((stat, i) => (
+          <div className="text-center max-w-lg mx-4">
+            {/* Shadow soldiers rising */}
+            <div className="flex items-end justify-center gap-3 mb-8 h-40">
+              {["Igris", "Beru", "Tank", "Iron", "Tusk"].map((name, i) => (
+                <motion.div
+                  key={name}
+                  initial={{ y: 100, opacity: 0 }}
+                  whileInView={{ y: 0, opacity: 1 }}
+                  transition={{ delay: i * 0.15, duration: 0.8, type: "spring" }}
+                  className="flex flex-col items-center"
+                >
+                  <div className={`w-10 h-${16 + i * 2} md:w-14 rounded-t-lg bg-gradient-to-t from-purple-900/80 to-primary/20 border border-primary/20 flex items-center justify-center`}
+                    style={{ height: `${60 + i * 15}px`, boxShadow: "0 0 15px rgba(0,212,255,0.2)" }}>
+                    <motion.div
+                      animate={{ opacity: [0.5, 1, 0.5] }}
+                      transition={{ duration: 2, repeat: Infinity, delay: i * 0.3 }}
+                      className="w-2 h-2 rounded-full bg-primary"
+                    />
+                  </div>
+                  <p className="text-[8px] font-mono text-primary/40 mt-1">{name}</p>
+                </motion.div>
+              ))}
+            </div>
+
+            <motion.p
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              className="text-white/50 text-sm mb-2"
+            >
+              Your shadow army awaits, Monarch.
+            </motion.p>
+            <motion.p
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              transition={{ delay: 0.3 }}
+              className="text-white/30 text-xs font-mono"
+            >
+              423+ titles • Movies • Anime • TV Shows
+            </motion.p>
+          </div>
+        </motion.div>
+
+        {/* === SECTION 5: Enter === */}
+        <motion.div
+          style={{ opacity: enterOpacity, scale: enterScale }}
+          className="absolute inset-0 flex items-center justify-center"
+        >
+          <div className="text-center">
             <motion.div
-              key={stat.label}
-              initial={{ scale: 0, rotateZ: -10 }}
-              animate={phase >= 4 ? { scale: 1, rotateZ: 0 } : {}}
-              transition={{ delay: 0.4 + i * 0.12, type: "spring", bounce: 0.4 }}
-              className="text-center"
+              animate={{ boxShadow: [
+                "0 0 20px rgba(0,212,255,0.3)",
+                "0 0 40px rgba(0,212,255,0.5), 0 0 80px rgba(124,58,237,0.3)",
+                "0 0 20px rgba(0,212,255,0.3)",
+              ]}}
+              transition={{ duration: 2, repeat: Infinity }}
+              className="w-24 h-24 mx-auto rounded-2xl bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center mb-6"
             >
-              <p className="text-3xl md:text-4xl font-black text-white">{stat.value}</p>
-              <p className="text-[8px] md:text-[9px] tracking-[0.25em] text-white/25 mt-1 font-mono">{stat.label}</p>
+              <svg className="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M8 5v14l11-7z"/>
+              </svg>
             </motion.div>
-          ))}
+
+            <h2 className="text-4xl md:text-5xl font-black mb-2">
+              <span className="text-primary">Priisma</span>
+              <span className="text-white">Tv</span>
+            </h2>
+            <p className="text-white/30 text-xs font-mono tracking-widest mb-8">PREMIUM STREAMING HUB</p>
+
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={enter}
+              className="px-10 py-4 rounded-xl bg-gradient-to-r from-primary to-purple-600 text-white font-black text-lg shadow-2xl shadow-primary/30 hover:shadow-primary/50 transition-shadow"
+            >
+              ENTER THE SHADOW REALM ⚔️
+            </motion.button>
+          </div>
         </motion.div>
 
-        {/* Enter button */}
-        <motion.button
-          initial={{ opacity: 0, scale: 0.5 }}
-          animate={phase >= 5 ? { opacity: 1, scale: 1 } : {}}
-          transition={{ type: "spring", bounce: 0.5 }}
-          whileHover={{ scale: 1.05, boxShadow: "0 0 40px rgba(0,212,255,0.4)" }}
-          whileTap={{ scale: 0.95 }}
-          onClick={enter}
-          className="relative px-12 py-5 rounded-2xl font-black text-lg md:text-xl text-white overflow-hidden group"
-        >
-          {/* Animated gradient bg */}
-          <motion.div
-            animate={{ backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] }}
-            transition={{ duration: 3, repeat: Infinity }}
-            className="absolute inset-0 rounded-2xl"
-            style={{
-              background: "linear-gradient(270deg, #00d4ff, #7c3aed, #00d4ff, #7c3aed)",
-              backgroundSize: "300% 300%",
-            }}
-          />
-          {/* Border glow */}
-          <div className="absolute inset-0 rounded-2xl shadow-[inset_0_0_20px_rgba(255,255,255,0.1)]" />
-          <span className="relative z-10 flex items-center gap-3">
-            ENTER
-            <motion.span
-              animate={{ x: [0, 8, 0] }}
-              transition={{ duration: 1, repeat: Infinity }}
-              className="text-2xl"
-            >
-              ⚔️
-            </motion.span>
-          </span>
-        </motion.button>
-
-        {/* Bottom text */}
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={phase >= 5 ? { opacity: 1 } : {}}
-          transition={{ delay: 0.5 }}
-          className="absolute bottom-8 text-[9px] font-mono text-white/10 tracking-widest"
-        >
-          ARISE • CTRL+K SEARCH • TYPE &quot;ARISE&quot; FOR SURPRISE
-        </motion.p>
-      </motion.div>
+        {/* Scroll progress indicator on the side */}
+        <div className="fixed right-4 top-1/2 -translate-y-1/2 z-50 flex flex-col gap-2">
+          {["Gate", "System", "Arise", "Army", "Enter"].map((label, i) => {
+            const progress = scrollYProgress;
+            const sectionStart = i * 0.2;
+            return (
+              <motion.div
+                key={label}
+                className="flex items-center gap-2"
+                style={{ opacity: useTransform(progress, [sectionStart, sectionStart + 0.1], [0.3, 1]) }}
+              >
+                <motion.div
+                  className="w-1.5 h-1.5 rounded-full"
+                  style={{
+                    backgroundColor: useTransform(progress, [sectionStart, sectionStart + 0.05], ["rgba(255,255,255,0.2)", "#00d4ff"]) as unknown as string,
+                  }}
+                />
+                <span className="text-[8px] font-mono text-white/30 hidden md:block">{label}</span>
+              </motion.div>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }
