@@ -27,27 +27,25 @@ export default function WelcomePage() {
   const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const code = password.trim();
+    const displayName = userName.trim() || "Guest";
 
     // Check master password first (owner bypass)
     if (code === MASTER_PASSWORD) {
       setAuthenticated(true);
       sessionStorage.setItem("priismatv_auth", "true");
-      sessionStorage.setItem("priismatv_user", name || "Owner");
-      // Log visit
-      logVisit(name || "Owner");
+      sessionStorage.setItem("priismatv_user", displayName || "Owner");
+      logVisit(displayName || "Owner");
       setPasswordError(false);
       return;
     }
 
     // Check invite code in database
-    const name = userName.trim() || "Guest";
-    const valid = await validateInviteCode(code, name);
+    const valid = await validateInviteCode(code, displayName);
     if (valid) {
       setAuthenticated(true);
       sessionStorage.setItem("priismatv_auth", "true");
-      sessionStorage.setItem("priismatv_user", name);
-      // Log visit
-      logVisit(name, code);
+      sessionStorage.setItem("priismatv_user", displayName);
+      logVisit(displayName, code);
       setPasswordError(false);
     } else {
       setPasswordError(true);
