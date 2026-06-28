@@ -1,14 +1,8 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MessageCircle, X, Send } from "lucide-react";
-
-interface ChatMessage {
-  id: string;
-  user: string;
-  text: string;
-  time: string;
-}
+import { useChat } from "@/hooks/use-supabase";
 
 export function ChatWidget() {
   const [isOpen, setIsOpen] = useState(false);
@@ -16,31 +10,30 @@ export function ChatWidget() {
   const [roomCode, setRoomCode] = useState("");
   const [joined, setJoined] = useState(false);
   const [message, setMessage] = useState("");
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Get username from session
+  useEffect(() => {
+    const user = sessionStorage.getItem("priismatv_user");
+    if (user) setUsername(user);
+  }, []);
+
+  const { messages, sendMessage } = useChat(joined ? roomCode : "");
+
+  // Auto-scroll to bottom
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   const joinRoom = () => {
     if (username.trim() && roomCode.trim()) {
       setJoined(true);
-      setMessages([{
-        id: "sys1",
-        user: "System",
-        text: `${username} joined the chat!`,
-        time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-      }]);
     }
   };
 
-  const sendMessage = () => {
+  const handleSend = () => {
     if (!message.trim()) return;
-    setMessages((prev) => [
-      ...prev,
-      {
-        id: Date.now().toString(),
-        user: username,
-        text: message.trim(),
-        time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-      },
-    ]);
+    sendMessage(username, message);
     setMessage("");
   };
 
@@ -67,7 +60,8 @@ export function ChatWidget() {
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-border">
               <h4 className="font-semibold text-sm flex items-center gap-2">
-                <MessageCircle className="w-4 h-4 text-primary" /> Group Chat
+                <MessageCircle className="w-4 h-4 text-primary" /> Live Chat
+                {joined && <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-green-500/20 text-green-400">Connected</span>}
               </h4>
               <button onClick={() => setIsOpen(false)} className="p-1 rounded hover:bg-muted transition-colors">
                 <X className="w-4 h-4" />
@@ -97,23 +91,27 @@ export function ChatWidget() {
                 >
                   Join Chat
                 </button>
-                <p className="text-xs text-muted-foreground text-center">Enter a name & room code to start chatting. Share the same code with friends!</p>
+                <p className="text-xs text-muted-foreground text-center">Share the same room code with friends to chat together! Messages sync in real-time.</p>
               </div>
             ) : (
               <>
                 {/* Messages */}
                 <div className="flex-1 overflow-y-auto p-3 space-y-2">
+                  {messages.length === 0 && (
+                    <p className="text-xs text-muted-foreground text-center py-4">No messages yet. Say something!</p>
+                  )}
                   {messages.map((msg) => (
-                    <div key={msg.id} className={`text-xs ${msg.user === "System" ? "text-center text-muted-foreground italic" : ""}`}>
-                      {msg.user !== "System" && (
-                        <div className="flex items-baseline gap-2">
-                          <span className="font-semibold text-primary">{msg.user}</span>
-                          <span className="text-[10px] text-muted-foreground">{msg.time}</span>
-                        </div>
-                      )}
-                      <p className={msg.user === "System" ? "" : "mt-0.5 text-foreground"}>{msg.text}</p>
+                    <div key={msg.id} className="text-xs">
+                      <div className="flex items-baseline gap-2">
+                        <span className={`font-semibold ${msg.username === username ? "text-primary" : "text-purple-400"}`}>{msg.username}</span>
+                        <span className="text-[9px] text-muted-foreground">
+                          {new Date(msg.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                        </span>
+                      </div>
+                      <p className="mt-0.5 text-foreground">{msg.message}</p>
                     </div>
                   ))}
+                  <div ref={messagesEndRef} />
                 </div>
 
                 {/* Input */}
@@ -123,11 +121,11 @@ export function ChatWidget() {
                       type="text"
                       value={message}
                       onChange={(e) => setMessage(e.target.value)}
-                      onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+                      onKeyDown={(e) => e.key === "Enter" && handleSend()}
                       placeholder="Type a message..."
                       className="flex-1 px-3 py-2 rounded-lg bg-muted border border-border text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
                     />
-                    <button onClick={sendMessage} className="p-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-all">
+                    <button onClick={handleSend} className="p-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-all">
                       <Send className="w-3.5 h-3.5" />
                     </button>
                   </div>

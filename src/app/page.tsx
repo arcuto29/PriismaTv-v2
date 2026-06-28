@@ -14,11 +14,10 @@ export default function WelcomePage() {
   const [authenticated, setAuthenticated] = useState(false);
   const [password, setPassword] = useState("");
   const [passwordError, setPasswordError] = useState(false);
+  const [userName, setUserName] = useState("");
 
-  // Site password - change this whenever you want
-  const SITE_PASSWORD = "shadowmonarch";
-
-  const fullText = "> INITIALIZING PRIISMATV...";
+  // Master password (always works for owner) + invite codes from database
+  const MASTER_PASSWORD = "shadowmonarch";
 
   // Check if already authenticated this session
   useEffect(() => {
@@ -27,11 +26,30 @@ export default function WelcomePage() {
     }
   }, []);
 
-  const handlePasswordSubmit = (e: React.FormEvent) => {
+  const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password === SITE_PASSWORD) {
+    const code = password.trim();
+
+    // Check master password first (owner bypass)
+    if (code === MASTER_PASSWORD) {
       setAuthenticated(true);
       sessionStorage.setItem("priismatv_auth", "true");
+      sessionStorage.setItem("priismatv_user", "Owner");
+      // Log visit
+      logVisit("Owner");
+      setPasswordError(false);
+      return;
+    }
+
+    // Check invite code in database
+    const name = userName.trim() || "Guest";
+    const valid = await validateInviteCode(code, name);
+    if (valid) {
+      setAuthenticated(true);
+      sessionStorage.setItem("priismatv_auth", "true");
+      sessionStorage.setItem("priismatv_user", name);
+      // Log visit
+      logVisit(name, code);
       setPasswordError(false);
     } else {
       setPasswordError(true);
@@ -39,6 +57,28 @@ export default function WelcomePage() {
       setTimeout(() => setPasswordError(false), 2000);
     }
   };
+
+  const validateInviteCode = async (code: string, name: string) => {
+    const { supabase } = await import("@/lib/supabase");
+    const { data } = await supabase.from("invite_codes").select("*").eq("code", code.toUpperCase()).eq("is_used", false).single();
+    if (data) {
+      await supabase.from("invite_codes").update({ is_used: true, used_by: name, used_at: new Date().toISOString() }).eq("id", data.id);
+      return true;
+    }
+    return false;
+  };
+
+  const logVisit = async (name: string, inviteCode?: string) => {
+    const { supabase } = await import("@/lib/supabase");
+    const { data: existing } = await supabase.from("visitors").select("*").eq("name", name).single();
+    if (existing) {
+      await supabase.from("visitors").update({ last_seen: new Date().toISOString(), visit_count: existing.visit_count + 1 }).eq("id", existing.id);
+    } else {
+      await supabase.from("visitors").insert({ name, invite_code: inviteCode || null });
+    }
+  };
+
+  const fullText = "> INITIALIZING PRIISMATV...";
 
   useEffect(() => {
     const t1 = setTimeout(() => setPhase(1), 200);
@@ -163,15 +203,24 @@ export default function WelcomePage() {
 
           <form onSubmit={handlePasswordSubmit} className="space-y-3">
             <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter access code..."
-              autoFocus
-              className={`w-full px-4 py-3.5 rounded-xl bg-white/5 border text-sm text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all ${
-                passwordError ? "border-red-500" : "border-white/10"
-              }`}
+              type="text"
+              value={userName}
+              onChange={(e) => setUserName(e.target.value)}
+              placeholder="Your name..."
+              className="w-full px-4 py-3.5 rounded-xl bg-white/5 border border-white/10 text-sm text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
             />
+            <div className="relative">
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter invite code..."
+                autoFocus
+                className={`w-full px-4 py-3.5 rounded-xl bg-white/5 border text-sm text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all ${
+                  passwordError ? "border-red-500" : "border-white/10"
+                }`}
+              />
+            </div>
             <button
               type="submit"
               className="w-full py-3.5 rounded-xl bg-gradient-to-r from-primary to-purple-600 text-white font-bold text-sm hover:opacity-90 transition-opacity"

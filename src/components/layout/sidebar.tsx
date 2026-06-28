@@ -8,7 +8,7 @@ import {
   Home, Film, Sword, Tv, Users, Video, MonitorPlay,
   Bookmark, Heart, UserPlus, Trophy, Calendar, History,
   Layers, Hand, PlusCircle, Settings, Menu, X, Play,
-  Smile, BarChart3, Award
+  Smile, BarChart3, Award, Shield
 } from "lucide-react";
 
 const navItems = [
@@ -31,6 +31,7 @@ const navItems = [
   { href: "/collections", icon: Layers, label: "Collections" },
   { href: "/requests", icon: Hand, label: "Requests" },
   { href: "/admin", icon: PlusCircle, label: "Add Content" },
+  { href: "/admin-panel", icon: Shield, label: "Owner Panel" },
   { href: "/settings", icon: Settings, label: "Settings" },
 ];
 
