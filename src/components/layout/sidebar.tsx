@@ -8,7 +8,7 @@ import {
   Home, Film, Sword, Tv, Users, Video, MonitorPlay,
   Bookmark, Heart, UserPlus, Trophy, Calendar, History,
   Layers, Hand, PlusCircle, Settings, Menu, X, Play,
-  Smile, BarChart3
+  Smile, BarChart3, Award
 } from "lucide-react";
 
 const navItems = [
@@ -27,6 +27,7 @@ const navItems = [
   { href: "/calendar", icon: Calendar, label: "Calendar" },
   { href: "/history", icon: History, label: "History" },
   { href: "/stats", icon: BarChart3, label: "Watch Stats" },
+  { href: "/achievements", icon: Award, label: "Achievements" },
   { href: "/collections", icon: Layers, label: "Collections" },
   { href: "/requests", icon: Hand, label: "Requests" },
   { href: "/admin", icon: PlusCircle, label: "Add Content" },

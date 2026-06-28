@@ -96,8 +96,16 @@ export function ContentCard({
         )}
 
         {/* Type Badge */}
-        <div className="absolute top-2.5 left-2.5 z-[2] px-2 py-0.5 rounded bg-primary/90 backdrop-blur-sm text-[9px] font-black uppercase tracking-wider text-primary-foreground">
-          {item.type === "tvshow" ? "TV" : item.type}
+        <div className="absolute top-2.5 left-2.5 z-[2] flex items-center gap-1">
+          <span className="px-2 py-0.5 rounded bg-primary/90 backdrop-blur-sm text-[9px] font-black uppercase tracking-wider text-primary-foreground">
+            {item.type === "tvshow" ? "TV" : item.type}
+          </span>
+          {/* New badge - show for items added in last 30 days */}
+          {item.dateAdded && (Date.now() - new Date(item.dateAdded).getTime()) < 30 * 24 * 60 * 60 * 1000 && (
+            <span className="px-1.5 py-0.5 rounded bg-green-500/90 text-[8px] font-bold text-white uppercase">
+              New
+            </span>
+          )}
         </div>
       </Link>
 
