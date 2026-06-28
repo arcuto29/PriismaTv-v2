@@ -1,12 +1,19 @@
 "use client";
-import { Settings, Moon, Sun, Smartphone, Share2, Download, Shield } from "lucide-react";
+import { Settings, Moon, Sun, Smartphone, Share2, Download, Shield, ImageOff } from "lucide-react";
 import { useTheme } from "@/hooks/use-theme";
 import { useContentStore } from "@/hooks/use-content-store";
-import { OWNER_PASSWORD } from "@/data/content";
+import { OWNER_PASSWORD, STORAGE_KEYS } from "@/data/content";
+import { SAMPLE_CONTENT } from "@/data/sample-content";
 
 export default function SettingsPage() {
   const { theme, toggleTheme } = useTheme();
   const { content } = useContentStore();
+
+  const handleFixImages = () => {
+    localStorage.removeItem(STORAGE_KEYS.CONTENT);
+    localStorage.removeItem("priismatv_version");
+    window.location.reload();
+  };
 
   const handleInstallPWA = () => {
     alert("To install PriismaTv as an app:\n\n1. Open this site in Chrome/Edge\n2. Click the install icon in the address bar\n3. Or go to browser menu > Install App");
@@ -55,6 +62,15 @@ export default function SettingsPage() {
           <p className="text-sm text-muted-foreground mb-3">Install PriismaTv on your device for a native app experience.</p>
           <button onClick={handleInstallPWA} className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-all">
             Install PriismaTv
+          </button>
+        </div>
+
+        {/* Fix Images */}
+        <div className="p-5 rounded-xl bg-card border border-border">
+          <h3 className="font-semibold mb-4 flex items-center gap-2"><ImageOff className="w-4 h-4" /> Fix Cover Images</h3>
+          <p className="text-sm text-muted-foreground mb-3">If cover images aren&apos;t showing, click this to reload all content with fresh poster URLs.</p>
+          <button onClick={handleFixImages} className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-all">
+            Fix Images Now
           </button>
         </div>
 

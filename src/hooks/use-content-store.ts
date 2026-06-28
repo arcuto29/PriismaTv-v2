@@ -14,33 +14,26 @@ export function useContentStore() {
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEYS.CONTENT);
-    const currentVersion = "v2.9"; // Bump this to force refresh
+    // NUCLEAR FIX: Always force fresh content on load
+    // This guarantees poster images are loaded correctly
+    const currentVersion = "v4.0-fresh";
     const storedVersion = localStorage.getItem("priismatv_version");
     
-    // ALWAYS force fresh data if version doesn't match
-    // This guarantees poster images are loaded
     if (storedVersion !== currentVersion) {
-      console.log("[PriismaTv] Refreshing content library to v2.6...");
-      setContent(SAMPLE_CONTENT);
+      // Force complete refresh
+      console.log("[PriismaTv] Loading fresh library with all posters...");
+      localStorage.removeItem(STORAGE_KEYS.CONTENT);
       localStorage.setItem(STORAGE_KEYS.CONTENT, JSON.stringify(SAMPLE_CONTENT));
       localStorage.setItem("priismatv_version", currentVersion);
-    } else if (stored) {
-      const parsed = JSON.parse(stored);
-      // Extra safety: if most items don't have posters, force refresh
-      const withPosters = parsed.filter((i: ContentItem) => i.poster && i.poster.includes("tmdb"));
-      if (withPosters.length < parsed.length * 0.5) {
-        console.log("[PriismaTv] Stale data detected, forcing refresh...");
+      setContent(SAMPLE_CONTENT);
+    } else {
+      const stored = localStorage.getItem(STORAGE_KEYS.CONTENT);
+      if (stored) {
+        setContent(JSON.parse(stored));
+      } else {
         setContent(SAMPLE_CONTENT);
         localStorage.setItem(STORAGE_KEYS.CONTENT, JSON.stringify(SAMPLE_CONTENT));
-        localStorage.setItem("priismatv_version", currentVersion);
-      } else {
-        setContent(parsed);
       }
-    } else {
-      setContent(SAMPLE_CONTENT);
-      localStorage.setItem(STORAGE_KEYS.CONTENT, JSON.stringify(SAMPLE_CONTENT));
-      localStorage.setItem("priismatv_version", currentVersion);
     }
     setWatchlist(JSON.parse(localStorage.getItem(STORAGE_KEYS.WATCHLIST) || "[]"));
     setFavorites(JSON.parse(localStorage.getItem(STORAGE_KEYS.FAVORITES) || "[]"));
