@@ -12,10 +12,22 @@ export function ChatWidget() {
   const [message, setMessage] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Get username from session
+  // Get username from session - check repeatedly until found
   useEffect(() => {
     const user = sessionStorage.getItem("priismatv_user");
-    if (user) setUsername(user);
+    if (user) {
+      setUsername(user);
+      return;
+    }
+    // Poll for it (in case it's set after mount)
+    const interval = setInterval(() => {
+      const u = sessionStorage.getItem("priismatv_user");
+      if (u) {
+        setUsername(u);
+        clearInterval(interval);
+      }
+    }, 500);
+    return () => clearInterval(interval);
   }, []);
 
   const { messages, sendMessage } = useChat(joined ? roomCode : "");
