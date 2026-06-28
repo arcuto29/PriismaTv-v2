@@ -15,11 +15,16 @@ export function useContentStore() {
 
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEYS.CONTENT);
-    if (stored) {
+    const currentVersion = "v2.1"; // Bump this to force refresh
+    const storedVersion = localStorage.getItem("priismatv_version");
+    
+    if (stored && storedVersion === currentVersion) {
       setContent(JSON.parse(stored));
     } else {
+      // Force load fresh sample content (new version or first time)
       setContent(SAMPLE_CONTENT);
       localStorage.setItem(STORAGE_KEYS.CONTENT, JSON.stringify(SAMPLE_CONTENT));
+      localStorage.setItem("priismatv_version", currentVersion);
     }
     setWatchlist(JSON.parse(localStorage.getItem(STORAGE_KEYS.WATCHLIST) || "[]"));
     setFavorites(JSON.parse(localStorage.getItem(STORAGE_KEYS.FAVORITES) || "[]"));
