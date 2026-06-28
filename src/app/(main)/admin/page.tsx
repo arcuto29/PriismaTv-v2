@@ -8,14 +8,22 @@ import { SAMPLE_CONTENT } from "@/data/sample-content";
 export default function AdminPage() {
   const { content, addContent, saveContent } = useContentStore();
   const [isOwner, setIsOwner] = useState(false);
+  const [ownerInput, setOwnerInput] = useState("");
+  const [ownerError, setOwnerError] = useState(false);
+  const [form, setForm] = useState({
+    title: "", type: "movie" as "movie" | "anime" | "tvshow",
+    year: "", rating: "", genre: "action", description: "",
+    poster: "", backdrop: "", video: "", trailer: "",
+    duration: "", episodes: "", seasons: "", tags: "",
+  });
+  const [fetchStatus, setFetchStatus] = useState("");
+  const [posterResults, setPosterResults] = useState<string[]>([]);
 
   useEffect(() => {
     if (sessionStorage.getItem("priismatv_owner") === "true") {
       setIsOwner(true);
     }
   }, []);
-  const [ownerInput, setOwnerInput] = useState("");
-  const [ownerError, setOwnerError] = useState(false);
 
   // Owner gate
   if (!isOwner) {
@@ -54,15 +62,6 @@ export default function AdminPage() {
       </div>
     );
   }
-
-  const [form, setForm] = useState({
-    title: "", type: "movie" as "movie" | "anime" | "tvshow",
-    year: "", rating: "", genre: "action", description: "",
-    poster: "", backdrop: "", video: "", trailer: "",
-    duration: "", episodes: "", seasons: "", tags: "",
-  });
-  const [fetchStatus, setFetchStatus] = useState("");
-  const [posterResults, setPosterResults] = useState<string[]>([]);
 
   const requireOwner = (): boolean => {
     if (sessionStorage.getItem("priismatv_owner") === "true") return true;
