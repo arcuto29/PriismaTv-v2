@@ -7,6 +7,7 @@ import { AriseEasterEgg } from "./arise-easter-egg";
 import { LoadingScreen } from "./loading-screen";
 import { KeyboardShortcuts } from "./keyboard-shortcuts";
 import { PipPlayer } from "./pip-player";
+import { WhatsNewPopup } from "./whats-new-popup";
 
 export function GlobalFeatures() {
   const { content, isLoaded } = useContentStore();
@@ -25,6 +26,7 @@ export function GlobalFeatures() {
           <AriseEasterEgg />
           <KeyboardShortcuts />
           <PipPlayer />
+          <WhatsNewPopup />
         </>
       )}
     </>
