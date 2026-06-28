@@ -46,7 +46,18 @@ export default function FriendsPage() {
                   <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-green-500 border-2 border-card" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm font-semibold">{user.name}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-semibold">{user.name}</p>
+                    {user.role === "owner" && (
+                      <span className="px-1.5 py-0.5 rounded text-[8px] font-bold bg-yellow-500/20 text-yellow-400 uppercase">👑 Owner</span>
+                    )}
+                    {user.role === "mod" && (
+                      <span className="px-1.5 py-0.5 rounded text-[8px] font-bold bg-purple-500/20 text-purple-400 uppercase">⚔️ Mod</span>
+                    )}
+                    {(!user.role || user.role === "member") && (
+                      <span className="px-1.5 py-0.5 rounded text-[8px] font-bold bg-blue-500/20 text-blue-400 uppercase">Member</span>
+                    )}
+                  </div>
                   <p className="text-[10px] text-green-400 font-mono">● Online now</p>
                 </div>
               </motion.div>
@@ -78,7 +89,18 @@ export default function FriendsPage() {
                   <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-gray-500 border-2 border-card" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-muted-foreground">{user.name}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-medium text-muted-foreground">{user.name}</p>
+                    {user.role === "owner" && (
+                      <span className="px-1.5 py-0.5 rounded text-[8px] font-bold bg-yellow-500/20 text-yellow-400 uppercase">👑 Owner</span>
+                    )}
+                    {user.role === "mod" && (
+                      <span className="px-1.5 py-0.5 rounded text-[8px] font-bold bg-purple-500/20 text-purple-400 uppercase">⚔️ Mod</span>
+                    )}
+                    {(!user.role || user.role === "member") && (
+                      <span className="px-1.5 py-0.5 rounded text-[8px] font-bold bg-blue-500/20 text-blue-400 uppercase">Member</span>
+                    )}
+                  </div>
                   <p className="text-[10px] text-muted-foreground font-mono">
                     Last seen: {user.last_heartbeat ? new Date(user.last_heartbeat).toLocaleDateString() + " " + new Date(user.last_heartbeat).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "Never"}
                   </p>

@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
 
 export function useOnlineStatus() {
-  const [onlineUsers, setOnlineUsers] = useState<Array<{ name: string; is_online: boolean; last_heartbeat: string }>>([]);
+  const [onlineUsers, setOnlineUsers] = useState<Array<{ name: string; is_online: boolean; last_heartbeat: string; role?: string }>>([]);
 
   // Send heartbeat every 30 seconds to show we're online
   useEffect(() => {
@@ -44,7 +44,7 @@ export function useOnlineStatus() {
   const fetchOnlineUsers = useCallback(async () => {
     const { data } = await supabase
       .from("visitors")
-      .select("name, is_online, last_heartbeat")
+      .select("name, is_online, last_heartbeat, role")
       .order("last_heartbeat", { ascending: false });
 
     if (data) {
