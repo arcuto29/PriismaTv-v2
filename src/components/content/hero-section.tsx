@@ -1,6 +1,5 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
 import { Play, Info, Star, Clock, Bookmark, Volume2, VolumeX } from "lucide-react";
@@ -46,14 +45,10 @@ export function HeroSection({ items, onWatchlist }: HeroSectionProps) {
             className="absolute inset-0"
           >
             {current.backdrop && (
-              <Image
+              <img
                 src={current.backdrop}
                 alt={current.title}
-                fill
-                className="object-cover"
-                priority
-                sizes="100vw"
-                quality={90}
+                className="absolute inset-0 w-full h-full object-cover"
               />
             )}
           </motion.div>

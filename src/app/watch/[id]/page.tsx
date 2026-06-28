@@ -1,11 +1,11 @@
 "use client";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
-import Image from "next/image";
+
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Play, Bookmark, Heart, Star, Clock,
-  Film, ChevronLeft, Trash2, X, Video, Maximize
+  Film, ChevronLeft, Trash2, X, Video, Maximize, Edit3, Save, Wand2
 } from "lucide-react";
 import { useContentStore } from "@/hooks/use-content-store";
 import { ContentItem, OWNER_PASSWORD, TMDB_API_KEY } from "@/data/content";
@@ -37,6 +37,7 @@ export default function WatchPage() {
   const [item, setItem] = useState<ContentItem | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [showTrailer, setShowTrailer] = useState(false);
+  const [showEdit, setShowEdit] = useState(false);
   const [selectedServer, setSelectedServer] = useState(0);
   const [selectedSeason, setSelectedSeason] = useState(1);
   const [selectedEpisode, setSelectedEpisode] = useState(1);
@@ -44,6 +45,11 @@ export default function WatchPage() {
   const [tmdbId, setTmdbId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const trailerRef = useRef<HTMLDivElement>(null);
+  const [editForm, setEditForm] = useState({
+    title: "", poster: "", backdrop: "", video: "", trailer: "",
+    description: "", year: "", rating: "", genre: "", duration: "",
+    episodes: "", seasons: "",
+  });
 
   useEffect(() => {
     const found = getContentById(params.id as string);
@@ -188,7 +194,7 @@ export default function WatchPage() {
       {/* Backdrop */}
       <div className="relative h-[50vh] lg:h-[60vh] w-full overflow-hidden">
         {item.backdrop ? (
-          <Image src={item.backdrop} alt={item.title} fill className="object-cover" priority sizes="100vw" />
+          <img src={item.backdrop} alt={item.title} className="absolute inset-0 w-full h-full object-cover" />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-card to-muted" />
         )}
@@ -207,7 +213,7 @@ export default function WatchPage() {
           <div className="hidden lg:block flex-shrink-0 w-[240px]">
             <div className="aspect-[2/3] rounded-xl overflow-hidden shadow-2xl ring-1 ring-white/10">
               {item.poster ? (
-                <Image src={item.poster} alt={item.title} width={240} height={360} className="object-cover w-full h-full" />
+                <img src={item.poster || ""} alt={item.title} className="w-full h-full object-cover" />
               ) : (
                 <div className="w-full h-full bg-muted flex items-center justify-center">
                   <Film className="w-12 h-12 text-muted-foreground" />
@@ -283,7 +289,127 @@ export default function WatchPage() {
               <button onClick={handleDelete} className="p-3 rounded-lg bg-white/10 border border-white/10 text-white hover:bg-red-500/20 hover:border-red-500 hover:text-red-500 transition-all">
                 <Trash2 className="w-5 h-5" />
               </button>
+
+              <button
+                onClick={() => {
+                  if (sessionStorage.getItem("priismatv_owner") === "true" || prompt("Owner password:") === OWNER_PASSWORD) {
+                    sessionStorage.setItem("priismatv_owner", "true");
+                    setShowEdit(!showEdit);
+                    if (!showEdit) setEditForm({
+                      title: item.title, poster: item.poster || "", backdrop: item.backdrop || "",
+                      video: item.video || "", trailer: item.trailer || "", description: item.description,
+                      year: String(item.year), rating: String(item.rating || ""), genre: item.genre,
+                      duration: item.duration || "", episodes: String(item.episodes || ""), seasons: String(item.seasons || ""),
+                    });
+                  }
+                }}
+                className="p-3 rounded-lg bg-white/10 border border-white/10 text-white hover:bg-primary/20 hover:border-primary hover:text-primary transition-all"
+              >
+                <Edit3 className="w-5 h-5" />
+              </button>
             </div>
+
+            {/* Edit Panel */}
+            <AnimatePresence>
+              {showEdit && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="mb-6 overflow-hidden"
+                >
+                  <div className="p-5 rounded-xl bg-card border border-primary/20 space-y-3">
+                    <h4 className="text-sm font-bold text-primary flex items-center gap-2"><Edit3 className="w-4 h-4" /> Edit Content</h4>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-xs text-muted-foreground">Title</label>
+                        <input type="text" value={editForm.title} onChange={(e) => setEditForm({...editForm, title: e.target.value})}
+                          className="w-full px-3 py-2 rounded-lg bg-muted border border-border text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary" />
+                      </div>
+                      <div>
+                        <label className="text-xs text-muted-foreground">Year</label>
+                        <input type="number" value={editForm.year} onChange={(e) => setEditForm({...editForm, year: e.target.value})}
+                          className="w-full px-3 py-2 rounded-lg bg-muted border border-border text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary" />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-xs text-muted-foreground">Poster URL</label>
+                      <input type="url" value={editForm.poster} onChange={(e) => setEditForm({...editForm, poster: e.target.value})}
+                        className="w-full px-3 py-2 rounded-lg bg-muted border border-border text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary" />
+                    </div>
+                    <div>
+                      <label className="text-xs text-muted-foreground">Backdrop URL</label>
+                      <input type="url" value={editForm.backdrop} onChange={(e) => setEditForm({...editForm, backdrop: e.target.value})}
+                        className="w-full px-3 py-2 rounded-lg bg-muted border border-border text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary" />
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-xs text-muted-foreground">Video/Stream URL</label>
+                        <input type="url" value={editForm.video} onChange={(e) => setEditForm({...editForm, video: e.target.value})}
+                          className="w-full px-3 py-2 rounded-lg bg-muted border border-border text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary" />
+                      </div>
+                      <div>
+                        <label className="text-xs text-muted-foreground">Trailer (YouTube ID)</label>
+                        <input type="text" value={editForm.trailer} onChange={(e) => setEditForm({...editForm, trailer: e.target.value})}
+                          className="w-full px-3 py-2 rounded-lg bg-muted border border-border text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary" />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-xs text-muted-foreground">Description</label>
+                      <textarea value={editForm.description} onChange={(e) => setEditForm({...editForm, description: e.target.value})} rows={2}
+                        className="w-full px-3 py-2 rounded-lg bg-muted border border-border text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary resize-none" />
+                    </div>
+                    <div className="grid grid-cols-4 gap-3">
+                      <div>
+                        <label className="text-xs text-muted-foreground">Rating</label>
+                        <input type="text" value={editForm.rating} onChange={(e) => setEditForm({...editForm, rating: e.target.value})}
+                          className="w-full px-3 py-2 rounded-lg bg-muted border border-border text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary" />
+                      </div>
+                      <div>
+                        <label className="text-xs text-muted-foreground">Genre</label>
+                        <input type="text" value={editForm.genre} onChange={(e) => setEditForm({...editForm, genre: e.target.value})}
+                          className="w-full px-3 py-2 rounded-lg bg-muted border border-border text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary" />
+                      </div>
+                      <div>
+                        <label className="text-xs text-muted-foreground">Duration</label>
+                        <input type="text" value={editForm.duration} onChange={(e) => setEditForm({...editForm, duration: e.target.value})}
+                          className="w-full px-3 py-2 rounded-lg bg-muted border border-border text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary" />
+                      </div>
+                      <div>
+                        <label className="text-xs text-muted-foreground">Seasons</label>
+                        <input type="number" value={editForm.seasons} onChange={(e) => setEditForm({...editForm, seasons: e.target.value})}
+                          className="w-full px-3 py-2 rounded-lg bg-muted border border-border text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary" />
+                      </div>
+                    </div>
+                    <div className="flex gap-2 pt-2">
+                      <button
+                        onClick={() => {
+                          updateContent(item.id, {
+                            title: editForm.title, poster: editForm.poster || null, backdrop: editForm.backdrop || null,
+                            video: editForm.video || null, trailer: editForm.trailer || null, description: editForm.description,
+                            year: parseInt(editForm.year) || item.year, rating: parseFloat(editForm.rating) || null,
+                            genre: editForm.genre, duration: editForm.duration || null,
+                            episodes: parseInt(editForm.episodes) || undefined, seasons: parseInt(editForm.seasons) || undefined,
+                          });
+                          setItem({...item, title: editForm.title, poster: editForm.poster || null, backdrop: editForm.backdrop || null,
+                            video: editForm.video || null, trailer: editForm.trailer || null, description: editForm.description,
+                            year: parseInt(editForm.year) || item.year, rating: parseFloat(editForm.rating) || null,
+                            genre: editForm.genre, duration: editForm.duration || null,
+                            episodes: parseInt(editForm.episodes) || undefined, seasons: parseInt(editForm.seasons) || undefined});
+                          setShowEdit(false);
+                        }}
+                        className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 flex items-center gap-1"
+                      >
+                        <Save className="w-3.5 h-3.5" /> Save
+                      </button>
+                      <button onClick={() => setShowEdit(false)} className="px-4 py-2 rounded-lg bg-muted text-sm font-medium text-foreground hover:bg-muted/80">
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             {/* Season/Episode Selector */}
             {(item.type === "tvshow" || item.type === "anime") && item.seasons && item.seasons > 0 && (

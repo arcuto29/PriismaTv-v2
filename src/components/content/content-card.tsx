@@ -1,6 +1,5 @@
 "use client";
 import { useState, useRef } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { Play, Plus, Heart, Star, Check } from "lucide-react";
@@ -58,13 +57,12 @@ export function ContentCard({
         {/* Poster Image */}
         <div className="absolute inset-0 bg-card">
           {item.poster && !imageError ? (
-            <Image
+            <img
               src={item.poster}
               alt={item.title}
-              fill
-              className="object-cover transition-transform duration-700 ease-out group-hover:scale-110"
-              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+              className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
               onError={() => setImageError(true)}
+              loading="lazy"
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-muted to-card">
