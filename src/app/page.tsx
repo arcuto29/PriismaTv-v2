@@ -103,6 +103,15 @@ export default function WelcomePage() {
     return newShards;
   };
 
+  // Auto-enter after animations finish (no button needed)
+  useEffect(() => {
+    if (!authenticated) return;
+    const autoEnter = setTimeout(() => {
+      enter();
+    }, 5500); // Auto-shatter after 5.5 seconds
+    return () => clearTimeout(autoEnter);
+  }, [authenticated]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const enter = () => {
     setCountdown(3);
     setTimeout(() => setCountdown(2), 600);
@@ -465,25 +474,6 @@ export default function WelcomePage() {
         </motion.div>
 
         {/* Enter button */}
-        <motion.button
-          initial={{ opacity: 0, scale: 0.5 }}
-          animate={phase >= 5 ? { opacity: 1, scale: 1 } : {}}
-          transition={{ type: "spring", bounce: 0.5 }}
-          whileHover={{ scale: 1.05, boxShadow: "0 0 40px rgba(0,212,255,0.4)" }}
-          whileTap={{ scale: 0.95 }}
-          onClick={enter}
-          className="relative px-12 py-5 rounded-2xl font-black text-lg md:text-xl text-white overflow-hidden group"
-        >
-          <motion.div animate={{ backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] }} transition={{ duration: 3, repeat: Infinity }}
-            className="absolute inset-0 rounded-2xl"
-            style={{ background: "linear-gradient(270deg, #00d4ff, #7c3aed, #00d4ff, #7c3aed)", backgroundSize: "300% 300%" }} />
-          <div className="absolute inset-0 rounded-2xl shadow-[inset_0_0_20px_rgba(255,255,255,0.1)]" />
-          <span className="relative z-10 flex items-center gap-3">
-            ENTER
-            <motion.span animate={{ x: [0, 8, 0] }} transition={{ duration: 1, repeat: Infinity }} className="text-2xl">⚔️</motion.span>
-          </span>
-        </motion.button>
-
         {/* Bottom text */}
         <motion.p initial={{ opacity: 0 }} animate={phase >= 5 ? { opacity: 1 } : {}} transition={{ delay: 0.5 }}
           className="absolute bottom-8 text-[9px] font-mono text-white/10 tracking-widest">
