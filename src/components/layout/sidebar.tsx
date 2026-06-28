@@ -7,7 +7,8 @@ import { cn } from "@/lib/utils";
 import {
   Home, Film, Sword, Tv, Users, Video, MonitorPlay,
   Bookmark, Heart, UserPlus, Trophy, Calendar, History,
-  Layers, Hand, PlusCircle, Settings, Menu, X, Play
+  Layers, Hand, PlusCircle, Settings, Menu, X, Play,
+  Smile, BarChart3
 } from "lucide-react";
 
 const navItems = [
@@ -15,6 +16,7 @@ const navItems = [
   { href: "/movies", icon: Film, label: "Movies" },
   { href: "/anime", icon: Sword, label: "Anime" },
   { href: "/tvshows", icon: Tv, label: "TV Shows" },
+  { href: "/mood", icon: Smile, label: "Mood Picker" },
   { href: "/watch-together", icon: Users, label: "Watch Together" },
   { href: "/youtube", icon: Video, label: "YouTube" },
   { href: "/twitch", icon: MonitorPlay, label: "Twitch" },
@@ -24,6 +26,7 @@ const navItems = [
   { href: "/challenges", icon: Trophy, label: "Challenges" },
   { href: "/calendar", icon: Calendar, label: "Calendar" },
   { href: "/history", icon: History, label: "History" },
+  { href: "/stats", icon: BarChart3, label: "Watch Stats" },
   { href: "/collections", icon: Layers, label: "Collections" },
   { href: "/requests", icon: Hand, label: "Requests" },
   { href: "/admin", icon: PlusCircle, label: "Add Content" },
