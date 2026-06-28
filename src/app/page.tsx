@@ -1,5 +1,6 @@
 "use client";
-import { Flame, Clock, Star, Sword, Film, Tv } from "lucide-react";
+import { motion } from "framer-motion";
+import { Flame, Clock, Star, Sword, Film, Tv, Sparkles } from "lucide-react";
 import { useContentStore } from "@/hooks/use-content-store";
 import { HeroSection } from "@/components/content/hero-section";
 import { ContentRow } from "@/components/content/content-row";
@@ -12,23 +13,32 @@ export default function HomePage() {
 
   if (!isLoaded) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      <div className="flex items-center justify-center min-h-[80vh]">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="flex flex-col items-center gap-4"
+        >
+          <div className="w-12 h-12 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+          <p className="text-sm text-muted-foreground font-medium tracking-wide">Loading PriismaTv...</p>
+        </motion.div>
       </div>
     );
   }
 
   return (
-    <div className="pb-12">
+    <div className="pb-16">
+      {/* Hero */}
       <HeroSection
         items={trending.filter((i) => i.backdrop)}
         onWatchlist={toggleWatchlist}
       />
 
-      <div className="-mt-16 relative z-10">
+      {/* Content Rows */}
+      <div className="-mt-24 relative z-10 space-y-2">
         <ContentRow
           title="Trending Now"
-          icon={<Flame className="w-5 h-5 text-orange-400" />}
+          icon={<Flame className="w-4 h-4 text-orange-400" />}
           items={trending.slice(0, 20)}
           seeAllHref="/movies"
           onFavorite={toggleFavorite}
@@ -39,7 +49,7 @@ export default function HomePage() {
 
         <ContentRow
           title="Recently Added"
-          icon={<Clock className="w-5 h-5 text-green-400" />}
+          icon={<Sparkles className="w-4 h-4 text-green-400" />}
           items={recentlyAdded}
           onFavorite={toggleFavorite}
           onWatchlist={toggleWatchlist}
@@ -49,7 +59,7 @@ export default function HomePage() {
 
         <ContentRow
           title="Top Rated"
-          icon={<Star className="w-5 h-5 text-yellow-400" />}
+          icon={<Star className="w-4 h-4 text-yellow-400" />}
           items={topRated.slice(0, 20)}
           onFavorite={toggleFavorite}
           onWatchlist={toggleWatchlist}
@@ -58,8 +68,8 @@ export default function HomePage() {
         />
 
         <ContentRow
-          title="Anime Picks"
-          icon={<Sword className="w-5 h-5 text-purple-400" />}
+          title="Anime Collection"
+          icon={<Sword className="w-4 h-4 text-purple-400" />}
           items={anime.slice(0, 20)}
           seeAllHref="/anime"
           onFavorite={toggleFavorite}
@@ -70,7 +80,7 @@ export default function HomePage() {
 
         <ContentRow
           title="Movies"
-          icon={<Film className="w-5 h-5 text-blue-400" />}
+          icon={<Film className="w-4 h-4 text-blue-400" />}
           items={movies.slice(0, 20)}
           seeAllHref="/movies"
           onFavorite={toggleFavorite}
@@ -81,7 +91,7 @@ export default function HomePage() {
 
         <ContentRow
           title="TV Shows"
-          icon={<Tv className="w-5 h-5 text-cyan-400" />}
+          icon={<Tv className="w-4 h-4 text-cyan-400" />}
           items={tvshows.slice(0, 20)}
           seeAllHref="/tvshows"
           onFavorite={toggleFavorite}
