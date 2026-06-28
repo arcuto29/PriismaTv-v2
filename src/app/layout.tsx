@@ -13,12 +13,23 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: "PriismaTv - Premium Streaming Hub",
-  description: "Your premium personal streaming collection for movies, anime, and TV shows. Solo Leveling inspired design.",
+  description: "423+ movies, anime & TV shows. Solo Leveling inspired premium streaming platform. Free forever.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
     title: "PriismaTv",
+  },
+  openGraph: {
+    title: "PriismaTv - Premium Streaming Hub",
+    description: "423+ movies, anime & TV shows. Solo Leveling inspired. Built different.",
+    type: "website",
+    siteName: "PriismaTv",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "PriismaTv - Premium Streaming Hub",
+    description: "423+ movies, anime & TV shows. Solo Leveling inspired. Built different.",
   },
 };
 
