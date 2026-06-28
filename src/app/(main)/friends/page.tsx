@@ -1,107 +1,102 @@
 "use client";
-import { useState } from "react";
-import { UserPlus, Share2, Download, Copy, X } from "lucide-react";
-import { useLocalStorage } from "@/hooks/use-local-storage";
-import { useContentStore } from "@/hooks/use-content-store";
-import { STORAGE_KEYS } from "@/data/content";
+import { motion } from "framer-motion";
+import { UserPlus, Wifi, WifiOff, RefreshCw } from "lucide-react";
+import { useOnlineStatus } from "@/hooks/use-online-status";
 
 export default function FriendsPage() {
-  const { content, saveContent } = useContentStore();
-  const [friends, setFriends] = useLocalStorage<{ id: string; name: string }[]>(STORAGE_KEYS.FRIENDS, []);
-  const [friendName, setFriendName] = useState("");
-  const [importCode, setImportCode] = useState("");
-  const [shareCode, setShareCode] = useState("");
+  const { onlineUsers, fetchOnlineUsers } = useOnlineStatus();
 
-  const addFriend = () => {
-    if (!friendName.trim()) return;
-    setFriends([...friends, { id: Date.now().toString(), name: friendName.trim() }]);
-    setFriendName("");
-  };
-
-  const removeFriend = (id: string) => {
-    setFriends(friends.filter((f) => f.id !== id));
-  };
-
-  const shareCollection = () => {
-    const code = btoa(JSON.stringify(content.map((c) => ({ id: c.id, title: c.title, type: c.type, poster: c.poster }))));
-    setShareCode(code);
-    navigator.clipboard.writeText(code);
-  };
-
-  const importCollection = () => {
-    if (!importCode.trim()) return;
-    try {
-      const data = JSON.parse(atob(importCode.trim()));
-      if (Array.isArray(data)) {
-        const existingIds = content.map((c) => c.id);
-        const newItems = data.filter((d: { id: string }) => !existingIds.includes(d.id));
-        if (newItems.length > 0) {
-          saveContent([...content, ...newItems]);
-          alert(`Imported ${newItems.length} new items!`);
-        } else {
-          alert("No new items to import.");
-        }
-      }
-    } catch {
-      alert("Invalid share code.");
-    }
-    setImportCode("");
-  };
+  const online = onlineUsers.filter((u) => u.is_online);
+  const offline = onlineUsers.filter((u) => !u.is_online);
 
   return (
     <div className="px-4 lg:px-8 py-6">
-      <div className="flex items-center gap-2 mb-6">
-        <UserPlus className="w-6 h-6 text-green-400" />
-        <h1 className="text-2xl font-bold">Friends</h1>
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-2">
+          <UserPlus className="w-6 h-6 text-green-400" />
+          <h1 className="text-2xl font-bold">Friends</h1>
+          <span className="text-xs px-2 py-0.5 rounded-full bg-green-500/20 text-green-400 font-medium">
+            {online.length} online
+          </span>
+        </div>
+        <button onClick={fetchOnlineUsers} className="p-2 rounded-lg hover:bg-muted transition-colors">
+          <RefreshCw className="w-4 h-4 text-muted-foreground" />
+        </button>
       </div>
 
-      <div className="max-w-3xl space-y-6">
-        {/* Add Friends */}
-        <div className="p-6 rounded-xl bg-card border border-border">
-          <h3 className="font-semibold mb-4 flex items-center gap-2"><UserPlus className="w-4 h-4 text-primary" /> Add Friends</h3>
-          <div className="flex gap-2 mb-4">
-            <input type="text" value={friendName} onChange={(e) => setFriendName(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && addFriend()}
-              placeholder="Friend's name..."
-              className="flex-1 px-4 py-2.5 rounded-lg bg-muted border border-border text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" />
-            <button onClick={addFriend} className="px-4 py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-all">Add</button>
-          </div>
+      <div className="max-w-2xl space-y-6">
+        {/* Online */}
+        <div>
+          <h3 className="text-sm font-semibold text-green-400 mb-3 flex items-center gap-2">
+            <Wifi className="w-4 h-4" /> Online Now ({online.length})
+          </h3>
           <div className="space-y-2">
-            {friends.map((f) => (
-              <div key={f.id} className="flex items-center justify-between p-3 rounded-lg bg-muted">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center text-xs font-bold text-white">
-                    {f.name[0].toUpperCase()}
+            {online.map((user, i) => (
+              <motion.div
+                key={user.name}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: i * 0.05 }}
+                className="flex items-center gap-3 p-3 rounded-xl bg-card border border-green-500/20"
+              >
+                <div className="relative">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-500 to-cyan-500 flex items-center justify-center text-sm font-bold text-white">
+                    {user.name[0].toUpperCase()}
                   </div>
-                  <span className="text-sm font-medium">{f.name}</span>
+                  <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-green-500 border-2 border-card" />
                 </div>
-                <button onClick={() => removeFriend(f.id)} className="p-1 text-muted-foreground hover:text-red-400">
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
+                <div className="flex-1">
+                  <p className="text-sm font-semibold">{user.name}</p>
+                  <p className="text-[10px] text-green-400 font-mono">● Online now</p>
+                </div>
+              </motion.div>
             ))}
-            {friends.length === 0 && <p className="text-sm text-muted-foreground">No friends added yet.</p>}
+            {online.length === 0 && (
+              <p className="text-sm text-muted-foreground py-4 text-center">Nobody online right now</p>
+            )}
           </div>
         </div>
 
-        {/* Share & Import */}
-        <div className="p-6 rounded-xl bg-card border border-border">
-          <h3 className="font-semibold mb-4 flex items-center gap-2"><Share2 className="w-4 h-4 text-primary" /> Share & Import</h3>
-          <p className="text-sm text-muted-foreground mb-4">Share your collection with friends or import theirs using share codes.</p>
-
-          <button onClick={shareCollection} className="w-full py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-all flex items-center justify-center gap-2 mb-3">
-            <Copy className="w-4 h-4" /> Share My Collection (Copy Code)
-          </button>
-          {shareCode && <p className="text-xs text-green-400 mb-4">Code copied to clipboard!</p>}
-
+        {/* Offline */}
+        <div>
+          <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
+            <WifiOff className="w-4 h-4" /> Offline ({offline.length})
+          </h3>
           <div className="space-y-2">
-            <textarea value={importCode} onChange={(e) => setImportCode(e.target.value)}
-              placeholder="Paste your friend's share code here..."
-              className="w-full px-4 py-3 rounded-lg bg-muted border border-border text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none h-24" />
-            <button onClick={importCollection} className="w-full py-2.5 rounded-lg bg-muted border border-border text-sm font-medium text-foreground hover:bg-muted/80 transition-colors flex items-center justify-center gap-2">
-              <Download className="w-4 h-4" /> Import Collection
-            </button>
+            {offline.map((user, i) => (
+              <motion.div
+                key={user.name}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: i * 0.05 }}
+                className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border opacity-60"
+              >
+                <div className="relative">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-600 to-gray-700 flex items-center justify-center text-sm font-bold text-white/60">
+                    {user.name[0].toUpperCase()}
+                  </div>
+                  <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-gray-500 border-2 border-card" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-muted-foreground">{user.name}</p>
+                  <p className="text-[10px] text-muted-foreground font-mono">
+                    Last seen: {user.last_heartbeat ? new Date(user.last_heartbeat).toLocaleDateString() + " " + new Date(user.last_heartbeat).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "Never"}
+                  </p>
+                </div>
+              </motion.div>
+            ))}
+            {offline.length === 0 && (
+              <p className="text-sm text-muted-foreground py-4 text-center">No offline users</p>
+            )}
           </div>
+        </div>
+
+        {/* Info */}
+        <div className="p-4 rounded-xl bg-muted/50 border border-border">
+          <p className="text-xs text-muted-foreground">
+            Online status updates every 30 seconds. Users appear offline after 60 seconds of no activity.
+            Everyone who has logged into PriismaTv shows here.
+          </p>
         </div>
       </div>
     </div>
