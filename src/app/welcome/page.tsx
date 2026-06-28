@@ -90,12 +90,7 @@ export default function WelcomePage() {
     <div className={`fixed inset-0 z-[200] bg-[#020204] overflow-hidden select-none ${glitch ? "translate-x-[2px] skew-x-[0.3deg]" : ""}`}
       style={{ perspective: "1200px", transition: glitch ? "none" : "transform 0.1s" }}>
 
-      {/* Heartbeat pulse overlay - very subtle and quick */}
-      <motion.div
-        animate={phase >= 3 ? { opacity: [0, 0.015, 0] } : {}}
-        transition={{ duration: 2, repeat: Infinity }}
-        className="absolute inset-0 bg-primary pointer-events-none z-[1]"
-      />
+      {/* Removed heartbeat pulse - was too bright/distracting */}
 
       {/* Fog rising from bottom */}
       <div className="absolute bottom-0 left-0 right-0 h-[40%] pointer-events-none z-[2] overflow-hidden">
