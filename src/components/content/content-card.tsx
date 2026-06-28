@@ -60,9 +60,12 @@ export function ContentCard({
             <img
               src={item.poster}
               alt={item.title}
-              className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+              className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
               onError={() => setImageError(true)}
               loading="lazy"
+              referrerPolicy="no-referrer"
+              crossOrigin="anonymous"
+              style={{ display: "block", width: "100%", height: "100%", objectFit: "cover" }}
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-muted to-card">

@@ -15,13 +15,22 @@ export function useContentStore() {
 
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEYS.CONTENT);
-    const currentVersion = "v2.1"; // Bump this to force refresh
+    const currentVersion = "v2.2"; // Bump this to force refresh
     const storedVersion = localStorage.getItem("priismatv_version");
     
     if (stored && storedVersion === currentVersion) {
-      setContent(JSON.parse(stored));
+      const parsed = JSON.parse(stored);
+      // Extra check: if first item has no poster, data is stale
+      if (parsed[0] && parsed[0].poster) {
+        setContent(parsed);
+      } else {
+        // Stale data - force refresh
+        setContent(SAMPLE_CONTENT);
+        localStorage.setItem(STORAGE_KEYS.CONTENT, JSON.stringify(SAMPLE_CONTENT));
+        localStorage.setItem("priismatv_version", currentVersion);
+      }
     } else {
-      // Force load fresh sample content (new version or first time)
+      // Force load fresh sample content
       setContent(SAMPLE_CONTENT);
       localStorage.setItem(STORAGE_KEYS.CONTENT, JSON.stringify(SAMPLE_CONTENT));
       localStorage.setItem("priismatv_version", currentVersion);
