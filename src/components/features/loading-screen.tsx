@@ -1,17 +1,20 @@
 "use client";
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 
 export function LoadingScreen() {
-  const [show, setShow] = useState(true);
+  const [show, setShow] = useState(false);
   const [phase, setPhase] = useState(0);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    // Check if already shown this session
+    // Only run client-side
     if (sessionStorage.getItem("priismatv_loaded")) {
-      setShow(false);
+      setMounted(true);
       return;
     }
+    setShow(true);
+    setMounted(true);
     const t1 = setTimeout(() => setPhase(1), 500);
     const t2 = setTimeout(() => setPhase(2), 1500);
     const t3 = setTimeout(() => setPhase(3), 2500);
@@ -22,24 +25,24 @@ export function LoadingScreen() {
     return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(t4); };
   }, []);
 
+  if (!mounted || !show) return null;
+
   return (
-    <AnimatePresence>
-      {show && (
-        <motion.div
-          exit={{ opacity: 0, scale: 1.1 }}
-          transition={{ duration: 0.5, ease: "easeInOut" }}
-          className="fixed inset-0 z-[100] bg-[#050508] flex items-center justify-center overflow-hidden"
-        >
+    <motion.div
+      exit={{ opacity: 0, scale: 1.1 }}
+      transition={{ duration: 0.5, ease: "easeInOut" }}
+      className="fixed inset-0 z-[100] bg-[#050508] flex items-center justify-center overflow-hidden"
+    >
           {/* Background particles */}
           <div className="absolute inset-0">
-            {Array.from({ length: 30 }).map((_, i) => (
+            {[12,34,56,78,23,45,67,89,15,37,59,81,26,48,70,92,18,40,62,84,8,30,52,74,96,20,42,64,86,50].map((pos, i) => (
               <motion.div
                 key={i}
                 initial={{ opacity: 0, y: 100 }}
                 animate={{ opacity: [0, 0.6, 0], y: -100 }}
-                transition={{ duration: 2 + Math.random() * 2, delay: Math.random() * 2, repeat: Infinity }}
+                transition={{ duration: 2 + (i % 5) * 0.4, delay: (i % 10) * 0.2, repeat: Infinity }}
                 className="absolute w-1 h-1 rounded-full bg-primary"
-                style={{ left: `${Math.random() * 100}%`, top: `${50 + Math.random() * 50}%` }}
+                style={{ left: `${pos}%`, top: `${50 + (i % 5) * 10}%` }}
               />
             ))}
           </div>
@@ -98,7 +101,5 @@ export function LoadingScreen() {
             />
           </div>
         </motion.div>
-      )}
-    </AnimatePresence>
   );
 }
