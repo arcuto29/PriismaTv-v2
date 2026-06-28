@@ -87,13 +87,13 @@ export default function WelcomePage() {
   };
 
   return (
-    <div className={`fixed inset-0 z-[200] bg-[#020204] overflow-hidden select-none ${glitch ? "translate-x-[2px] skew-x-[0.5deg]" : ""}`}
+    <div className={`fixed inset-0 z-[200] bg-[#020204] overflow-hidden select-none ${glitch ? "translate-x-[2px] skew-x-[0.3deg]" : ""}`}
       style={{ perspective: "1200px", transition: glitch ? "none" : "transform 0.1s" }}>
 
-      {/* Heartbeat pulse overlay */}
+      {/* Heartbeat pulse overlay - very subtle and quick */}
       <motion.div
-        animate={phase >= 3 ? { opacity: [0, 0.03, 0] } : {}}
-        transition={{ duration: 1.5, repeat: Infinity }}
+        animate={phase >= 3 ? { opacity: [0, 0.015, 0] } : {}}
+        transition={{ duration: 2, repeat: Infinity }}
         className="absolute inset-0 bg-primary pointer-events-none z-[1]"
       />
 
@@ -128,7 +128,7 @@ export default function WelcomePage() {
         className="absolute left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-primary/40 to-transparent z-[3] pointer-events-none"
       />
 
-      {/* 3D Rotating cube wireframe */}
+      {/* 3D Rotating cube wireframe with Jin-Woo video inside */}
       <div className="absolute inset-0 flex items-center justify-center z-[4]" style={{ perspective: "800px" }}>
         <motion.div
           animate={{ rotateX: 360, rotateY: 360 }}
@@ -141,7 +141,14 @@ export default function WelcomePage() {
             "rotateY(90deg) translateZ(125px)", "rotateY(-90deg) translateZ(125px)",
             "rotateX(90deg) translateZ(125px)", "rotateX(-90deg) translateZ(125px)",
           ].map((transform, i) => (
-            <div key={i} className="absolute inset-0 border border-primary/[0.06] rounded-lg" style={{ transform, backfaceVisibility: "visible" }} />
+            <div key={i} className="absolute inset-0 border border-primary/[0.06] rounded-lg overflow-hidden" style={{ transform, backfaceVisibility: "visible" }}>
+              {/* Jin-Woo video on front face */}
+              {i === 0 && (
+                <video autoPlay muted loop playsInline className="w-full h-full object-cover opacity-30">
+                  <source src="/jinwoo-bg.mp4" type="video/mp4" />
+                </video>
+              )}
+            </div>
           ))}
         </motion.div>
       </div>
@@ -239,9 +246,9 @@ export default function WelcomePage() {
         )}
       </AnimatePresence>
 
-      {/* Main content */}
+      {/* Main content - hide during countdown */}
       <motion.div
-        animate={{ opacity: exiting ? 0 : 1, scale: exiting ? 1.1 : 1 }}
+        animate={{ opacity: exiting || (countdown !== null && countdown > 0) ? 0 : 1, scale: exiting ? 1.1 : 1 }}
         transition={{ duration: 0.3 }}
         className="relative z-30 h-full flex flex-col items-center justify-center px-6"
       >
