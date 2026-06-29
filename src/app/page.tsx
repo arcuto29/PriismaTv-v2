@@ -7,18 +7,15 @@ export default function WelcomePage() {
   const router = useRouter();
   const [phase, setPhase] = useState(0);
   const [exiting, setExiting] = useState(false);
-  const [typedText, setTypedText] = useState("");
-  const [glitch, setGlitch] = useState(false);
   const [authenticated, setAuthenticated] = useState(false);
   const [password, setPassword] = useState("");
   const [passwordError, setPasswordError] = useState(false);
   const [userName, setUserName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [isFocused, setIsFocused] = useState<string | null>(null);
 
-  // Owner credentials checked from database
-  const MASTER_PASSWORD = "shadowmonarch"; // backup only
+  const MASTER_PASSWORD = "shadowmonarch";
 
-  // Check if already authenticated (session OR permanent)
   useEffect(() => {
     if (sessionStorage.getItem("priismatv_auth") === "true" || localStorage.getItem("priismatv_remember") === "true") {
       setAuthenticated(true);
@@ -35,7 +32,6 @@ export default function WelcomePage() {
     const code = password.trim();
     const displayName = userName.trim() || "Guest";
 
-    // Check owner table in database
     const { supabase } = await import("@/lib/supabase");
     const { data: ownerData } = await supabase
       .from("owner")
@@ -45,7 +41,6 @@ export default function WelcomePage() {
       .single();
 
     if (ownerData) {
-      // Owner login from database
       setAuthenticated(true);
       sessionStorage.setItem("priismatv_auth", "true");
       sessionStorage.setItem("priismatv_user", displayName);
@@ -58,7 +53,6 @@ export default function WelcomePage() {
       return;
     }
 
-    // Check master password (backup)
     if (code === MASTER_PASSWORD) {
       setAuthenticated(true);
       sessionStorage.setItem("priismatv_auth", "true");
@@ -72,7 +66,6 @@ export default function WelcomePage() {
       return;
     }
 
-    // Check invite code in database (friend access)
     const valid = await validateInviteCode(code, displayName);
     if (valid) {
       setAuthenticated(true);
@@ -85,7 +78,7 @@ export default function WelcomePage() {
     } else {
       setPasswordError(true);
       setPassword("");
-      setTimeout(() => setPasswordError(false), 2000);
+      setTimeout(() => setPasswordError(false), 2500);
     }
   };
 
@@ -109,279 +102,219 @@ export default function WelcomePage() {
     }
   };
 
-  const fullText = "> INITIALIZING PRIISMATV...";
-
+  // Phase animations
   useEffect(() => {
-    const t1 = setTimeout(() => setPhase(1), 200);
-    const t2 = setTimeout(() => setPhase(2), 1000);
-    const t3 = setTimeout(() => setPhase(3), 2000);
-    const t4 = setTimeout(() => setPhase(4), 3000);
-    const t5 = setTimeout(() => setPhase(5), 3800);
+    const t1 = setTimeout(() => setPhase(1), 300);
+    const t2 = setTimeout(() => setPhase(2), 800);
+    const t3 = setTimeout(() => setPhase(3), 1500);
+    const t4 = setTimeout(() => setPhase(4), 2200);
+    const t5 = setTimeout(() => setPhase(5), 3000);
     return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(t4); clearTimeout(t5); };
   }, []);
 
-  // Typing animation - runs once only
-  useEffect(() => {
-    if (phase < 2) return;
-    let i = 0;
-    let cancelled = false;
-    const type = () => {
-      if (cancelled || i >= fullText.length) return;
-      i++;
-      setTypedText(fullText.slice(0, i));
-      setTimeout(type, 50);
-    };
-    type();
-    return () => { cancelled = true; };
-  }, [phase >= 2]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Random glitch flicker
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (Math.random() > 0.7) {
-        setGlitch(true);
-        setTimeout(() => setGlitch(false), 100 + Math.random() * 100);
-      }
-    }, 3000);
-    return () => clearInterval(interval);
-  }, []);
-
-  // Heartbeat pulse via CSS
-  useEffect(() => {
-    if (phase >= 3) {
-      document.documentElement.style.setProperty("--heartbeat", "running");
-    }
-  }, [phase]);
-
-  // Auto-enter smoothly after 3.5 seconds
+  // Auto-enter after authenticated
   useEffect(() => {
     if (!authenticated) return;
     const autoEnter = setTimeout(() => {
       setExiting(true);
-      setTimeout(() => router.push("/home"), 800);
-    }, 3500);
+      setTimeout(() => router.push("/home"), 900);
+    }, 2800);
     return () => clearTimeout(autoEnter);
-  }, [authenticated]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [authenticated, router]);
 
-  // If not authenticated, show login screen
+  // Login screen
   if (!authenticated) {
     return (
-      <div className="fixed inset-0 z-[200] bg-[#020204] flex items-center justify-center overflow-hidden">
-        {/* Background particles */}
+      <div className="fixed inset-0 z-[200] bg-[#030305] flex items-center justify-center overflow-hidden">
+        {/* Ambient background */}
+        <div className="absolute inset-0">
+          {/* Radial glow */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-primary/[0.03] blur-[120px]" />
+          <div className="absolute top-1/4 right-1/4 w-[300px] h-[300px] rounded-full bg-primary/[0.02] blur-[80px]" />
+          {/* Grid pattern (very subtle) */}
+          <div className="absolute inset-0 opacity-[0.02]" style={{
+            backgroundImage: `linear-gradient(rgba(232, 180, 104, 0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(232, 180, 104, 0.3) 1px, transparent 1px)`,
+            backgroundSize: '60px 60px',
+          }} />
+        </div>
+
+        {/* Floating particles */}
         <div className="absolute inset-0 pointer-events-none">
-          {[20, 40, 60, 80, 30, 50, 70, 90].map((left, i) => (
+          {[...Array(12)].map((_, i) => (
             <motion.div
               key={i}
-              animate={{ y: [0, -20, 0], opacity: [0.1, 0.3, 0.1] }}
-              transition={{ duration: 3 + i % 3, repeat: Infinity, delay: i * 0.3 }}
-              className="absolute w-1 h-1 rounded-full bg-primary"
-              style={{ left: `${left}%`, top: `${30 + (i % 4) * 15}%` }}
+              animate={{
+                y: [0, -30, 0],
+                opacity: [0, 0.3, 0],
+              }}
+              transition={{
+                duration: 4 + (i % 4) * 2,
+                repeat: Infinity,
+                delay: i * 0.5,
+                ease: "easeInOut",
+              }}
+              className="absolute w-[1px] h-[1px] rounded-full bg-primary"
+              style={{
+                left: `${8 + i * 8}%`,
+                top: `${20 + (i % 5) * 15}%`,
+                boxShadow: '0 0 4px rgba(232, 180, 104, 0.5)',
+              }}
             />
           ))}
         </div>
 
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
           className="relative z-10 text-center px-6 max-w-sm w-full"
         >
           {/* Logo */}
           <motion.div
-            animate={{ boxShadow: ["0 0 20px rgba(0,212,255,0.2)", "0 0 40px rgba(0,212,255,0.4)", "0 0 20px rgba(0,212,255,0.2)"] }}
-            transition={{ duration: 2, repeat: Infinity }}
-            className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-primary/20 to-purple-600/20 border border-primary/30 flex items-center justify-center"
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.2, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+            className="mb-8"
           >
-            <svg className="w-7 h-7 text-primary" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M8 5v14l11-7z"/>
-            </svg>
+            <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20 flex items-center justify-center shadow-[0_8px_40px_rgba(232,180,104,0.15)]">
+              <svg className="w-7 h-7 text-primary" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M8 5v14l11-7z"/>
+              </svg>
+            </div>
           </motion.div>
 
-          <h2 className="text-2xl font-black text-white mb-1"><span className="text-primary">Priisma</span>Tv</h2>
-          <p className="text-white/30 text-xs font-mono mb-6">ENTER YOUR NAME & ACCESS CODE</p>
+          {/* Title */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+          >
+            <h2 className="text-3xl font-black text-white mb-1 tracking-tight">
+              <span className="text-primary">Priisma</span>Tv
+            </h2>
+            <p className="text-white/20 text-[10px] font-medium tracking-[0.3em] uppercase mb-8">
+              Premium Streaming Experience
+            </p>
+          </motion.div>
 
-          <form onSubmit={handlePasswordSubmit} className="space-y-3">
-            <input
-              type="text"
-              value={userName}
-              onChange={(e) => setUserName(e.target.value)}
-              placeholder="Your name..."
-              className="w-full px-4 py-3.5 rounded-xl bg-white/5 border border-white/10 text-sm text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
-            />
-            <div className="relative">
+          {/* Form */}
+          <motion.form
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6 }}
+            onSubmit={handlePasswordSubmit}
+            className="space-y-3"
+          >
+            <div className={`relative rounded-xl transition-all duration-300 ${
+              isFocused === 'name'
+                ? 'shadow-[0_0_0_1px_rgba(232,180,104,0.3),0_4px_20px_rgba(0,0,0,0.3)]'
+                : 'shadow-[0_0_0_1px_rgba(255,255,255,0.04)]'
+            }`}>
+              <input
+                type="text"
+                value={userName}
+                onChange={(e) => setUserName(e.target.value)}
+                onFocus={() => setIsFocused('name')}
+                onBlur={() => setIsFocused(null)}
+                placeholder="Your name"
+                className="w-full px-5 py-4 rounded-xl bg-white/[0.03] text-sm text-white placeholder:text-white/15 focus:outline-none transition-all font-light"
+              />
+            </div>
+
+            <div className={`relative rounded-xl transition-all duration-300 ${
+              passwordError
+                ? 'shadow-[0_0_0_1px_rgba(239,68,68,0.5)]'
+                : isFocused === 'code'
+                  ? 'shadow-[0_0_0_1px_rgba(232,180,104,0.3),0_4px_20px_rgba(0,0,0,0.3)]'
+                  : 'shadow-[0_0_0_1px_rgba(255,255,255,0.04)]'
+            }`}>
               <input
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Access code..."
-                className={`w-full px-4 py-3.5 pr-12 rounded-xl bg-white/5 border text-sm text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all ${
-                  passwordError ? "border-red-500" : "border-white/10"
-                }`}
+                onFocus={() => setIsFocused('code')}
+                onBlur={() => setIsFocused(null)}
+                placeholder="Access code"
+                className="w-full px-5 py-4 pr-16 rounded-xl bg-white/[0.03] text-sm text-white placeholder:text-white/15 focus:outline-none transition-all font-light"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition-colors text-xs font-mono"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 hover:text-white/50 transition-colors text-[10px] font-medium tracking-wider uppercase"
               >
-                {showPassword ? "HIDE" : "SHOW"}
+                {showPassword ? "Hide" : "Show"}
               </button>
             </div>
+
             <button
               type="submit"
-              className="w-full py-3.5 rounded-xl bg-gradient-to-r from-primary to-purple-600 text-white font-bold text-sm hover:opacity-90 transition-opacity"
+              className="w-full py-4 rounded-xl bg-gradient-to-r from-primary to-primary/80 text-black font-bold text-sm transition-all duration-300 hover:shadow-[0_8px_30px_rgba(232,180,104,0.25)] hover:scale-[1.01] active:scale-[0.99] mt-1"
             >
-              ENTER
+              Enter
             </button>
-          </form>
+          </motion.form>
 
-          {passwordError && (
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="text-red-400 text-xs mt-3 font-mono"
-            >
-              Invalid code. Contact the owner for access.
-            </motion.p>
-          )}
+          {/* Error message */}
+          <AnimatePresence>
+            {passwordError && (
+              <motion.p
+                initial={{ opacity: 0, y: -5 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -5 }}
+                className="text-red-400/80 text-xs mt-4 font-light"
+              >
+                Invalid code. Contact the owner for access.
+              </motion.p>
+            )}
+          </AnimatePresence>
 
-          <p className="text-white/10 text-[9px] font-mono mt-8">priismatv.com</p>
+          {/* Footer */}
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1 }}
+            className="text-white/[0.06] text-[9px] font-medium mt-12 tracking-widest uppercase"
+          >
+            priismatv.com
+          </motion.p>
         </motion.div>
       </div>
     );
   }
 
+  // Authenticated splash screen
   return (
-    <div className={`fixed inset-0 z-[200] bg-[#020204] overflow-hidden select-none ${glitch ? "translate-x-[2px] skew-x-[0.3deg]" : ""}`}
-      style={{ perspective: "1200px", transition: glitch ? "none" : "transform 0.1s" }}>
-
-      {/* Removed heartbeat pulse - was too bright/distracting */}
-
-      {/* Fog rising from bottom */}
-      <div className="absolute bottom-0 left-0 right-0 h-[40%] pointer-events-none z-[2] overflow-hidden">
+    <div className="fixed inset-0 z-[200] bg-[#030305] overflow-hidden select-none">
+      {/* Ambient glow */}
+      <div className="absolute inset-0 pointer-events-none">
         <motion.div
-          animate={{ y: [0, -20, 0], opacity: [0.3, 0.6, 0.3] }}
-          transition={{ duration: 6, repeat: Infinity }}
-          className="w-full h-full bg-gradient-to-t from-primary/10 via-purple-900/5 to-transparent blur-xl"
-        />
-        <motion.div
-          animate={{ y: [0, -15, 0], opacity: [0.2, 0.4, 0.2] }}
-          transition={{ duration: 8, repeat: Infinity, delay: 1 }}
-          className="absolute inset-0 bg-gradient-to-t from-cyan-900/10 to-transparent blur-2xl"
+          animate={{ opacity: [0.03, 0.06, 0.03] }}
+          transition={{ duration: 4, repeat: Infinity }}
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full bg-primary blur-[200px]"
         />
       </div>
-
-      {/* Glitch horizontal lines */}
-      {glitch && (
-        <div className="absolute inset-0 pointer-events-none z-[3]">
-          {[20, 40, 55, 70, 85].map((top) => (
-            <div key={top} className="absolute left-0 right-0 h-[2px] bg-primary/30" style={{ top: `${top}%` }} />
-          ))}
-        </div>
-      )}
 
       {/* Scanning line */}
       <motion.div
         initial={{ top: "-2%" }}
         animate={{ top: "102%" }}
-        transition={{ duration: 2.5, repeat: Infinity, ease: "linear" }}
-        className="absolute left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-primary/40 to-transparent z-[3] pointer-events-none"
+        transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+        className="absolute left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-primary/20 to-transparent z-[3] pointer-events-none"
       />
 
-      {/* 3D Rotating sphere with wireframe */}
-      <div className="absolute inset-0 flex items-center justify-center z-[4]" style={{ perspective: "800px" }}>
-        {/* Outer wireframe sphere - horizontal lines */}
-        <motion.div
-          animate={{ rotateY: 360 }}
-          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-          className="absolute w-[200px] h-[200px] md:w-[300px] md:h-[300px]"
-          style={{ transformStyle: "preserve-3d" }}
-        >
-          {Array.from({ length: 8 }).map((_, i) => (
-            <div
-              key={`h-${i}`}
-              className="absolute inset-0 rounded-full border border-primary/20"
-              style={{
-                transform: `rotateX(${i * 22.5}deg)`,
-                transformStyle: "preserve-3d",
-              }}
-            />
-          ))}
-        </motion.div>
-
-        {/* Vertical lines rotating opposite */}
-        <motion.div
-          animate={{ rotateX: 360 }}
-          transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
-          className="absolute w-[200px] h-[200px] md:w-[300px] md:h-[300px]"
-          style={{ transformStyle: "preserve-3d" }}
-        >
-          {Array.from({ length: 8 }).map((_, i) => (
-            <div
-              key={`v-${i}`}
-              className="absolute inset-0 rounded-full border border-purple-500/15"
-              style={{
-                transform: `rotateY(${i * 22.5}deg)`,
-                transformStyle: "preserve-3d",
-              }}
-            />
-          ))}
-        </motion.div>
-
-        {/* Inner glowing core */}
-        <motion.div
-          animate={{ scale: [1, 1.15, 1], opacity: [0.4, 0.7, 0.4] }}
-          transition={{ duration: 3, repeat: Infinity }}
-          className="absolute w-[80px] h-[80px] md:w-[120px] md:h-[120px] rounded-full"
-          style={{
-            background: "radial-gradient(circle, rgba(0,212,255,0.4) 0%, rgba(124,58,237,0.2) 50%, transparent 70%)",
-            boxShadow: "0 0 40px rgba(0,212,255,0.3), 0 0 80px rgba(0,212,255,0.15), inset 0 0 30px rgba(0,212,255,0.2)",
-          }}
-        />
-
-        {/* Bright center dot */}
-        <motion.div
-          animate={{ scale: [1, 1.3, 1] }}
-          transition={{ duration: 2, repeat: Infinity }}
-          className="absolute w-4 h-4 md:w-6 md:h-6 rounded-full bg-white/80"
-          style={{ boxShadow: "0 0 20px #00d4ff, 0 0 40px #00d4ff, 0 0 60px rgba(0,212,255,0.5)" }}
-        />
-      </div>
-
-      {/* Orbiting rings */}
-      <div className="absolute inset-0 flex items-center justify-center z-[4]" style={{ perspective: "1000px" }}>
-        <motion.div animate={{ rotateX: 75, rotateZ: 360 }} transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
-          className="w-[350px] h-[350px] md:w-[450px] md:h-[450px] rounded-full border border-primary/15 absolute" style={{ transformStyle: "preserve-3d" }} />
-      </div>
-      <div className="absolute inset-0 flex items-center justify-center z-[4]" style={{ perspective: "1000px" }}>
-        <motion.div animate={{ rotateX: -60, rotateZ: -360 }} transition={{ duration: 18, repeat: Infinity, ease: "linear" }}
-          className="w-[280px] h-[280px] md:w-[380px] md:h-[380px] rounded-full border border-purple-500/10 absolute" style={{ transformStyle: "preserve-3d" }} />
-      </div>
-      <div className="absolute inset-0 flex items-center justify-center z-[4]" style={{ perspective: "1000px" }}>
-        <motion.div animate={{ rotateY: 360, rotateZ: 45 }} transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
-          className="w-[180px] h-[180px] md:w-[260px] md:h-[260px] rounded-full border-2 border-cyan-400/10 absolute" style={{ transformStyle: "preserve-3d" }} />
-      </div>
-
-      {/* 3D Grid floor */}
-      <motion.div initial={{ opacity: 0 }} animate={phase >= 1 ? { opacity: 1 } : {}}
-        className="absolute bottom-0 left-0 right-0 h-[35%] overflow-hidden z-[3]" style={{ perspective: "500px" }}>
-        <div className="w-full h-full origin-bottom" style={{ transform: "rotateX(60deg)",
-          backgroundImage: "linear-gradient(rgba(0,212,255,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(0,212,255,0.08) 1px, transparent 1px)",
-          backgroundSize: "50px 50px" }} />
-      </motion.div>
-
-      {/* Corner HUD */}
-      <motion.div initial={{ opacity: 0 }} animate={phase >= 1 ? { opacity: 1 } : {}} className="absolute top-5 left-5 z-20">
-        <div className="w-10 h-10 border-l-2 border-t-2 border-primary/40" />
-        <p className="text-[8px] font-mono text-primary/40 mt-1">SYS.ONLINE</p>
-      </motion.div>
-      <motion.div initial={{ opacity: 0 }} animate={phase >= 1 ? { opacity: 1 } : {}} className="absolute top-5 right-5 z-20">
-        <div className="w-10 h-10 border-r-2 border-t-2 border-primary/40 ml-auto" />
-        <p className="text-[8px] font-mono text-primary/40 mt-1 text-right">V2.0</p>
-      </motion.div>
-      <motion.div initial={{ opacity: 0 }} animate={phase >= 1 ? { opacity: 1 } : {}} className="absolute bottom-5 left-5 z-20">
-        <div className="w-10 h-10 border-l-2 border-b-2 border-primary/40" />
-      </motion.div>
-      <motion.div initial={{ opacity: 0 }} animate={phase >= 1 ? { opacity: 1 } : {}} className="absolute bottom-5 right-5 z-20">
-        <div className="w-10 h-10 border-r-2 border-b-2 border-primary/40 ml-auto" />
+      {/* Minimal grid floor */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={phase >= 1 ? { opacity: 1 } : {}}
+        transition={{ duration: 1 }}
+        className="absolute bottom-0 left-0 right-0 h-[30%] overflow-hidden z-[3]"
+        style={{ perspective: "500px" }}
+      >
+        <div className="w-full h-full origin-bottom" style={{
+          transform: "rotateX(60deg)",
+          backgroundImage: "linear-gradient(rgba(232, 180, 104, 0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(232, 180, 104, 0.04) 1px, transparent 1px)",
+          backgroundSize: "60px 60px"
+        }} />
       </motion.div>
 
       {/* Smooth fade exit */}
@@ -390,96 +323,94 @@ export default function WelcomePage() {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.8, ease: "easeInOut" }}
-            className="fixed inset-0 bg-background z-[100]"
+            transition={{ duration: 0.9, ease: "easeInOut" }}
+            className="fixed inset-0 bg-[#06060a] z-[100]"
           />
         )}
       </AnimatePresence>
 
       {/* Main content */}
       <motion.div
-        animate={{ opacity: exiting ? 0 : 1, scale: exiting ? 0.95 : 1 }}
-        transition={{ duration: 0.5 }}
+        animate={{ opacity: exiting ? 0 : 1, scale: exiting ? 0.97 : 1 }}
+        transition={{ duration: 0.6 }}
         className="relative z-30 h-full flex flex-col items-center justify-center px-6"
       >
-        {/* Typing text */}
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={phase >= 2 ? { opacity: 1 } : {}}
-          className="text-primary/60 text-xs font-mono mb-6 h-5"
-        >
-          {typedText}<span className="animate-pulse">|</span>
-        </motion.p>
-
-        {/* Logo with glitch */}
+        {/* Logo reveal */}
         <motion.div
-          initial={{ scale: 0, rotateY: 180, opacity: 0 }}
-          animate={phase >= 2 ? { scale: 1, rotateY: 0, opacity: 1 } : {}}
-          transition={{ duration: 0.8, type: "spring", bounce: 0.3 }}
-          className="mb-6 relative"
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={phase >= 2 ? { scale: 1, opacity: 1 } : {}}
+          transition={{ duration: 0.8, type: "spring", bounce: 0.2 }}
+          className="mb-8 relative"
         >
-          <div className="w-24 h-24 md:w-32 md:h-32 rounded-3xl bg-gradient-to-br from-primary via-blue-500 to-purple-600 flex items-center justify-center shadow-[0_0_60px_rgba(0,212,255,0.3)] relative overflow-hidden">
-            <svg className="w-12 h-12 md:w-16 md:h-16 text-white relative z-10" fill="currentColor" viewBox="0 0 24 24">
+          <div className="w-24 h-24 md:w-28 md:h-28 rounded-3xl bg-gradient-to-br from-primary/90 via-primary/70 to-primary/50 flex items-center justify-center shadow-[0_20px_80px_rgba(232,180,104,0.2)] relative overflow-hidden">
+            <svg className="w-12 h-12 md:w-14 md:h-14 text-black relative z-10" fill="currentColor" viewBox="0 0 24 24">
               <path d="M8 5v14l11-7z"/>
             </svg>
-            <motion.div initial={{ x: "-100%" }} animate={phase >= 3 ? { x: "200%" } : {}} transition={{ duration: 0.8, delay: 0.3 }}
-              className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-12" />
+            {/* Shine sweep */}
+            <motion.div
+              initial={{ x: "-100%" }}
+              animate={phase >= 3 ? { x: "200%" } : {}}
+              transition={{ duration: 1, delay: 0.3 }}
+              className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent skew-x-12"
+            />
           </div>
-          {/* Glitch duplicate */}
-          {glitch && (
-            <div className="absolute inset-0 w-24 h-24 md:w-32 md:h-32 rounded-3xl bg-gradient-to-br from-red-500/30 to-purple-600/30 translate-x-[3px] -translate-y-[2px]" />
-          )}
-          <motion.div animate={{ scale: [1, 1.4, 1], opacity: [0.3, 0, 0.3] }} transition={{ duration: 2, repeat: Infinity }}
-            className="absolute inset-0 rounded-3xl border border-primary/40" />
+          {/* Breathing ring */}
+          <motion.div
+            animate={{ scale: [1, 1.15, 1], opacity: [0.3, 0, 0.3] }}
+            transition={{ duration: 2.5, repeat: Infinity }}
+            className="absolute inset-0 rounded-3xl border border-primary/30"
+          />
         </motion.div>
 
-        {/* Title with staggered letters */}
-        <motion.div initial={{ opacity: 0 }} animate={phase >= 3 ? { opacity: 1 } : {}} className="mb-2">
-          <h1 className={`text-5xl md:text-8xl font-black tracking-tighter ${glitch ? "skew-x-1" : ""}`}>
-            {"PRIISMA".split("").map((letter, i) => (
-              <motion.span key={i} initial={{ y: 50, opacity: 0, rotateX: -90 }}
-                animate={phase >= 3 ? { y: 0, opacity: 1, rotateX: 0 } : {}}
-                transition={{ delay: i * 0.08, duration: 0.5, type: "spring" }}
-                className="inline-block text-primary"
-                style={{ textShadow: "0 0 30px rgba(0,212,255,0.5), 0 0 60px rgba(0,212,255,0.2)" }}>
-                {letter}
-              </motion.span>
-            ))}
-            {"TV".split("").map((letter, i) => (
-              <motion.span key={`tv-${i}`} initial={{ y: 50, opacity: 0, rotateX: -90 }}
-                animate={phase >= 3 ? { y: 0, opacity: 1, rotateX: 0 } : {}}
-                transition={{ delay: 0.56 + i * 0.08, duration: 0.5, type: "spring" }}
-                className="inline-block text-white">
-                {letter}
-              </motion.span>
-            ))}
+        {/* Title */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={phase >= 3 ? { opacity: 1 } : {}}
+          className="mb-3"
+        >
+          <h1 className="text-5xl md:text-7xl font-black tracking-tight">
+            <span className="text-primary">PRIISMA</span>
+            <span className="text-white">TV</span>
           </h1>
         </motion.div>
 
         {/* Subtitle */}
-        <motion.p initial={{ opacity: 0, y: 10 }} animate={phase >= 4 ? { opacity: 1, y: 0 } : {}}
-          className="text-white/30 text-xs md:text-sm font-mono tracking-[0.3em] uppercase mb-8">
-          [ PREMIUM STREAMING HUB ]
+        <motion.p
+          initial={{ opacity: 0, y: 8 }}
+          animate={phase >= 4 ? { opacity: 1, y: 0 } : {}}
+          className="text-white/20 text-[11px] font-medium tracking-[0.4em] uppercase mb-10"
+        >
+          Premium Streaming
         </motion.p>
 
         {/* Stats */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={phase >= 4 ? { opacity: 1, y: 0 } : {}} transition={{ delay: 0.3 }}
-          className="flex items-center gap-6 md:gap-10 mb-10">
-          {[{ value: "423+", label: "TITLES" }, { value: "HD", label: "QUALITY" }, { value: "∞", label: "FREE" }].map((stat, i) => (
-            <motion.div key={stat.label} initial={{ scale: 0, rotateZ: -10 }}
-              animate={phase >= 4 ? { scale: 1, rotateZ: 0 } : {}}
-              transition={{ delay: 0.4 + i * 0.12, type: "spring", bounce: 0.4 }}
-              className="text-center">
-              <p className="text-3xl md:text-4xl font-black text-white">{stat.value}</p>
-              <p className="text-[8px] md:text-[9px] tracking-[0.25em] text-white/25 mt-1 font-mono">{stat.label}</p>
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={phase >= 4 ? { opacity: 1, y: 0 } : {}}
+          transition={{ delay: 0.2 }}
+          className="flex items-center gap-8 md:gap-12"
+        >
+          {[{ value: "423+", label: "Titles" }, { value: "HD", label: "Quality" }, { value: "∞", label: "Free" }].map((stat, i) => (
+            <motion.div
+              key={stat.label}
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={phase >= 4 ? { scale: 1, opacity: 1 } : {}}
+              transition={{ delay: 0.3 + i * 0.1, type: "spring", bounce: 0.3 }}
+              className="text-center"
+            >
+              <p className="text-2xl md:text-3xl font-black text-white/90">{stat.value}</p>
+              <p className="text-[9px] tracking-[0.2em] text-white/20 mt-1 font-medium uppercase">{stat.label}</p>
             </motion.div>
           ))}
         </motion.div>
 
-        {/* Enter button */}
-        {/* Bottom text */}
-        <motion.p initial={{ opacity: 0 }} animate={phase >= 5 ? { opacity: 1 } : {}} transition={{ delay: 0.5 }}
-          className="absolute bottom-8 text-[9px] font-mono text-white/10 tracking-widest">
+        {/* Bottom URL */}
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={phase >= 5 ? { opacity: 1 } : {}}
+          transition={{ delay: 0.3 }}
+          className="absolute bottom-8 text-[9px] font-medium text-white/[0.06] tracking-[0.3em] uppercase"
+        >
           priismatv.com
         </motion.p>
       </motion.div>
