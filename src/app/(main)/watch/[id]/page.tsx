@@ -82,22 +82,37 @@ export default function WatchPage() {
         // Try to find a matching file by title keywords
         const titleWords = item.title.toLowerCase().replace(/[^a-z0-9\s]/g, "").split(" ").filter(w => w.length > 2);
         
+        // For TV shows/anime — also match by season/episode
+        const isShow = item.type === "tvshow" || item.type === "anime";
+        const seasonStr = `s${String(selectedSeason).padStart(2, "0")}`;
+        const episodeStr = `e${String(selectedEpisode).padStart(2, "0")}`;
+        const sePattern = `${seasonStr}${episodeStr}`.toLowerCase();
+
         const match = files.find((file) => {
           const fileLower = file.toLowerCase();
           // Check if most title words appear in the filename
           const matchCount = titleWords.filter(word => fileLower.includes(word)).length;
-          return matchCount >= Math.min(titleWords.length, 2);
+          const titleMatch = matchCount >= Math.min(titleWords.length, 2);
+          
+          if (isShow) {
+            // For shows, must match title AND season+episode
+            return titleMatch && fileLower.includes(sePattern);
+          }
+          return titleMatch;
         });
 
         if (match) {
           setMyServerFile(`${MY_SERVER_URL}/${encodeURIComponent(match)}`);
+        } else {
+          setMyServerFile(null);
         }
       } catch {
         // Server might be offline — that's fine
+        setMyServerFile(null);
       }
     };
     matchFile();
-  }, [item]);
+  }, [item, selectedSeason, selectedEpisode]);
 
   // Auto-fetch TMDB/IMDB IDs when item loads
   const fetchIds = useCallback(async () => {
