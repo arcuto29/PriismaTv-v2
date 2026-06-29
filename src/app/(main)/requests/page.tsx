@@ -1,8 +1,7 @@
 "use client";
 import { useState } from "react";
-import { Hand, Send, Check, X, RefreshCw } from "lucide-react";
+import { Hand, Send, Check, X, RefreshCw, Loader2 } from "lucide-react";
 import { useRequests } from "@/hooks/use-supabase";
-import { OWNER_PASSWORD } from "@/data/content";
 
 export default function RequestsPage() {
   const { requests, submitRequest, updateRequestStatus, fetchRequests } = useRequests();
@@ -10,6 +9,8 @@ export default function RequestsPage() {
   const [type, setType] = useState("movie");
   const [name, setName] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [autoAdding, setAutoAdding] = useState<string | null>(null);
+  const [autoAddSuccess, setAutoAddSuccess] = useState<string | null>(null);
 
   const handleSubmit = async () => {
     if (!title.trim()) return;
@@ -21,10 +22,56 @@ export default function RequestsPage() {
     }
   };
 
-  const handleStatusChange = (id: string, status: "approved" | "denied") => {
-    const pw = prompt("Owner password:");
-    if (pw !== OWNER_PASSWORD) return;
-    updateRequestStatus(id, status);
+  const handleStatusChange = async (id: string, status: "approved" | "denied", title?: string, type?: string) => {
+    // Owner is already authenticated - no password needed
+    if (sessionStorage.getItem("priismatv_owner") !== "true") {
+      alert("Owner access required");
+      return;
+    }
+    await updateRequestStatus(id, status);
+
+    // If approved, auto-add content from TMDB
+    if (status === "approved" && title) {
+      setAutoAdding(id);
+      try {
+        const TMDB_KEY = "2dca580c2a14b55200e784d157207b4d";
+        const searchType = type === "tvshow" || type === "anime" ? "tv" : "movie";
+        const res = await fetch(`https://api.themoviedb.org/3/search/${searchType}?api_key=${TMDB_KEY}&query=${encodeURIComponent(title)}`);
+        const data = await res.json();
+
+        if (data.results && data.results[0]) {
+          const r = data.results[0];
+          const newItem = {
+            id: `req_${Date.now()}`,
+            title: r.title || r.name || title,
+            type: type || "movie",
+            year: new Date(r.release_date || r.first_air_date || "").getFullYear() || 2025,
+            rating: r.vote_average ? parseFloat(r.vote_average.toFixed(1)) : null,
+            genre: "action",
+            description: r.overview || "No description available.",
+            poster: r.poster_path ? `https://image.tmdb.org/t/p/w500${r.poster_path}` : null,
+            backdrop: r.backdrop_path ? `https://image.tmdb.org/t/p/original${r.backdrop_path}` : null,
+            trailer: null,
+            duration: null,
+            tags: ["trending"],
+            dateAdded: new Date().toISOString().split("T")[0],
+          };
+
+          // Add to localStorage content
+          const stored = localStorage.getItem("priismatv_content");
+          if (stored) {
+            const content = JSON.parse(stored);
+            content.unshift(newItem);
+            localStorage.setItem("priismatv_content", JSON.stringify(content));
+          }
+          setAutoAddSuccess(title);
+          setTimeout(() => setAutoAddSuccess(null), 3000);
+        }
+      } catch (e) {
+        console.error("Auto-add failed:", e);
+      }
+      setAutoAdding(null);
+    }
   };
 
   return (
@@ -65,6 +112,7 @@ export default function RequestsPage() {
               </button>
             </div>
             {submitted && <p className="text-green-400 text-xs font-mono">✓ Request submitted! The owner will see it.</p>}
+          {autoAddSuccess && <p className="text-green-400 text-xs font-mono">✓ &quot;{autoAddSuccess}&quot; auto-added to library from TMDB!</p>}
           </div>
         </div>
 
@@ -90,8 +138,14 @@ export default function RequestsPage() {
                 </div>
                 {r.status === "pending" && (
                   <div className="flex gap-1">
-                    <button onClick={() => handleStatusChange(r.id, "approved")} className="p-1.5 rounded bg-green-500/20 text-green-400 hover:bg-green-500/30"><Check className="w-3 h-3" /></button>
-                    <button onClick={() => handleStatusChange(r.id, "denied")} className="p-1.5 rounded bg-red-500/20 text-red-400 hover:bg-red-500/30"><X className="w-3 h-3" /></button>
+                    {autoAdding === r.id ? (
+                      <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                    ) : (
+                      <>
+                        <button onClick={() => handleStatusChange(r.id, "approved", r.title, r.type)} className="p-1.5 rounded bg-green-500/20 text-green-400 hover:bg-green-500/30" title="Approve & auto-add"><Check className="w-3 h-3" /></button>
+                        <button onClick={() => handleStatusChange(r.id, "denied")} className="p-1.5 rounded bg-red-500/20 text-red-400 hover:bg-red-500/30" title="Deny"><X className="w-3 h-3" /></button>
+                      </>
+                    )}
                   </div>
                 )}
               </div>
