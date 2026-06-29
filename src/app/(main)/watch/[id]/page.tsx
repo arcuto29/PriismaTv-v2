@@ -80,7 +80,8 @@ export default function WatchPage() {
         const files: string[] = await res.json();
         
         // Try to find a matching file by title keywords + year
-        const titleWords = item.title.toLowerCase().replace(/[^a-z0-9\s]/g, "").split(" ").filter(w => w.length > 2);
+        const stopWords = ["the", "and", "of", "in", "to", "a", "an", "is", "it", "for"];
+        const titleWords = item.title.toLowerCase().replace(/[^a-z0-9\s]/g, "").split(" ").filter(w => w.length > 2 && !stopWords.includes(w));
         const yearStr = String(item.year);
         
         // For TV shows/anime — also match by season/episode
@@ -93,11 +94,11 @@ export default function WatchPage() {
         let match = files.find((file) => {
           const fileLower = file.toLowerCase();
           const matchCount = titleWords.filter(word => fileLower.includes(word)).length;
-          const titleMatch = matchCount >= Math.min(titleWords.length, 2);
+          const titleMatch = matchCount === titleWords.length; // ALL words must match
           const yearMatch = fileLower.includes(yearStr);
           
           if (isShow) {
-            return titleMatch && yearMatch && fileLower.includes(sePattern);
+            return titleMatch && fileLower.includes(sePattern);
           }
           return titleMatch && yearMatch;
         });
@@ -107,22 +108,21 @@ export default function WatchPage() {
           match = files.find((file) => {
             const fileLower = file.toLowerCase();
             const matchCount = titleWords.filter(word => fileLower.includes(word)).length;
-            const titleMatch = matchCount >= Math.min(titleWords.length, 2);
-            const yearMatch = fileLower.includes(yearStr);
-            return titleMatch && yearMatch;
+            const titleMatch = matchCount === titleWords.length;
+            return titleMatch;
           });
         }
 
-        // Third try: title only (fallback, less accurate)
+        // Third try: match all words but without year (less strict)
         if (!match) {
           match = files.find((file) => {
             const fileLower = file.toLowerCase();
             const matchCount = titleWords.filter(word => fileLower.includes(word)).length;
-            const titleMatch = matchCount >= Math.ceil(titleWords.length * 0.7);
+            const titleMatch = matchCount === titleWords.length;
             if (isShow) {
               return titleMatch && fileLower.includes(sePattern);
             }
-            return titleMatch && titleWords.length <= 2 ? matchCount === titleWords.length : titleMatch;
+            return titleMatch;
           });
         }
 
