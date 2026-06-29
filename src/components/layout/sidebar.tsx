@@ -37,7 +37,7 @@ const navItems = [
 
 export function Sidebar() {
   const pathname = usePathname();
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
@@ -65,6 +65,8 @@ export function Sidebar() {
 
       {/* Sidebar */}
       <motion.aside
+        onMouseEnter={() => setCollapsed(false)}
+        onMouseLeave={() => setCollapsed(true)}
         className={cn(
           "fixed top-0 left-0 h-full z-50 flex flex-col",
           "bg-card/95 backdrop-blur-xl border-r border-border",
