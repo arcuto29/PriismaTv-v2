@@ -13,6 +13,8 @@ import { ContentItem, OWNER_PASSWORD, TMDB_API_KEY } from "@/data/content";
 import { StarRating } from "@/components/features/star-rating";
 import { cn } from "@/lib/utils";
 
+const MY_SERVER_URL = "https://stream.priismatv.xyz";
+
 function getServers(imdbId: string, tmdbId: string, type: string, season = 1, episode = 1) {
   if (type === "movie") {
     return [
@@ -48,6 +50,12 @@ export default function WatchPage() {
   const [tmdbId, setTmdbId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [audioPref, setAudioPref] = useState<"sub" | "dub">("sub");
+  const [myServerFile, setMyServerFile] = useState<string | null>(null);
+
+  // Auto-select my server when match found
+  useEffect(() => {
+    if (myServerFile) setSelectedServer(-2);
+  }, [myServerFile]);
   const trailerRef = useRef<HTMLDivElement>(null);
   const [editForm, setEditForm] = useState({
     title: "", poster: "", backdrop: "", video: "", trailer: "",
@@ -62,6 +70,34 @@ export default function WatchPage() {
       addToHistory(found.id);
     }
   }, [params.id, getContentById, addToHistory]);
+
+  // Auto-match file from my server
+  useEffect(() => {
+    if (!item) return;
+    const matchFile = async () => {
+      try {
+        const res = await fetch(`${MY_SERVER_URL}/list`);
+        const files: string[] = await res.json();
+        
+        // Try to find a matching file by title keywords
+        const titleWords = item.title.toLowerCase().replace(/[^a-z0-9\s]/g, "").split(" ").filter(w => w.length > 2);
+        
+        const match = files.find((file) => {
+          const fileLower = file.toLowerCase();
+          // Check if most title words appear in the filename
+          const matchCount = titleWords.filter(word => fileLower.includes(word)).length;
+          return matchCount >= Math.min(titleWords.length, 2);
+        });
+
+        if (match) {
+          setMyServerFile(`${MY_SERVER_URL}/${encodeURIComponent(match)}`);
+        }
+      } catch {
+        // Server might be offline — that's fine
+      }
+    };
+    matchFile();
+  }, [item]);
 
   // Auto-fetch TMDB/IMDB IDs when item loads
   const fetchIds = useCallback(async () => {
@@ -149,6 +185,7 @@ export default function WatchPage() {
   const servers = imdbId ? getServers(imdbId, tmdbId || "", item.type === "movie" ? "movie" : "tv", selectedSeason, selectedEpisode) : [];
 
   const getPlayerUrl = () => {
+    if (selectedServer === -2 && myServerFile) return myServerFile;
     if (selectedServer === -1 && item.video) return item.video;
     if (servers[selectedServer]) return servers[selectedServer].url;
     return "";
@@ -508,6 +545,17 @@ export default function WatchPage() {
                     <h3 className="text-sm font-semibold mb-3">Select Server</h3>
                     <p className="text-xs text-muted-foreground mb-3">If one server doesn&apos;t work, try another one.</p>
                     <div className="flex flex-wrap gap-2 mb-4">
+                      {myServerFile && (
+                        <button
+                          onClick={() => setSelectedServer(-2)}
+                          className={cn(
+                            "px-4 py-2 rounded-lg text-xs font-medium transition-all",
+                            selectedServer === -2 ? "bg-green-500 text-white glow-cyan" : "bg-green-500/20 text-green-400 hover:bg-green-500/30 border border-green-500/30"
+                          )}
+                        >
+                          ⚡ My Server (HD)
+                        </button>
+                      )}
                       {servers.map((server, i) => (
                         <button
                           key={server.name}
@@ -535,14 +583,25 @@ export default function WatchPage() {
 
                     {/* Player */}
                     <div className="w-full aspect-video rounded-xl overflow-hidden bg-black ring-1 ring-white/10 shadow-2xl">
-                      <iframe
-                        key={`${selectedServer}-${selectedSeason}-${selectedEpisode}-${imdbId}`}
-                        src={getPlayerUrl()}
-                        className="w-full h-full border-0"
-                        allowFullScreen
-                        allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
-                        sandbox="allow-same-origin allow-scripts allow-forms allow-popups"
-                      />
+                      {selectedServer === -2 && myServerFile ? (
+                        <video
+                          key={myServerFile}
+                          src={myServerFile}
+                          controls
+                          autoPlay
+                          className="w-full h-full"
+                          style={{ background: "#000" }}
+                        />
+                      ) : (
+                        <iframe
+                          key={`${selectedServer}-${selectedSeason}-${selectedEpisode}-${imdbId}`}
+                          src={getPlayerUrl()}
+                          className="w-full h-full border-0"
+                          allowFullScreen
+                          allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
+                          sandbox="allow-same-origin allow-scripts allow-forms allow-popups"
+                        />
+                      )}
                     </div>
 
                     <p className="text-[11px] text-muted-foreground mt-3">
