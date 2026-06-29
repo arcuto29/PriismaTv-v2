@@ -13,6 +13,7 @@ export default function WelcomePage() {
   const [password, setPassword] = useState("");
   const [passwordError, setPasswordError] = useState(false);
   const [userName, setUserName] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   // Owner credentials checked from database
   const MASTER_PASSWORD = "shadowmonarch"; // backup only
@@ -206,15 +207,24 @@ export default function WelcomePage() {
               placeholder="Your name..."
               className="w-full px-4 py-3.5 rounded-xl bg-white/5 border border-white/10 text-sm text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
             />
-            <input
-              type="text"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Access code..."
-              className={`w-full px-4 py-3.5 rounded-xl bg-white/5 border text-sm text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all ${
-                passwordError ? "border-red-500" : "border-white/10"
-              }`}
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Access code..."
+                className={`w-full px-4 py-3.5 pr-12 rounded-xl bg-white/5 border text-sm text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all ${
+                  passwordError ? "border-red-500" : "border-white/10"
+                }`}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition-colors text-xs font-mono"
+              >
+                {showPassword ? "HIDE" : "SHOW"}
+              </button>
+            </div>
             <button
               type="submit"
               className="w-full py-3.5 rounded-xl bg-gradient-to-r from-primary to-purple-600 text-white font-bold text-sm hover:opacity-90 transition-opacity"
