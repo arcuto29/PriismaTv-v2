@@ -14,16 +14,21 @@ export default function WelcomePage() {
   const [passwordError, setPasswordError] = useState(false);
   const [userName, setUserName] = useState("");
 
-  // Master password (always works for owner) + invite codes from database
+  // Owner credentials
+  const OWNER_USERNAME = "Priisma";
+  const OWNER_PASSWORD_LOGIN = "Jolterz2929$";
   const MASTER_PASSWORD = "shadowmonarch";
 
   // Check if already authenticated (session OR permanent)
   useEffect(() => {
     if (sessionStorage.getItem("priismatv_auth") === "true" || localStorage.getItem("priismatv_remember") === "true") {
       setAuthenticated(true);
-      // Restore username
-      const user = sessionStorage.getItem("priismatv_user") || localStorage.getItem("priismatv_user") || "Owner";
+      const user = sessionStorage.getItem("priismatv_user") || localStorage.getItem("priismatv_user") || "Guest";
       sessionStorage.setItem("priismatv_user", user);
+      // Auto-unlock owner if logged in as owner
+      if (localStorage.getItem("priismatv_is_owner") === "true") {
+        sessionStorage.setItem("priismatv_owner", "true");
+      }
     }
   }, []);
 
@@ -32,26 +37,40 @@ export default function WelcomePage() {
     const code = password.trim();
     const displayName = userName.trim() || "Guest";
 
-    // Check master password first (owner bypass)
-    if (code === MASTER_PASSWORD) {
+    // Check owner login (username + password combo)
+    if (displayName === OWNER_USERNAME && code === OWNER_PASSWORD_LOGIN) {
       setAuthenticated(true);
       sessionStorage.setItem("priismatv_auth", "true");
-      sessionStorage.setItem("priismatv_user", displayName || "Owner");
-      // Owner gets permanent login
+      sessionStorage.setItem("priismatv_user", OWNER_USERNAME);
+      sessionStorage.setItem("priismatv_owner", "true");
       localStorage.setItem("priismatv_remember", "true");
-      localStorage.setItem("priismatv_user", displayName || "Owner");
-      logVisit(displayName || "Owner");
+      localStorage.setItem("priismatv_user", OWNER_USERNAME);
+      localStorage.setItem("priismatv_is_owner", "true");
+      logVisit(OWNER_USERNAME);
       setPasswordError(false);
       return;
     }
 
-    // Check invite code in database
+    // Check master password (owner bypass - any name)
+    if (code === MASTER_PASSWORD) {
+      setAuthenticated(true);
+      sessionStorage.setItem("priismatv_auth", "true");
+      sessionStorage.setItem("priismatv_user", displayName);
+      sessionStorage.setItem("priismatv_owner", "true");
+      localStorage.setItem("priismatv_remember", "true");
+      localStorage.setItem("priismatv_user", displayName);
+      localStorage.setItem("priismatv_is_owner", "true");
+      logVisit(displayName);
+      setPasswordError(false);
+      return;
+    }
+
+    // Check invite code in database (friend access)
     const valid = await validateInviteCode(code, displayName);
     if (valid) {
       setAuthenticated(true);
       sessionStorage.setItem("priismatv_auth", "true");
       sessionStorage.setItem("priismatv_user", displayName);
-      // Remember everyone permanently
       localStorage.setItem("priismatv_remember", "true");
       localStorage.setItem("priismatv_user", displayName);
       logVisit(displayName, code);
