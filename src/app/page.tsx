@@ -14,10 +14,8 @@ export default function WelcomePage() {
   const [passwordError, setPasswordError] = useState(false);
   const [userName, setUserName] = useState("");
 
-  // Owner credentials
-  const OWNER_USERNAME = "Priisma";
-  const OWNER_PASSWORD_LOGIN = "Jolterz2929$";
-  const MASTER_PASSWORD = "shadowmonarch";
+  // Owner credentials checked from database
+  const MASTER_PASSWORD = "shadowmonarch"; // backup only
 
   // Check if already authenticated (session OR permanent)
   useEffect(() => {
@@ -25,7 +23,6 @@ export default function WelcomePage() {
       setAuthenticated(true);
       const user = sessionStorage.getItem("priismatv_user") || localStorage.getItem("priismatv_user") || "Guest";
       sessionStorage.setItem("priismatv_user", user);
-      // Auto-unlock owner if logged in as owner
       if (localStorage.getItem("priismatv_is_owner") === "true") {
         sessionStorage.setItem("priismatv_owner", "true");
       }
@@ -37,21 +34,30 @@ export default function WelcomePage() {
     const code = password.trim();
     const displayName = userName.trim() || "Guest";
 
-    // Check owner login (username + password combo)
-    if (displayName === OWNER_USERNAME && code === OWNER_PASSWORD_LOGIN) {
+    // Check owner table in database
+    const { supabase } = await import("@/lib/supabase");
+    const { data: ownerData } = await supabase
+      .from("owner")
+      .select("*")
+      .eq("username", displayName)
+      .eq("password", code)
+      .single();
+
+    if (ownerData) {
+      // Owner login from database
       setAuthenticated(true);
       sessionStorage.setItem("priismatv_auth", "true");
-      sessionStorage.setItem("priismatv_user", OWNER_USERNAME);
+      sessionStorage.setItem("priismatv_user", displayName);
       sessionStorage.setItem("priismatv_owner", "true");
       localStorage.setItem("priismatv_remember", "true");
-      localStorage.setItem("priismatv_user", OWNER_USERNAME);
+      localStorage.setItem("priismatv_user", displayName);
       localStorage.setItem("priismatv_is_owner", "true");
-      logVisit(OWNER_USERNAME);
+      logVisit(displayName);
       setPasswordError(false);
       return;
     }
 
-    // Check master password (owner bypass - any name)
+    // Check master password (backup)
     if (code === MASTER_PASSWORD) {
       setAuthenticated(true);
       sessionStorage.setItem("priismatv_auth", "true");
