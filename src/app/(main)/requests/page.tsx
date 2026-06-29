@@ -28,7 +28,6 @@ export default function RequestsPage() {
       alert("Owner access required");
       return;
     }
-    await updateRequestStatus(id, status);
 
     // If approved, auto-add content from TMDB
     if (status === "approved" && title) {
@@ -57,7 +56,6 @@ export default function RequestsPage() {
             dateAdded: new Date().toISOString().split("T")[0],
           };
 
-          // Add to localStorage content
           const stored = localStorage.getItem("priismatv_content");
           if (stored) {
             const content = JSON.parse(stored);
@@ -72,6 +70,11 @@ export default function RequestsPage() {
       }
       setAutoAdding(null);
     }
+
+    // Remove the request from database after accepting or denying
+    const { supabase } = await import("@/lib/supabase");
+    await supabase.from("requests").delete().eq("id", id);
+    fetchRequests();
   };
 
   return (
