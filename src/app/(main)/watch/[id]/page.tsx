@@ -79,8 +79,9 @@ export default function WatchPage() {
         const res = await fetch(`${MY_SERVER_URL}/list`);
         const files: string[] = await res.json();
         
-        // Try to find a matching file by title keywords
+        // Try to find a matching file by title keywords + year
         const titleWords = item.title.toLowerCase().replace(/[^a-z0-9\s]/g, "").split(" ").filter(w => w.length > 2);
+        const yearStr = String(item.year);
         
         // For TV shows/anime — also match by season/episode
         const isShow = item.type === "tvshow" || item.type === "anime";
@@ -88,18 +89,42 @@ export default function WatchPage() {
         const episodeStr = `e${String(selectedEpisode).padStart(2, "0")}`;
         const sePattern = `${seasonStr}${episodeStr}`.toLowerCase();
 
-        const match = files.find((file) => {
+        // First try: match title + year (most accurate)
+        let match = files.find((file) => {
           const fileLower = file.toLowerCase();
-          // Check if most title words appear in the filename
           const matchCount = titleWords.filter(word => fileLower.includes(word)).length;
           const titleMatch = matchCount >= Math.min(titleWords.length, 2);
+          const yearMatch = fileLower.includes(yearStr);
           
           if (isShow) {
-            // For shows, must match title AND season+episode
-            return titleMatch && fileLower.includes(sePattern);
+            return titleMatch && yearMatch && fileLower.includes(sePattern);
           }
-          return titleMatch;
+          return titleMatch && yearMatch;
         });
+
+        // Second try: match title + year without episode (for shows)
+        if (!match && !isShow) {
+          match = files.find((file) => {
+            const fileLower = file.toLowerCase();
+            const matchCount = titleWords.filter(word => fileLower.includes(word)).length;
+            const titleMatch = matchCount >= Math.min(titleWords.length, 2);
+            const yearMatch = fileLower.includes(yearStr);
+            return titleMatch && yearMatch;
+          });
+        }
+
+        // Third try: title only (fallback, less accurate)
+        if (!match) {
+          match = files.find((file) => {
+            const fileLower = file.toLowerCase();
+            const matchCount = titleWords.filter(word => fileLower.includes(word)).length;
+            const titleMatch = matchCount >= Math.ceil(titleWords.length * 0.7);
+            if (isShow) {
+              return titleMatch && fileLower.includes(sePattern);
+            }
+            return titleMatch && titleWords.length <= 2 ? matchCount === titleWords.length : titleMatch;
+          });
+        }
 
         if (match) {
           setMyServerFile(`${MY_SERVER_URL}/${encodeURIComponent(match)}`);
@@ -107,7 +132,6 @@ export default function WatchPage() {
           setMyServerFile(null);
         }
       } catch {
-        // Server might be offline — that's fine
         setMyServerFile(null);
       }
     };
