@@ -135,10 +135,14 @@ export default function WatchPage() {
   const isInWatchlist = watchlist.includes(item.id);
 
   const handleDelete = () => {
-    const pw = prompt("Owner password required:");
-    if (pw === OWNER_PASSWORD) {
+    if (sessionStorage.getItem("priismatv_owner") !== "true") {
+      const pw = prompt("Owner password required:");
+      if (pw !== OWNER_PASSWORD) return;
+      sessionStorage.setItem("priismatv_owner", "true");
+    }
+    if (confirm("Delete this content?")) {
       removeContent(item.id);
-      router.push("/");
+      router.push("/home");
     }
   };
 
@@ -302,8 +306,7 @@ export default function WatchPage() {
 
               <button
                 onClick={() => {
-                  if (sessionStorage.getItem("priismatv_owner") === "true" || prompt("Owner password:") === OWNER_PASSWORD) {
-                    sessionStorage.setItem("priismatv_owner", "true");
+                  if (sessionStorage.getItem("priismatv_owner") === "true") {
                     setShowEdit(!showEdit);
                     if (!showEdit) setEditForm({
                       title: item.title, poster: item.poster || "", backdrop: item.backdrop || "",
