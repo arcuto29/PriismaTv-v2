@@ -51,7 +51,7 @@ export function Sidebar() {
       {/* Mobile hamburger */}
       <button
         onClick={() => setMobileOpen(true)}
-        className="fixed top-4 left-4 z-50 lg:hidden p-2.5 rounded-xl bg-black/60 backdrop-blur-xl border border-white/[0.06]"
+        className="fixed top-4 left-4 z-50 lg:hidden p-2.5 rounded-xl bg-black/70 backdrop-blur-xl border border-white/[0.06] magnetic-btn"
       >
         <Menu className="w-5 h-5 text-white/80" />
       </button>
@@ -64,7 +64,7 @@ export function Sidebar() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setMobileOpen(false)}
-            className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40 lg:hidden"
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-40 lg:hidden"
           />
         )}
       </AnimatePresence>
@@ -75,22 +75,17 @@ export function Sidebar() {
         onMouseLeave={() => setCollapsed(true)}
         className={cn(
           "fixed top-0 left-0 h-full z-50 flex flex-col",
-          "bg-[#08080d]/90 backdrop-blur-2xl",
-          "border-r border-white/[0.04]",
-          "transition-all duration-400 ease-[cubic-bezier(0.16,1,0.3,1)]",
+          "bg-[#060609]/95 backdrop-blur-2xl",
+          "border-r border-white/[0.03]",
+          "transition-all duration-[400ms] ease-[cubic-bezier(0.16,1,0.3,1)]",
           collapsed ? "w-[72px]" : "w-[260px]",
           mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
-        style={{
-          boxShadow: collapsed
-            ? "none"
-            : "4px 0 40px rgba(0, 0, 0, 0.4), 1px 0 0 rgba(232, 180, 104, 0.03)",
-        }}
       >
-        {/* Logo Area */}
-        <div className="flex items-center gap-3 px-4 h-[72px] border-b border-white/[0.04]">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary/90 to-primary/60 flex items-center justify-center flex-shrink-0 shadow-[0_4px_20px_rgba(232,180,104,0.2)]">
-            <Play className="w-4 h-4 text-black fill-black" />
+        {/* Logo */}
+        <div className="flex items-center gap-3 px-4 h-[72px] border-b border-white/[0.03]">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-red-700 flex items-center justify-center flex-shrink-0 shadow-[0_4px_15px_rgba(229,9,20,0.3)]">
+            <Play className="w-4 h-4 text-white fill-white" />
           </div>
           <AnimatePresence>
             {!collapsed && (
@@ -106,16 +101,13 @@ export function Sidebar() {
               </motion.span>
             )}
           </AnimatePresence>
-          <button
-            onClick={() => setMobileOpen(false)}
-            className="ml-auto p-1.5 rounded-lg hover:bg-white/[0.04] transition-colors lg:hidden"
-          >
+          <button onClick={() => setMobileOpen(false)} className="ml-auto p-1.5 rounded-lg hover:bg-white/[0.04] transition-colors lg:hidden">
             <X className="w-4 h-4 text-white/40" />
           </button>
         </div>
 
         {/* Nav Links */}
-        <nav className="flex-1 overflow-y-auto py-4 px-2.5 space-y-0.5 scrollbar-hide">
+        <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-0.5 scrollbar-hide">
           {navItems.map((item) => {
             const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href));
             return (
@@ -124,32 +116,25 @@ export function Sidebar() {
                 href={item.href}
                 onClick={() => setMobileOpen(false)}
                 className={cn(
-                  "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-300 group relative overflow-hidden",
-                  isActive
-                    ? "text-primary"
-                    : "text-white/40 hover:text-white/80"
+                  "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group relative",
+                  isActive ? "text-white" : "text-white/35 hover:text-white/70"
                 )}
               >
-                {/* Active background glow */}
                 {isActive && (
                   <motion.div
                     layoutId="sidebar-active-bg"
-                    className="absolute inset-0 rounded-xl bg-primary/[0.08] border border-primary/[0.12]"
+                    className="absolute inset-0 rounded-xl bg-white/[0.06] border border-white/[0.06]"
                     transition={{ type: "spring", bounce: 0.15, duration: 0.5 }}
                   />
                 )}
-                {/* Active indicator bar */}
                 {isActive && (
                   <motion.div
-                    layoutId="sidebar-indicator"
-                    className="absolute left-0 top-1/2 -translate-y-1/2 w-[2.5px] h-5 bg-primary rounded-r-full shadow-[0_0_8px_rgba(232,180,104,0.5)]"
+                    layoutId="sidebar-bar"
+                    className="absolute left-0 top-1/2 -translate-y-1/2 w-[2.5px] h-5 bg-primary rounded-r-full shadow-[0_0_8px_rgba(229,9,20,0.6)]"
                     transition={{ type: "spring", bounce: 0.15, duration: 0.5 }}
                   />
                 )}
-                <item.icon className={cn(
-                  "w-[18px] h-[18px] flex-shrink-0 relative z-10 transition-transform duration-300",
-                  isActive ? "text-primary" : "group-hover:scale-110"
-                )} />
+                <item.icon className={cn("w-[18px] h-[18px] flex-shrink-0 relative z-10 transition-all duration-200", isActive && "text-primary")} />
                 <AnimatePresence>
                   {!collapsed && (
                     <motion.span
@@ -157,18 +142,15 @@ export function Sidebar() {
                       animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, x: -5 }}
                       transition={{ duration: 0.15 }}
-                      className={cn(
-                        "text-[13px] font-medium truncate relative z-10",
-                        isActive ? "text-primary" : ""
-                      )}
+                      className="text-[13px] font-medium truncate relative z-10"
                     >
                       {item.label}
                     </motion.span>
                   )}
                 </AnimatePresence>
-                {/* Tooltip for collapsed state */}
+                {/* Tooltip */}
                 {collapsed && (
-                  <div className="absolute left-full ml-3 px-3 py-1.5 rounded-lg bg-[#12121a] border border-white/[0.06] text-white/80 text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none shadow-xl z-[100]">
+                  <div className="absolute left-full ml-3 px-3 py-1.5 rounded-lg bg-[#12121a] border border-white/[0.06] text-white/80 text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-xl z-[100]">
                     {item.label}
                   </div>
                 )}
@@ -177,20 +159,15 @@ export function Sidebar() {
           })}
         </nav>
 
-        {/* User Section */}
-        <div className="px-3 py-4 border-t border-white/[0.04]">
+        {/* User */}
+        <div className="px-3 py-4 border-t border-white/[0.03]">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center text-xs font-bold text-primary flex-shrink-0 border border-primary/20">
               {userName[0]?.toUpperCase() || "P"}
             </div>
             <AnimatePresence>
               {!collapsed && (
-                <motion.div
-                  initial={{ opacity: 0, x: -5 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -5 }}
-                  className="overflow-hidden"
-                >
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="overflow-hidden">
                   <p className="text-sm font-medium text-white/80 truncate">{userName}</p>
                   <p className="text-[10px] text-primary/60 font-medium tracking-wide uppercase">Premium</p>
                 </motion.div>

@@ -4,6 +4,7 @@ import { TopBar } from "@/components/layout/top-bar";
 import { MobileNav } from "@/components/layout/mobile-nav";
 import { GlobalFeatures } from "@/components/features/global-features";
 import { AnimatedBackground } from "@/components/layout/animated-background";
+import { CommandPalette } from "@/components/features/command-palette";
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -11,11 +12,12 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
       <AnimatedBackground />
       <div className="relative z-10 flex min-h-screen">
         <Sidebar />
-        <main className="flex-1 lg:ml-[72px] min-h-screen flex flex-col pb-16 lg:pb-0">
+        <main className="flex-1 lg:ml-[72px] min-h-screen flex flex-col pb-20 lg:pb-0">
           <TopBar />
-          <div className="flex-1">{children}</div>
+          <div className="flex-1 page-enter">{children}</div>
         </main>
         <GlobalFeatures />
+        <CommandPalette />
       </div>
       <MobileNav />
     </>
