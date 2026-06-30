@@ -1,10 +1,12 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import { useMood } from "@/hooks/use-mood";
 
 export function AnimatedBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const cursorRef = useRef<HTMLDivElement>(null);
   const [mounted, setMounted] = useState(false);
+  const { currentMood } = useMood();
 
   useEffect(() => {
     setMounted(true);
@@ -39,7 +41,7 @@ export function AnimatedBackground() {
     }
     interface Particle {
       x: number; y: number; vx: number; vy: number;
-      radius: number; alpha: number; color: string;
+      radius: number; alpha: number;
     }
 
     let stars: Star[] = [];
@@ -66,7 +68,6 @@ export function AnimatedBackground() {
 
     const createParticles = () => {
       particles = [];
-      const colors = ["rgba(0,212,255,", "rgba(124,58,237,", "rgba(14,165,233,", "rgba(168,85,247,"];
       for (let i = 0; i < PARTICLE_COUNT; i++) {
         particles.push({
           x: Math.random() * canvas.width,
@@ -75,7 +76,6 @@ export function AnimatedBackground() {
           vy: (Math.random() - 0.5) * 0.2 - 0.1,
           radius: Math.random() * 2 + 1,
           alpha: Math.random() * 0.4 + 0.1,
-          color: colors[Math.floor(Math.random() * colors.length)],
         });
       }
     };
@@ -83,18 +83,18 @@ export function AnimatedBackground() {
     const animate = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Stars
+      // Stars — color from mood
       stars.forEach((star) => {
         star.alpha += star.alphaSpeed * star.alphaDir;
         if (star.alpha >= 1) { star.alpha = 1; star.alphaDir = -1; }
         if (star.alpha <= 0.1) { star.alpha = 0.1; star.alphaDir = 1; }
         ctx.beginPath();
         ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(0, 212, 255, ${star.alpha * 0.35})`;
+        ctx.fillStyle = `${currentMood.starColor} ${star.alpha * 0.35})`;
         ctx.fill();
       });
 
-      // Floating particles
+      // Floating particles — color from mood
       particles.forEach((p) => {
         p.x += p.vx;
         p.y += p.vy;
@@ -105,17 +105,17 @@ export function AnimatedBackground() {
 
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-        ctx.fillStyle = `${p.color}${p.alpha})`;
+        ctx.fillStyle = `${currentMood.particleColor}${p.alpha})`;
         ctx.fill();
 
         // Glow
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.radius * 3, 0, Math.PI * 2);
-        ctx.fillStyle = `${p.color}${p.alpha * 0.2})`;
+        ctx.fillStyle = `${currentMood.particleColor}${p.alpha * 0.2})`;
         ctx.fill();
       });
 
-      // Draw connecting lines between close particles
+      // Connecting lines — color from mood
       for (let i = 0; i < particles.length; i++) {
         for (let j = i + 1; j < particles.length; j++) {
           const dx = particles[i].x - particles[j].x;
@@ -125,7 +125,7 @@ export function AnimatedBackground() {
             ctx.beginPath();
             ctx.moveTo(particles[i].x, particles[i].y);
             ctx.lineTo(particles[j].x, particles[j].y);
-            ctx.strokeStyle = `rgba(0, 212, 255, ${0.08 * (1 - dist / 150)})`;
+            ctx.strokeStyle = `${currentMood.lineColor} ${0.08 * (1 - dist / 150)})`;
             ctx.lineWidth = 0.5;
             ctx.stroke();
           }
@@ -146,7 +146,7 @@ export function AnimatedBackground() {
       cancelAnimationFrame(animationId);
       window.removeEventListener("resize", handleResize);
     };
-  }, [mounted]);
+  }, [mounted, currentMood]);
 
   if (!mounted) return null;
 
@@ -155,23 +155,28 @@ export function AnimatedBackground() {
       {/* Cursor glow */}
       <div ref={cursorRef} className="cursor-light hidden lg:block" />
 
-      {/* Morphing gradient blobs */}
+      {/* Background gradient — changes with mood */}
+      <div className={`fixed inset-0 z-0 pointer-events-none bg-gradient-to-b ${currentMood.bgGradient}`} />
+
+      {/* Morphing gradient blobs — colors from mood */}
       <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
-        <div className="absolute -top-1/4 -left-1/4 w-[600px] h-[600px] rounded-full bg-primary/10 blur-[120px] animate-blob" />
-        <div className="absolute -bottom-1/4 -right-1/4 w-[500px] h-[500px] rounded-full bg-purple-600/10 blur-[120px] animate-blob animation-delay-2000" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] rounded-full bg-cyan-500/5 blur-[100px] animate-blob animation-delay-4000" />
+        <div className={`absolute -top-1/4 -left-1/4 w-[600px] h-[600px] rounded-full ${currentMood.blobColors[0]} blur-[120px] animate-blob`} />
+        <div className={`absolute -bottom-1/4 -right-1/4 w-[500px] h-[500px] rounded-full ${currentMood.blobColors[1]} blur-[120px] animate-blob animation-delay-2000`} />
+        <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] rounded-full ${currentMood.blobColors[2]} blur-[100px] animate-blob animation-delay-4000`} />
       </div>
 
-      {/* Jin-Woo Video Background */}
-      <video
-        autoPlay
-        muted
-        loop
-        playsInline
-        className="fixed inset-0 w-full h-full object-cover z-0 pointer-events-none opacity-25"
-      >
-        <source src="/jinwoo-bg.mp4" type="video/mp4" />
-      </video>
+      {/* Video Background (only for themes that have one) */}
+      {currentMood.videoSrc && (
+        <video
+          autoPlay
+          muted
+          loop
+          playsInline
+          className={`fixed inset-0 w-full h-full object-cover z-0 pointer-events-none ${currentMood.videoOpacity || "opacity-20"}`}
+        >
+          <source src={currentMood.videoSrc} type="video/mp4" />
+        </video>
+      )}
 
       {/* Particle canvas */}
       <canvas
@@ -179,8 +184,8 @@ export function AnimatedBackground() {
         className="fixed inset-0 z-0 pointer-events-none"
       />
 
-      {/* Overlay */}
-      <div className="fixed inset-0 z-0 pointer-events-none bg-gradient-to-b from-background/60 via-background/50 to-background/80" />
+      {/* Overlay — opacity from mood */}
+      <div className={`fixed inset-0 z-0 pointer-events-none bg-gradient-to-b ${currentMood.overlayOpacity}`} />
     </>
   );
 }
