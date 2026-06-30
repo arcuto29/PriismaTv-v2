@@ -15,7 +15,7 @@ import { cn } from "@/lib/utils";
 
 const MY_SERVER_URL = "https://stream.priismatv.xyz";
 
-function getServers(imdbId: string, tmdbId: string, type: string, season = 1, episode = 1) {
+function getServers(imdbId: string, tmdbId: string, type: string, season = 1, episode = 1, title = "") {
   if (type === "movie") {
     return [
       { name: "VidLink", url: `https://vidlink.pro/movie/${tmdbId || imdbId}` },
@@ -25,14 +25,14 @@ function getServers(imdbId: string, tmdbId: string, type: string, season = 1, ep
       { name: "NontonGo", url: `https://www.nontongo.win/embed/movie/${imdbId}` },
     ];
   }
-  // For anime, use TMDB-based servers (IMDB IDs often return wrong content for anime)
+  // For anime, use TMDB-based servers + external anime site link
   if (type === "anime") {
     return [
+      { name: "AniWave", url: `https://aniwave.tf/?s=${encodeURIComponent(title)}`, external: true },
       { name: "2Embed", url: `https://www.2embed.cc/embedtv/${tmdbId || imdbId}&s=${season}&e=${episode}` },
       { name: "VidLink", url: `https://vidlink.pro/tv/${tmdbId || imdbId}/${season}/${episode}` },
       { name: "AutoEmbed", url: `https://autoembed.co/tv/tmdb/${tmdbId}-${season}-${episode}` },
       { name: "AnyEmbed", url: `https://anyembed.xyz/embed/tmdb-tv-${tmdbId || imdbId}-${season}-${episode}` },
-      { name: "NontonGo", url: `https://www.nontongo.win/embed/tv/${imdbId}/${season}/${episode}` },
     ];
   }
   return [
@@ -238,7 +238,7 @@ export default function WatchPage() {
     }
   };
 
-  const servers = (imdbId || tmdbId) ? getServers(imdbId || "", tmdbId || "", item.type === "movie" ? "movie" : "tv", selectedSeason, selectedEpisode) : [];
+  const servers = (imdbId || tmdbId) ? getServers(imdbId || "", tmdbId || "", item.type, selectedSeason, selectedEpisode, item.title) : [];
 
   const getPlayerUrl = () => {
     if (selectedServer === -2 && myServerFile) return myServerFile;
@@ -597,13 +597,21 @@ export default function WatchPage() {
                       {servers.map((server, i) => (
                         <button
                           key={server.name}
-                          onClick={() => setSelectedServer(i)}
+                          onClick={() => {
+                            if ((server as { external?: boolean }).external) {
+                              window.open(server.url, "_blank");
+                            } else {
+                              setSelectedServer(i);
+                            }
+                          }}
                           className={cn(
                             "px-4 py-2 rounded-lg text-xs font-medium transition-all",
-                            selectedServer === i ? "bg-primary text-primary-foreground glow-cyan" : "bg-muted text-muted-foreground hover:bg-muted/80"
+                            (server as { external?: boolean }).external
+                              ? "bg-purple-500/20 text-purple-400 hover:bg-purple-500/30 border border-purple-500/30"
+                              : selectedServer === i ? "bg-primary text-primary-foreground glow-cyan" : "bg-muted text-muted-foreground hover:bg-muted/80"
                           )}
                         >
-                          {server.name}
+                          {(server as { external?: boolean }).external ? `🔗 ${server.name}` : server.name}
                         </button>
                       ))}
                       {item.video && (
