@@ -18,29 +18,28 @@ const MY_SERVER_URL = "https://stream.priismatv.xyz";
 function getServers(imdbId: string, tmdbId: string, type: string, season = 1, episode = 1) {
   if (type === "movie") {
     return [
-      { name: "VidSrc", url: `https://vidsrc.me/embed/movie?imdb=${imdbId}` },
-      { name: "Embed.su", url: `https://embed.su/embed/movie/${imdbId}` },
+      { name: "VidPlus", url: `https://player.vidplus.to/embed/movie/${tmdbId || imdbId}` },
+      { name: "VidSrc", url: `https://vidsrc.lol/embed/movie/${imdbId}` },
+      { name: "2Embed", url: `https://www.2embed.stream/embed/movie/${tmdbId || imdbId}` },
       { name: "AutoEmbed", url: `https://autoembed.co/movie/imdb/${imdbId}` },
-      { name: "MoviesAPI", url: `https://moviesapi.to/movie/${imdbId}` },
       { name: "NontonGo", url: `https://www.nontongo.win/embed/movie/${imdbId}` },
     ];
   }
-  // For anime, use anime-specific servers (free embed servers often have wrong content for anime IMDB IDs)
+  // For anime, use TMDB-based servers (IMDB IDs often return wrong content for anime)
   if (type === "anime") {
     return [
+      { name: "VidPlus", url: `https://player.vidplus.to/embed/tv/${tmdbId || imdbId}/${season}/${episode}` },
+      { name: "VidSrc", url: `https://vidsrc.lol/embed/tv/${tmdbId || imdbId}/${season}/${episode}` },
       { name: "2Embed", url: `https://www.2embed.stream/embed/tv/${tmdbId || imdbId}/${season}/${episode}` },
-      { name: "AutoEmbed (TMDB)", url: `https://autoembed.co/tv/tmdb/${tmdbId}-${season}-${episode}` },
-      { name: "AutoEmbed (IMDB)", url: `https://autoembed.co/tv/imdb/${imdbId}-${season}-${episode}` },
-      { name: "Embed.su", url: `https://embed.su/embed/tv/${imdbId}/${season}/${episode}` },
-      { name: "VidSrc", url: `https://vidsrc.me/embed/tv?imdb=${imdbId}&season=${season}&episode=${episode}` },
+      { name: "AutoEmbed", url: `https://autoembed.co/tv/tmdb/${tmdbId}-${season}-${episode}` },
       { name: "NontonGo", url: `https://www.nontongo.win/embed/tv/${imdbId}/${season}/${episode}` },
     ];
   }
   return [
-    { name: "VidSrc", url: `https://vidsrc.me/embed/tv?imdb=${imdbId}&season=${season}&episode=${episode}` },
-    { name: "Embed.su", url: `https://embed.su/embed/tv/${imdbId}/${season}/${episode}` },
+    { name: "VidPlus", url: `https://player.vidplus.to/embed/tv/${tmdbId || imdbId}/${season}/${episode}` },
+    { name: "VidSrc", url: `https://vidsrc.lol/embed/tv/${imdbId}/${season}/${episode}` },
+    { name: "2Embed", url: `https://www.2embed.stream/embed/tv/${tmdbId || imdbId}/${season}/${episode}` },
     { name: "AutoEmbed", url: `https://autoembed.co/tv/imdb/${imdbId}-${season}-${episode}` },
-    { name: "MoviesAPI", url: `https://moviesapi.to/tv/${imdbId}-${season}-${episode}` },
     { name: "NontonGo", url: `https://www.nontongo.win/embed/tv/${imdbId}/${season}/${episode}` },
   ];
 }
@@ -156,8 +155,12 @@ export default function WatchPage() {
     // Check if already cached on the item (skip if force refresh)
     if (!forceRefresh && (item as unknown as Record<string, string>).imdbId) {
       setImdbId((item as unknown as Record<string, string>).imdbId);
-      setTmdbId((item as unknown as Record<string, string>).tmdbId || null);
-      return;
+      const cachedTmdb = (item as unknown as Record<string, string>).tmdbId;
+      if (cachedTmdb) {
+        setTmdbId(cachedTmdb);
+        return;
+      }
+      // If we have IMDB but no TMDB cached, still fetch TMDB (needed for anime servers)
     }
 
     setLoading(true);
@@ -180,7 +183,7 @@ export default function WatchPage() {
 
         if (imdb) {
           setImdbId(imdb);
-          // Cache it on the item for next time
+          // Cache both IDs on the item for next time
           updateContent(item.id, { ...item, imdbId: imdb, tmdbId: String(tmdb) } as unknown as Partial<ContentItem>);
         }
       }
@@ -191,8 +194,8 @@ export default function WatchPage() {
   }, [item, updateContent]);
 
   useEffect(() => {
-    if (item && !imdbId) fetchIds();
-  }, [item, imdbId, fetchIds]);
+    if (item && (!imdbId || !tmdbId)) fetchIds();
+  }, [item, imdbId, tmdbId, fetchIds]);
 
   // Fullscreen trailer
   const openTrailerFullscreen = () => {
