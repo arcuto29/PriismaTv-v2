@@ -78,7 +78,7 @@ export default function WelcomePage() {
               animate={{ y: [0, -(40 + Math.random() * 80), 0], opacity: [0, 0.7, 0], scale: [0.5, 1.2, 0.5] }}
               transition={{ duration: 2.5 + Math.random() * 3, repeat: Infinity, delay: Math.random() * 3 }}
               className="absolute rounded-full"
-              style={{ left: `${15 + Math.random() * 70}%`, top: `${30 + Math.random() * 50}%`, width: `${2 + Math.random() * 3}px`, height: `${2 + Math.random() * 3}px`, background: i % 2 === 0 ? "#7c3aed" : "#06b6d4", boxShadow: `0 0 ${10 + Math.random() * 15}px ${i % 2 === 0 ? "#7c3aed" : "#06b6d4"}` }}
+              style={{ left: `${15 + Math.random() * 70}%`, top: `${30 + Math.random() * 50}%`, width: `${2 + Math.random() * 3}px`, height: `${2 + Math.random() * 3}px`, background: i % 2 === 0 ? "#7c3aed" : "#3b82f6", boxShadow: `0 0 ${10 + Math.random() * 15}px ${i % 2 === 0 ? "#7c3aed" : "#3b82f6"}` }}
             />
           ))}
         </div>
@@ -98,14 +98,14 @@ export default function WelcomePage() {
           <motion.div
             animate={{ boxShadow: ["0 0 30px rgba(124,58,237,0.3)", "0 0 50px rgba(124,58,237,0.5)", "0 0 30px rgba(124,58,237,0.3)"] }}
             transition={{ duration: 2.5, repeat: Infinity }}
-            className="w-14 h-14 mx-auto mb-5 rounded-xl bg-gradient-to-br from-purple-600/40 to-cyan-500/20 border border-purple-500/40 flex items-center justify-center"
+            className="w-14 h-14 mx-auto mb-5 rounded-xl bg-gradient-to-br from-purple-600/40 to-blue-500/20 border border-purple-500/40 flex items-center justify-center"
           >
-            <svg className="w-6 h-6 text-cyan-400" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+            <svg className="w-6 h-6 text-blue-400" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
           </motion.div>
 
           {/* Title */}
           <h2 className="text-center text-3xl font-black mb-1 tracking-tight">
-            <span className="bg-gradient-to-r from-purple-400 via-cyan-300 to-purple-400 bg-clip-text text-transparent" style={{ textShadow: "none" }}>PRIISMA</span>
+            <span className="bg-gradient-to-r from-purple-400 via-blue-300 to-purple-400 bg-clip-text text-transparent" style={{ textShadow: "none" }}>PRIISMA</span>
             <span className="text-white/90">TV</span>
           </h2>
           <p className="text-center text-purple-300/40 text-[10px] font-bold tracking-[0.4em] uppercase mb-7">Shadow Monarch&apos;s Domain</p>
@@ -126,7 +126,7 @@ export default function WelcomePage() {
               type="submit"
               whileHover={{ scale: 1.02, boxShadow: "0 0 40px rgba(124, 58, 237, 0.4)" }}
               whileTap={{ scale: 0.98 }}
-              className="w-full py-4 rounded-xl bg-gradient-to-r from-purple-600 via-purple-500 to-cyan-500 text-white font-black text-sm tracking-[0.15em] uppercase transition-all shadow-[0_4px_30px_rgba(124,58,237,0.3)]"
+              className="w-full py-4 rounded-xl bg-gradient-to-r from-purple-600 via-purple-500 to-blue-500 text-white font-black text-sm tracking-[0.15em] uppercase transition-all shadow-[0_4px_30px_rgba(124,58,237,0.3)]"
             >
               A R I S E
             </motion.button>
@@ -161,7 +161,7 @@ export default function WelcomePage() {
             animate={phase >= 2 ? { y: [0, -(120 + Math.random() * 200)], opacity: [0, 0.9, 0], x: [(Math.random() - 0.5) * 40, (Math.random() - 0.5) * 80] } : {}}
             transition={{ duration: 2 + Math.random() * 3, repeat: Infinity, delay: Math.random() * 2 }}
             className="absolute rounded-full"
-            style={{ left: `${20 + Math.random() * 60}%`, bottom: `${5 + Math.random() * 25}%`, width: `${1 + Math.random() * 3}px`, height: `${1 + Math.random() * 3}px`, background: i % 3 === 0 ? "#7c3aed" : i % 3 === 1 ? "#06b6d4" : "#a855f7", boxShadow: `0 0 ${8 + Math.random() * 12}px ${i % 3 === 0 ? "#7c3aed" : "#06b6d4"}` }}
+            style={{ left: `${20 + Math.random() * 60}%`, bottom: `${5 + Math.random() * 25}%`, width: `${1 + Math.random() * 3}px`, height: `${1 + Math.random() * 3}px`, background: i % 3 === 0 ? "#7c3aed" : i % 3 === 1 ? "#3b82f6" : "#a855f7", boxShadow: `0 0 ${8 + Math.random() * 12}px ${i % 3 === 0 ? "#7c3aed" : "#3b82f6"}` }}
           />
         ))}
       </div>
@@ -172,7 +172,7 @@ export default function WelcomePage() {
         animate={phase >= 3 ? { scale: [0.5, 2], opacity: [0.4, 0] } : {}}
         transition={{ duration: 2 }}
         className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full z-[2]"
-        style={{ background: "radial-gradient(circle, rgba(124,58,237,0.5) 0%, rgba(6,182,212,0.2) 40%, transparent 70%)" }}
+        style={{ background: "radial-gradient(circle, rgba(124,58,237,0.5) 0%, rgba(59,130,246,0.2) 40%, transparent 70%)" }}
       />
 
       {/* Fade exit */}
@@ -191,8 +191,8 @@ export default function WelcomePage() {
                 initial={{ y: 60, opacity: 0, rotateX: -90 }}
                 animate={phase >= 2 ? { y: 0, opacity: 1, rotateX: 0 } : {}}
                 transition={{ delay: i * 0.07, duration: 0.6, type: "spring", bounce: 0.3 }}
-                className="inline-block bg-gradient-to-b from-cyan-300 via-purple-400 to-purple-600 bg-clip-text text-transparent"
-                style={{ filter: "drop-shadow(0 0 20px rgba(124,58,237,0.6)) drop-shadow(0 0 40px rgba(6,182,212,0.3))" }}
+                className="inline-block bg-gradient-to-b from-blue-300 via-purple-400 to-purple-600 bg-clip-text text-transparent"
+                style={{ filter: "drop-shadow(0 0 20px rgba(124,58,237,0.6)) drop-shadow(0 0 40px rgba(59,130,246,0.3))" }}
               >{letter}</motion.span>
             ))}
             {"TV".split("").map((letter, i) => (
@@ -236,9 +236,9 @@ export default function WelcomePage() {
         <motion.div initial={{ opacity: 0, y: 15 }} animate={phase >= 5 ? { opacity: 1, y: 0 } : {}}>
           <motion.button
             onClick={() => { setExiting(true); setTimeout(() => router.push("/home"), 800); }}
-            whileHover={{ scale: 1.05, boxShadow: "0 0 50px rgba(124, 58, 237, 0.5), 0 0 100px rgba(6, 182, 212, 0.2)" }}
+            whileHover={{ scale: 1.05, boxShadow: "0 0 50px rgba(124, 58, 237, 0.5), 0 0 100px rgba(59, 130, 246, 0.2)" }}
             whileTap={{ scale: 0.95 }}
-            className="px-12 py-4 rounded-xl bg-gradient-to-r from-purple-600 via-purple-500 to-cyan-500 text-white font-black text-sm tracking-[0.2em] uppercase shadow-[0_4px_40px_rgba(124,58,237,0.4)] border border-purple-400/20"
+            className="px-12 py-4 rounded-xl bg-gradient-to-r from-purple-600 via-purple-500 to-blue-500 text-white font-black text-sm tracking-[0.2em] uppercase shadow-[0_4px_40px_rgba(124,58,237,0.4)] border border-purple-400/20"
           >
             CONTINUE
           </motion.button>
