@@ -140,11 +140,8 @@ export default function WelcomePage() {
 
   useEffect(() => {
     if (!authenticated) return;
-    const autoEnter = setTimeout(() => {
-      setExiting(true);
-      setTimeout(() => router.push("/home"), 800);
-    }, 7000);
-    return () => clearTimeout(autoEnter);
+    // No auto-redirect - user must click Continue
+    return;
   }, [authenticated]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // === LOGIN SCREEN WITH JIN-WOO ===
