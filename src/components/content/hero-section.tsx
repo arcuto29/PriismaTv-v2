@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
-import { Play, Info, Star, Clock, Bookmark, Volume2, VolumeX, Tv } from "lucide-react";
+import { Play, Info, Star, Clock, Bookmark, Tv } from "lucide-react";
 import { ContentItem } from "@/data/content";
 
 interface HeroSectionProps {
@@ -12,9 +12,6 @@ interface HeroSectionProps {
 
 export function HeroSection({ items, onWatchlist }: HeroSectionProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [muted, setMuted] = useState(true);
-  const [showTrailer, setShowTrailer] = useState(false);
-  const [trailerReady, setTrailerReady] = useState(false);
   const heroRef = useRef<HTMLDivElement>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const featured = items.filter((i) => i.backdrop).slice(0, 6);
@@ -24,16 +21,13 @@ export function HeroSection({ items, onWatchlist }: HeroSectionProps) {
   const y = useTransform(scrollY, [0, 700], [0, 250]);
   const opacity = useTransform(scrollY, [0, 500], [1, 0]);
   const scale = useTransform(scrollY, [0, 700], [1, 1.2]);
-  const blur = useTransform(scrollY, [0, 500], [0, 8]);
 
-  // Auto-cycle with trailer support
+  // Auto-cycle featured items
   const startTimer = useCallback(() => {
     if (timerRef.current) clearInterval(timerRef.current);
     timerRef.current = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % featured.length);
-      setShowTrailer(false);
-      setTrailerReady(false);
-    }, 10000);
+    }, 8000);
   }, [featured.length]);
 
   useEffect(() => {
@@ -41,21 +35,8 @@ export function HeroSection({ items, onWatchlist }: HeroSectionProps) {
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, [startTimer]);
 
-  // Show trailer after backdrop has been showing for 3s
-  useEffect(() => {
-    if (!current?.trailer) return;
-    setTrailerReady(false);
-    const timeout = setTimeout(() => {
-      setShowTrailer(true);
-      setTimeout(() => setTrailerReady(true), 500);
-    }, 3500);
-    return () => clearTimeout(timeout);
-  }, [currentIndex, current?.trailer]);
-
   const goTo = (i: number) => {
     setCurrentIndex(i);
-    setShowTrailer(false);
-    setTrailerReady(false);
     startTimer();
   };
 
@@ -81,23 +62,6 @@ export function HeroSection({ items, onWatchlist }: HeroSectionProps) {
               className="absolute inset-0 w-full h-full object-cover"
               style={{ objectPosition: "center 20%" }}
             />
-
-            {/* Trailer Overlay - auto-plays after image shows */}
-            {showTrailer && current.trailer && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: trailerReady ? 1 : 0 }}
-                transition={{ duration: 1.5 }}
-                className="absolute inset-0 z-[1]"
-              >
-                <iframe
-                  src={`https://www.youtube.com/embed/${current.trailer}?autoplay=1&mute=${muted ? 1 : 0}&controls=0&showinfo=0&rel=0&loop=1&playlist=${current.trailer}&modestbranding=1&iv_load_policy=3&disablekb=1&fs=0`}
-                  className="absolute inset-0 w-[120%] h-[120%] -top-[10%] -left-[10%] border-0 pointer-events-none"
-                  allow="autoplay; encrypted-media"
-                  style={{ objectFit: "cover" }}
-                />
-              </motion.div>
-            )}
           </motion.div>
         </AnimatePresence>
       </motion.div>
@@ -139,7 +103,7 @@ export function HeroSection({ items, onWatchlist }: HeroSectionProps) {
 
       {/* === CONTENT === */}
       <motion.div
-        style={{ opacity, filter: blur.get() > 0 ? `blur(${blur.get()}px)` : undefined }}
+        style={{ opacity }}
         className="relative z-[4] h-full flex items-end pb-40 lg:pb-44 px-4 lg:px-16"
       >
         <div className="max-w-3xl w-full">
@@ -227,15 +191,6 @@ export function HeroSection({ items, onWatchlist }: HeroSectionProps) {
                     className="magnetic-btn p-4 rounded-lg bg-white/5 backdrop-blur-xl text-white/60 hover:text-white hover:bg-white/10 transition-all border border-white/5 hover:border-white/15"
                   >
                     <Bookmark className="w-5 h-5" />
-                  </button>
-                )}
-                {/* Mute/Unmute for trailer */}
-                {showTrailer && current.trailer && (
-                  <button
-                    onClick={() => setMuted(!muted)}
-                    className="magnetic-btn p-3.5 rounded-full bg-black/40 backdrop-blur-xl border border-white/10 text-white/50 hover:text-white hover:bg-black/60 transition-all ml-auto"
-                  >
-                    {muted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
                   </button>
                 )}
               </div>
