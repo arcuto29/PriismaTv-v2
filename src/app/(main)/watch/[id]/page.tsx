@@ -623,7 +623,7 @@ export default function WatchPage() {
                     </div>
 
                     {/* Player */}
-                    <div className="w-full aspect-video rounded-xl overflow-hidden bg-black ring-1 ring-white/10 shadow-2xl" style={{ isolation: "isolate" }}>
+                    <div id="player-container" className="relative w-full aspect-video rounded-xl overflow-hidden bg-black ring-1 ring-white/10 shadow-2xl" style={{ isolation: "isolate" }}>
                       {selectedServer === -2 && myServerFile ? (
                         <video
                           key={myServerFile}
@@ -642,6 +642,25 @@ export default function WatchPage() {
                           allow="autoplay; encrypted-media; fullscreen; picture-in-picture; web-share"
                           referrerPolicy="no-referrer"
                         />
+                      )}
+                      {/* Fullscreen button overlay */}
+                      {selectedServer !== -2 && (
+                        <button
+                          onClick={() => {
+                            const el = document.getElementById("player-container");
+                            if (el) {
+                              if (document.fullscreenElement) {
+                                document.exitFullscreen();
+                              } else {
+                                el.requestFullscreen();
+                              }
+                            }
+                          }}
+                          className="absolute top-3 right-3 z-10 p-2 rounded-lg bg-black/60 backdrop-blur-sm border border-white/10 text-white/70 hover:text-white hover:bg-black/80 transition-all"
+                          title="Fullscreen"
+                        >
+                          <Maximize className="w-4 h-4" />
+                        </button>
                       )}
                     </div>
 
