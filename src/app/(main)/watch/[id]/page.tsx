@@ -51,7 +51,7 @@ export default function WatchPage() {
   const { getRating, rateContent } = useRatings();
   const [item, setItem] = useState<ContentItem | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [playKey, setPlayKey] = useState(0);
+  const [playerReloadKey, setPlayerReloadKey] = useState(Date.now());
   const [showTrailer, setShowTrailer] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
   const [selectedServer, setSelectedServer] = useState(0);
@@ -267,7 +267,7 @@ export default function WatchPage() {
       const url = servers[selectedServer].url;
       // Add cache-buster to force reload when replaying same episode
       const separator = url.includes("?") ? "&" : "?";
-      return `${url}${separator}_t=${playKey}`;
+      return `${url}${separator}_t=${playerReloadKey}`;
     }
     return "";
   };
@@ -564,7 +564,7 @@ export default function WatchPage() {
                   {Array.from({ length: Math.min(item.episodes ? Math.ceil(item.episodes / (item.seasons || 1)) : 12, 26) }, (_, i) => i + 1).map((ep) => (
                     <button
                       key={ep}
-                      onClick={() => { setSelectedEpisode(ep); setPlayKey(k => k + 1); setIsPlaying(true); }}
+                      onClick={() => { setSelectedEpisode(ep); setPlayerReloadKey(Date.now()); setIsPlaying(true); }}
                       className={cn(
                         "px-3 py-1.5 rounded-lg text-xs font-medium transition-all",
                         selectedEpisode === ep ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-muted/80"
@@ -627,6 +627,7 @@ export default function WatchPage() {
                               window.open(server.url, "_blank");
                             } else {
                               setSelectedServer(i);
+                              setPlayerReloadKey(Date.now());
                             }
                           }}
                           className={cn(
@@ -665,7 +666,7 @@ export default function WatchPage() {
                         />
                       ) : (
                         <iframe
-                          key={`${selectedServer}-${selectedSeason}-${selectedEpisode}-${imdbId}-${tmdbId}-${playKey}`}
+                          key={`player-${playerReloadKey}`}
                           src={getPlayerUrl()}
                           className="w-full h-full border-0"
                           allowFullScreen
