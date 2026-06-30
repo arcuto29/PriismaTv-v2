@@ -175,17 +175,44 @@ export default function WatchPage() {
         try {
           const alRes = await fetch("https://graphql.anilist.co", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: { "Content-Type": "application/json", "Accept": "application/json" },
             body: JSON.stringify({
-              query: `query{Media(search:"${item.title.replace(/"/g, '\\"')}",type:ANIME){id}}`
+              query: `query($search:String,$year:Int){Media(search:$search,type:ANIME,seasonYear:$year,sort:SEARCH_MATCH){id title{romaji english native}episodes bannerImage coverImage{extraLarge}}}`,
+              variables: { search: item.title, year: item.year || null }
             })
           });
           const alData = await alRes.json();
           if (alData?.data?.Media?.id) {
-            const alId = String(alData.data.Media.id);
+            const media = alData.data.Media;
+            const alId = String(media.id);
             setAnilistId(alId);
-            // Cache it on the item for instant load next time
-            updateContent(item.id, { ...item, anilistId: alId } as unknown as Partial<ContentItem>);
+            // Cache it + update metadata if missing
+            const updates: Record<string, unknown> = { anilistId: alId };
+            if (!item.backdrop && media.bannerImage) updates.backdrop = media.bannerImage;
+            if (!item.poster && media.coverImage?.extraLarge) updates.poster = media.coverImage.extraLarge;
+            if (!item.episodes && media.episodes) updates.episodes = media.episodes;
+            updateContent(item.id, { ...item, ...updates } as unknown as Partial<ContentItem>);
+          } else {
+            // Fallback: search without year filter
+            const alRes2 = await fetch("https://graphql.anilist.co", {
+              method: "POST",
+              headers: { "Content-Type": "application/json", "Accept": "application/json" },
+              body: JSON.stringify({
+                query: `query($search:String){Media(search:$search,type:ANIME,sort:SEARCH_MATCH){id title{romaji english native}episodes bannerImage coverImage{extraLarge}}}`,
+                variables: { search: item.title }
+              })
+            });
+            const alData2 = await alRes2.json();
+            if (alData2?.data?.Media?.id) {
+              const media = alData2.data.Media;
+              const alId = String(media.id);
+              setAnilistId(alId);
+              const updates: Record<string, unknown> = { anilistId: alId };
+              if (!item.backdrop && media.bannerImage) updates.backdrop = media.bannerImage;
+              if (!item.poster && media.coverImage?.extraLarge) updates.poster = media.coverImage.extraLarge;
+              if (!item.episodes && media.episodes) updates.episodes = media.episodes;
+              updateContent(item.id, { ...item, ...updates } as unknown as Partial<ContentItem>);
+            }
           }
         } catch { /* AniList fetch failed, fallback servers still work */ }
         setLoading(false);
