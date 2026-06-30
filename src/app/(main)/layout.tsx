@@ -4,6 +4,7 @@ import { TopBar } from "@/components/layout/top-bar";
 import { MobileNav } from "@/components/layout/mobile-nav";
 import { GlobalFeatures } from "@/components/features/global-features";
 import { AnimatedBackground } from "@/components/layout/animated-background";
+import { WhatsNew } from "@/components/features/whats-new";
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -18,6 +19,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
         <GlobalFeatures />
       </div>
       <MobileNav />
+      <WhatsNew />
     </>
   );
 }
