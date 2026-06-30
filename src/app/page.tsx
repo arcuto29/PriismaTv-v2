@@ -140,8 +140,11 @@ export default function WelcomePage() {
 
   useEffect(() => {
     if (!authenticated) return;
-    // No auto-redirect - user must click Continue
-    return;
+    const autoEnter = setTimeout(() => {
+      setExiting(true);
+      setTimeout(() => router.push("/home"), 800);
+    }, 7000);
+    return () => clearTimeout(autoEnter);
   }, [authenticated]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // === LOGIN SCREEN WITH JIN-WOO ===
@@ -151,7 +154,7 @@ export default function WelcomePage() {
         {/* Jin-Woo Background GIF */}
         <div className="absolute inset-0">
           <img
-            src="/jinwoo2.gif"
+            src="/jinwoo1.gif"
             alt=""
             className="absolute inset-0 w-full h-full object-cover opacity-80"
             style={{ objectPosition: "center top" }}
