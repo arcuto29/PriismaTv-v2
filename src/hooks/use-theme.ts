@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
 
-export type ThemeColor = "cyan" | "purple" | "red" | "green" | "gold" | "seasonal";
+export type ThemeColor = "cyan" | "purple" | "red" | "green" | "gold" | "seasonal" | "mood";
 
 const THEME_COLORS: Record<string, Record<string, string>> = {
   cyan: { "--primary": "#00d4ff", "--accent": "#0ea5e9", "--ring": "#00d4ff", "--cyan-glow": "rgba(0, 212, 255, 0.15)" },
@@ -43,7 +43,10 @@ export function useTheme() {
     setThemeColor(initialColor);
     setSeasonalName(getSeasonalName());
     document.documentElement.classList.toggle("light", initial === "light");
-    applyColor(initialColor);
+    // Don't apply theme color if mood is controlling it
+    if (initialColor !== "mood") {
+      applyColor(initialColor);
+    }
   }, []);
 
   const applyColor = (color: ThemeColor) => {

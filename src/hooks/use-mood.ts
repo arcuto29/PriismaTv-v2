@@ -18,6 +18,7 @@ export interface MoodConfig {
   description: string;
   preview?: string;             // GIF preview URL for the selector
   // Visual config
+  accentColor: string;          // Primary accent color (hex) applied to buttons/cards/glows
   bgGradient: string;          // CSS gradient for main background
   blobColors: string[];        // 3 blob accent colors (tailwind opacity classes)
   particleColor: string;       // rgba base for canvas particles
@@ -35,6 +36,7 @@ export const MOOD_THEMES: MoodConfig[] = [
     emoji: "👑",
     description: "Solo Leveling dark energy",
     preview: "https://media1.tenor.com/m/GF-omrvd_ykAAAAC/solo-leveling.gif",
+    accentColor: "#00d4ff",
     bgGradient: "from-[#0a0a1a] via-[#0d0d2b] to-[#000000]",
     blobColors: ["bg-primary/10", "bg-purple-600/10", "bg-cyan-500/5"],
     particleColor: "rgba(0,212,255,",
@@ -50,6 +52,7 @@ export const MOOD_THEMES: MoodConfig[] = [
     emoji: "🌌",
     description: "Deep space nebula",
     preview: "https://media1.tenor.com/m/9_URHWOvOCIAAAAC/space-galaxy.gif",
+    accentColor: "#a78bfa",
     bgGradient: "from-[#0a0015] via-[#1a0030] to-[#000010]",
     blobColors: ["bg-violet-600/15", "bg-blue-600/10", "bg-indigo-500/8"],
     particleColor: "rgba(167,139,250,",
@@ -63,6 +66,7 @@ export const MOOD_THEMES: MoodConfig[] = [
     emoji: "🔥",
     description: "Hellfire ember glow",
     preview: "https://media1.tenor.com/m/Ze9wQPXGMioAAAAC/glowing-embers.gif",
+    accentColor: "#ef4444",
     bgGradient: "from-[#1a0000] via-[#200808] to-[#0a0000]",
     blobColors: ["bg-red-600/15", "bg-orange-600/8", "bg-red-900/10"],
     particleColor: "rgba(239,68,68,",
@@ -76,6 +80,7 @@ export const MOOD_THEMES: MoodConfig[] = [
     emoji: "🌃",
     description: "Cyberpunk nightlife",
     preview: "https://media1.tenor.com/m/JK1ahHABmYcAAAAC/rain-aesthetic.gif",
+    accentColor: "#ec4899",
     bgGradient: "from-[#0a0014] via-[#14001a] to-[#000a14]",
     blobColors: ["bg-pink-500/12", "bg-cyan-400/10", "bg-purple-500/8"],
     particleColor: "rgba(236,72,153,",
@@ -89,6 +94,7 @@ export const MOOD_THEMES: MoodConfig[] = [
     emoji: "❄️",
     description: "Frozen crystal ice",
     preview: "https://media1.tenor.com/m/KRMpJnN8qxIAAAAC/snow-day-snow.gif",
+    accentColor: "#7dd3fc",
     bgGradient: "from-[#001020] via-[#001530] to-[#000818]",
     blobColors: ["bg-sky-400/12", "bg-blue-300/8", "bg-white/5"],
     particleColor: "rgba(186,230,253,",
@@ -102,6 +108,7 @@ export const MOOD_THEMES: MoodConfig[] = [
     emoji: "🕳️",
     description: "Pure minimal darkness",
     preview: "https://media1.tenor.com/m/EFtxSDVeHxkAAAAC/interstellar-blackhole.gif",
+    accentColor: "#e2e8f0",
     bgGradient: "from-[#000000] via-[#050505] to-[#000000]",
     blobColors: ["bg-white/3", "bg-gray-800/5", "bg-white/2"],
     particleColor: "rgba(255,255,255,",
@@ -115,6 +122,7 @@ export const MOOD_THEMES: MoodConfig[] = [
     emoji: "🌸",
     description: "Anime cherry blossom",
     preview: "https://media1.tenor.com/m/AJi6wB_HSvcAAAAC/sakura-cherry-blossom.gif",
+    accentColor: "#f472b6",
     bgGradient: "from-[#1a0010] via-[#200015] to-[#0a0008]",
     blobColors: ["bg-pink-400/12", "bg-rose-300/8", "bg-fuchsia-500/5"],
     particleColor: "rgba(244,114,182,",
@@ -128,6 +136,7 @@ export const MOOD_THEMES: MoodConfig[] = [
     emoji: "🐉",
     description: "Golden flame power",
     preview: "https://media1.tenor.com/m/FoBm9cS9dyAAAAAC/natsu-dragon.gif",
+    accentColor: "#f59e0b",
     bgGradient: "from-[#1a0f00] via-[#1a0800] to-[#0a0500]",
     blobColors: ["bg-amber-500/12", "bg-orange-600/10", "bg-yellow-500/5"],
     particleColor: "rgba(245,158,11,",
@@ -144,12 +153,32 @@ export function useMood() {
     const stored = localStorage.getItem("priismatv_mood") as MoodTheme | null;
     if (stored && MOOD_THEMES.find((m) => m.id === stored)) {
       setMood(stored);
+      // Apply accent color on load
+      const moodConfig = MOOD_THEMES.find((m) => m.id === stored);
+      if (moodConfig) {
+        const root = document.documentElement;
+        root.style.setProperty("--primary", moodConfig.accentColor);
+        root.style.setProperty("--accent", moodConfig.accentColor);
+        root.style.setProperty("--ring", moodConfig.accentColor);
+        root.style.setProperty("--cyan-glow", `${moodConfig.accentColor}26`);
+      }
     }
   }, []);
 
   const changeMood = useCallback((newMood: MoodTheme) => {
     setMood(newMood);
     localStorage.setItem("priismatv_mood", newMood);
+    // Apply the mood's accent color to the site's CSS variables
+    const moodConfig = MOOD_THEMES.find((m) => m.id === newMood);
+    if (moodConfig) {
+      const root = document.documentElement;
+      root.style.setProperty("--primary", moodConfig.accentColor);
+      root.style.setProperty("--accent", moodConfig.accentColor);
+      root.style.setProperty("--ring", moodConfig.accentColor);
+      root.style.setProperty("--cyan-glow", `${moodConfig.accentColor}26`);
+      // Override the theme color setting so it stays in sync
+      localStorage.setItem("priismatv_color", "mood");
+    }
   }, []);
 
   const currentMood = MOOD_THEMES.find((m) => m.id === mood) || MOOD_THEMES[0];
