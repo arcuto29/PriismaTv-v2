@@ -163,6 +163,16 @@ export function useMood() {
         root.style.setProperty("--cyan-glow", `${moodConfig.accentColor}26`);
       }
     }
+
+    // Listen for mood changes from other components
+    const handleMoodChange = () => {
+      const updated = localStorage.getItem("priismatv_mood") as MoodTheme | null;
+      if (updated && MOOD_THEMES.find((m) => m.id === updated)) {
+        setMood(updated);
+      }
+    };
+    window.addEventListener("mood-changed", handleMoodChange);
+    return () => window.removeEventListener("mood-changed", handleMoodChange);
   }, []);
 
   const changeMood = useCallback((newMood: MoodTheme) => {
@@ -179,6 +189,8 @@ export function useMood() {
       // Override the theme color setting so it stays in sync
       localStorage.setItem("priismatv_color", "mood");
     }
+    // Notify other components (like AnimatedBackground) to re-read the mood
+    window.dispatchEvent(new Event("mood-changed"));
   }, []);
 
   const currentMood = MOOD_THEMES.find((m) => m.id === mood) || MOOD_THEMES[0];
