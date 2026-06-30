@@ -57,7 +57,18 @@ export function useRequests() {
     if (!error) fetchRequests();
   }, [fetchRequests]);
 
-  return { requests, submitRequest, updateRequestStatus, fetchRequests };
+  // Remove a request: optimistically drop from UI first, then delete from DB.
+  // This guarantees the request disappears even if Supabase is paused/offline.
+  const removeRequest = useCallback(async (id: string) => {
+    setRequests((prev) => prev.filter((r) => r.id !== id));
+    try {
+      await supabase.from("requests").delete().eq("id", id);
+    } catch {
+      /* offline/paused — UI already updated, will reconcile on next fetch */
+    }
+  }, []);
+
+  return { requests, submitRequest, updateRequestStatus, removeRequest, fetchRequests };
 }
 
 // =================== VISITORS ===================

@@ -2,9 +2,12 @@
 import { useState } from "react";
 import { Hand, Send, Check, X, RefreshCw, Loader2 } from "lucide-react";
 import { useRequests } from "@/hooks/use-supabase";
+import { useContentStore } from "@/hooks/use-content-store";
+import { ContentItem } from "@/data/content";
 
 export default function RequestsPage() {
-  const { requests, submitRequest, updateRequestStatus, fetchRequests } = useRequests();
+  const { requests, submitRequest, removeRequest, fetchRequests } = useRequests();
+  const { addContent } = useContentStore();
   const [title, setTitle] = useState("");
   const [type, setType] = useState("movie");
   const [name, setName] = useState("");
@@ -29,7 +32,7 @@ export default function RequestsPage() {
       return;
     }
 
-    // If approved, auto-add content from TMDB
+    // If approved, auto-add content from TMDB (saved locally - no Supabase needed)
     if (status === "approved" && title) {
       setAutoAdding(id);
       try {
@@ -40,10 +43,10 @@ export default function RequestsPage() {
 
         if (data.results && data.results[0]) {
           const r = data.results[0];
-          const newItem = {
+          const newItem: ContentItem = {
             id: `req_${Date.now()}`,
             title: r.title || r.name || title,
-            type: type || "movie",
+            type: (type as ContentItem["type"]) || "movie",
             year: new Date(r.release_date || r.first_air_date || "").getFullYear() || 2025,
             rating: r.vote_average ? parseFloat(r.vote_average.toFixed(1)) : null,
             genre: "action",
@@ -56,12 +59,8 @@ export default function RequestsPage() {
             dateAdded: new Date().toISOString().split("T")[0],
           };
 
-          const stored = localStorage.getItem("priismatv_content");
-          if (stored) {
-            const content = JSON.parse(stored);
-            content.unshift(newItem);
-            localStorage.setItem("priismatv_content", JSON.stringify(content));
-          }
+          // Use the content store - persists permanently in the browser
+          addContent(newItem);
           setAutoAddSuccess(title);
           setTimeout(() => setAutoAddSuccess(null), 3000);
         }
@@ -71,10 +70,8 @@ export default function RequestsPage() {
       setAutoAdding(null);
     }
 
-    // Remove the request from database after accepting or denying
-    const { supabase } = await import("@/lib/supabase");
-    await supabase.from("requests").delete().eq("id", id);
-    fetchRequests();
+    // Auto-delete the request after approving or denying (works even if Supabase is paused)
+    await removeRequest(id);
   };
 
   return (

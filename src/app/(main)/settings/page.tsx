@@ -4,7 +4,6 @@ import { Settings, Moon, Sun, Smartphone, Share2, Download, Shield, ImageOff, Pa
 import { useTheme, ThemeColor } from "@/hooks/use-theme";
 import { useProfiles } from "@/hooks/use-profiles";
 import { useContentStore } from "@/hooks/use-content-store";
-import { STORAGE_KEYS } from "@/data/content";
 
 const THEME_OPTIONS: { id: ThemeColor; label: string; color: string }[] = [
   { id: "cyan", label: "Cyan (Default)", color: "bg-cyan-500" },
@@ -25,8 +24,23 @@ export default function SettingsPage() {
   const [showAddProfile, setShowAddProfile] = useState(false);
 
   const handleFixImages = () => {
-    localStorage.removeItem(STORAGE_KEYS.CONTENT);
-    localStorage.removeItem("priismatv_version");
+    // Re-verify posters without wiping any added/approved content.
+    // Strips the cached "posterOk" flag so the auto-fixer re-runs on load.
+    const stripFlag = (key: string) => {
+      try {
+        const raw = localStorage.getItem(key);
+        if (!raw) return;
+        const data = JSON.parse(raw);
+        if (Array.isArray(data)) {
+          data.forEach((i) => { if (i) delete i.posterOk; });
+        } else if (data && typeof data === "object") {
+          Object.values(data).forEach((i) => { if (i) delete (i as Record<string, unknown>).posterOk; });
+        }
+        localStorage.setItem(key, JSON.stringify(data));
+      } catch { /* ignore */ }
+    };
+    stripFlag("priismatv_user_content");
+    stripFlag("priismatv_overrides");
     window.location.reload();
   };
 
