@@ -23,7 +23,7 @@ function getServers(imdbId: string, tmdbId: string, type: string, season = 1, ep
       { name: "Embed.su", url: `https://embed.su/embed/movie/${imdbId}` },
       { name: "AutoEmbed", url: `https://autoembed.co/movie/imdb/${imdbId}` },
       { name: "MoviesAPI", url: `https://moviesapi.to/movie/${imdbId}` },
-      { name: "2Embed", url: `https://www.2embed.cc/embed/${imdbId}` },
+      { name: "NontonGo", url: `https://www.nontongo.win/embed/movie/${imdbId}` },
     ];
   }
   return [
@@ -32,7 +32,7 @@ function getServers(imdbId: string, tmdbId: string, type: string, season = 1, ep
     { name: "Embed.su", url: `https://embed.su/embed/tv/${imdbId}/${season}/${episode}` },
     { name: "AutoEmbed", url: `https://autoembed.co/tv/imdb/${imdbId}-${season}-${episode}` },
     { name: "MoviesAPI", url: `https://moviesapi.to/tv/${imdbId}-${season}-${episode}` },
-    { name: "2Embed", url: `https://www.2embed.cc/embedtv/${imdbId}&s=${season}&e=${episode}` },
+    { name: "NontonGo", url: `https://www.nontongo.win/embed/tv/${imdbId}/${season}/${episode}` },
   ];
 }
 
