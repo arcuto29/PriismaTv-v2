@@ -155,18 +155,20 @@ export default function WatchPage() {
   const fetchIds = useCallback(async (forceRefresh = false) => {
     if (!item) return;
     
-    // For anime, always fetch fresh (cached IDs are often wrong from old code)
-    const isAnime = item.type === "anime";
-    
-    // Check if already cached on the item (skip if force refresh or anime)
-    if (!forceRefresh && !isAnime && (item as unknown as Record<string, string>).imdbId) {
+    // Check if already cached on the item (skip if force refresh)
+    if (!forceRefresh && (item as unknown as Record<string, string>).imdbId) {
       setImdbId((item as unknown as Record<string, string>).imdbId);
       const cachedTmdb = (item as unknown as Record<string, string>).tmdbId;
-      if (cachedTmdb) {
-        setTmdbId(cachedTmdb);
-        return;
-      }
-      // If we have IMDB but no TMDB cached, still fetch TMDB (needed for servers)
+      if (cachedTmdb) setTmdbId(cachedTmdb);
+      const cachedAnilist = (item as unknown as Record<string, string>).anilistId;
+      if (cachedAnilist) setAnilistId(cachedAnilist);
+      // If we have all needed IDs, skip fetching
+      if (cachedTmdb && (item.type !== "anime" || cachedAnilist)) return;
+    }
+    // For anime with only anilistId cached (no TMDB needed)
+    if (!forceRefresh && item.type === "anime" && (item as unknown as Record<string, string>).anilistId) {
+      setAnilistId((item as unknown as Record<string, string>).anilistId);
+      return;
     }
 
     setLoading(true);
@@ -183,7 +185,10 @@ export default function WatchPage() {
           });
           const alData = await alRes.json();
           if (alData?.data?.Media?.id) {
-            setAnilistId(String(alData.data.Media.id));
+            const alId = String(alData.data.Media.id);
+            setAnilistId(alId);
+            // Cache it on the item for instant load next time
+            updateContent(item.id, { ...item, anilistId: alId } as unknown as Partial<ContentItem>);
           }
         } catch { /* AniList fetch failed, fallback servers still work */ }
       }
