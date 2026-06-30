@@ -640,7 +640,6 @@ export default function WatchPage() {
                           className="w-full h-full border-0"
                           allowFullScreen
                           allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
-                          sandbox="allow-same-origin allow-scripts allow-forms allow-popups"
                         />
                       )}
                     </div>
