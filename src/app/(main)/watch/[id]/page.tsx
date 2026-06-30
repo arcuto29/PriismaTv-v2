@@ -20,8 +20,8 @@ function getServers(imdbId: string, tmdbId: string, type: string, season = 1, ep
     return [
       { name: "VidLink", url: `https://vidlink.pro/movie/${tmdbId || imdbId}` },
       { name: "2Embed", url: `https://www.2embed.cc/embed/${tmdbId || imdbId}` },
-      { name: "SuperEmbed", url: `https://www.2embed.stream/embed/movie/${tmdbId || imdbId}` },
       { name: "AutoEmbed", url: `https://autoembed.co/movie/imdb/${imdbId}` },
+      { name: "AnyEmbed", url: `https://anyembed.xyz/embed/tmdb-movie-${tmdbId || imdbId}` },
       { name: "NontonGo", url: `https://www.nontongo.win/embed/movie/${imdbId}` },
     ];
   }
@@ -29,17 +29,17 @@ function getServers(imdbId: string, tmdbId: string, type: string, season = 1, ep
   if (type === "anime") {
     return [
       { name: "2Embed", url: `https://www.2embed.cc/embedtv/${tmdbId || imdbId}&s=${season}&e=${episode}` },
-      { name: "SuperEmbed", url: `https://www.2embed.stream/embed/tv/${tmdbId || imdbId}/${season}/${episode}` },
-      { name: "AutoEmbed", url: `https://autoembed.co/tv/tmdb/${tmdbId}-${season}-${episode}` },
       { name: "VidLink", url: `https://vidlink.pro/tv/${tmdbId || imdbId}/${season}/${episode}` },
+      { name: "AutoEmbed", url: `https://autoembed.co/tv/tmdb/${tmdbId}-${season}-${episode}` },
+      { name: "AnyEmbed", url: `https://anyembed.xyz/embed/tmdb-tv-${tmdbId || imdbId}-${season}-${episode}` },
       { name: "NontonGo", url: `https://www.nontongo.win/embed/tv/${imdbId}/${season}/${episode}` },
     ];
   }
   return [
     { name: "VidLink", url: `https://vidlink.pro/tv/${tmdbId || imdbId}/${season}/${episode}` },
     { name: "2Embed", url: `https://www.2embed.cc/embedtv/${tmdbId || imdbId}&s=${season}&e=${episode}` },
-    { name: "SuperEmbed", url: `https://www.2embed.stream/embed/tv/${tmdbId || imdbId}/${season}/${episode}` },
     { name: "AutoEmbed", url: `https://autoembed.co/tv/imdb/${imdbId}-${season}-${episode}` },
+    { name: "AnyEmbed", url: `https://anyembed.xyz/embed/tmdb-tv-${tmdbId || imdbId}-${season}-${episode}` },
     { name: "NontonGo", url: `https://www.nontongo.win/embed/tv/${imdbId}/${season}/${episode}` },
   ];
 }
@@ -152,15 +152,18 @@ export default function WatchPage() {
   const fetchIds = useCallback(async (forceRefresh = false) => {
     if (!item) return;
     
-    // Check if already cached on the item (skip if force refresh)
-    if (!forceRefresh && (item as unknown as Record<string, string>).imdbId) {
+    // For anime, always fetch fresh (cached IDs are often wrong from old code)
+    const isAnime = item.type === "anime";
+    
+    // Check if already cached on the item (skip if force refresh or anime)
+    if (!forceRefresh && !isAnime && (item as unknown as Record<string, string>).imdbId) {
       setImdbId((item as unknown as Record<string, string>).imdbId);
       const cachedTmdb = (item as unknown as Record<string, string>).tmdbId;
       if (cachedTmdb) {
         setTmdbId(cachedTmdb);
         return;
       }
-      // If we have IMDB but no TMDB cached, still fetch TMDB (needed for anime servers)
+      // If we have IMDB but no TMDB cached, still fetch TMDB (needed for servers)
     }
 
     setLoading(true);
@@ -569,6 +572,7 @@ export default function WatchPage() {
                       <div>
                         <h3 className="text-sm font-semibold">Select Server</h3>
                         <p className="text-xs text-muted-foreground">If one server doesn&apos;t work, try another one.</p>
+                        <p className="text-[9px] text-muted-foreground/50 mt-0.5">TMDB: {tmdbId || "none"} | IMDB: {imdbId || "none"}</p>
                       </div>
                       <button
                         onClick={() => { setImdbId(null); setTmdbId(null); fetchIds(true); }}
