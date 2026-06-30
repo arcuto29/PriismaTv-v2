@@ -18,18 +18,20 @@ const MY_SERVER_URL = "https://stream.priismatv.xyz";
 function getServers(imdbId: string, tmdbId: string, type: string, season = 1, episode = 1) {
   if (type === "movie") {
     return [
-      { name: "VidSrc", url: `https://vidsrc.xyz/embed/movie/${imdbId}` },
-      { name: "VidSrc.to", url: `https://vidsrc.to/embed/movie/${imdbId}` },
-      { name: "MultiEmbed", url: `https://multiembed.mov/?video_id=${imdbId}&tmdb=1&quality=1080p` },
+      { name: "VidSrc", url: `https://vidsrc.me/embed/movie?imdb=${imdbId}` },
+      { name: "VidSrc Pro", url: `https://vidsrc.pro/embed/movie/${imdbId}` },
+      { name: "Embed.su", url: `https://embed.su/embed/movie/${imdbId}` },
       { name: "AutoEmbed", url: `https://autoembed.co/movie/imdb/${imdbId}` },
+      { name: "MoviesAPI", url: `https://moviesapi.to/movie/${imdbId}` },
       { name: "2Embed", url: `https://www.2embed.cc/embed/${imdbId}` },
     ];
   }
   return [
-    { name: "VidSrc", url: `https://vidsrc.xyz/embed/tv/${imdbId}/${season}/${episode}` },
-    { name: "VidSrc.to", url: `https://vidsrc.to/embed/tv/${imdbId}/${season}/${episode}` },
-    { name: "MultiEmbed", url: `https://multiembed.mov/?video_id=${imdbId}&tmdb=1&s=${season}&e=${episode}&quality=1080p` },
+    { name: "VidSrc", url: `https://vidsrc.me/embed/tv?imdb=${imdbId}&season=${season}&episode=${episode}` },
+    { name: "VidSrc Pro", url: `https://vidsrc.pro/embed/tv/${imdbId}/${season}/${episode}` },
+    { name: "Embed.su", url: `https://embed.su/embed/tv/${imdbId}/${season}/${episode}` },
     { name: "AutoEmbed", url: `https://autoembed.co/tv/imdb/${imdbId}-${season}-${episode}` },
+    { name: "MoviesAPI", url: `https://moviesapi.to/tv/${imdbId}-${season}-${episode}` },
     { name: "2Embed", url: `https://www.2embed.cc/embedtv/${imdbId}&s=${season}&e=${episode}` },
   ];
 }
