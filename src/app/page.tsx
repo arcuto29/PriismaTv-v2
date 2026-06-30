@@ -151,7 +151,7 @@ export default function WelcomePage() {
         {/* Jin-Woo Background GIF */}
         <div className="absolute inset-0">
           <img
-            src="/jinwoo2.gif"
+            src="/jinwoo1.gif"
             alt=""
             className="absolute inset-0 w-full h-full object-cover opacity-80"
             style={{ objectPosition: "center top" }}
