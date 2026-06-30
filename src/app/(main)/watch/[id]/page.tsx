@@ -15,7 +15,7 @@ import { cn } from "@/lib/utils";
 
 const MY_SERVER_URL = "https://stream.priismatv.xyz";
 
-function getServers(imdbId: string, tmdbId: string, type: string, season = 1, episode = 1, title = "") {
+function getServers(imdbId: string, tmdbId: string, type: string, season = 1, episode = 1, title = "", anilistId = "") {
   if (type === "movie") {
     return [
       { name: "VidLink", url: `https://vidlink.pro/movie/${tmdbId || imdbId}` },
@@ -26,13 +26,14 @@ function getServers(imdbId: string, tmdbId: string, type: string, season = 1, ep
     ];
   }
   // For anime, use TMDB-based servers + external anime site link
+  // For anime, use dedicated anime embed (4Animo - same method as Seanime/Denshi)
   if (type === "anime") {
     return [
-      { name: "AniWave", url: `https://aniwave.tf/?s=${encodeURIComponent(title)}`, external: true },
-      { name: "2Embed", url: `https://www.2embed.cc/embedtv/${tmdbId || imdbId}&s=${season}&e=${episode}` },
+      { name: "Denshi Sub", url: `https://cdn.4animo.xyz/embed/hd-1/ani/${anilistId}/${episode}/sub?k=1` },
+      { name: "Denshi Dub", url: `https://cdn.4animo.xyz/embed/hd-1/ani/${anilistId}/${episode}/dub?k=1` },
+      { name: "Denshi S2", url: `https://cdn.4animo.xyz/embed/hd-2/ani/${anilistId}/${episode}/sub?k=1` },
       { name: "VidLink", url: `https://vidlink.pro/tv/${tmdbId || imdbId}/${season}/${episode}` },
-      { name: "AutoEmbed", url: `https://autoembed.co/tv/tmdb/${tmdbId}-${season}-${episode}` },
-      { name: "AnyEmbed", url: `https://anyembed.xyz/embed/tmdb-tv-${tmdbId || imdbId}-${season}-${episode}` },
+      { name: "AniWave", url: `https://aniwave.tf/?s=${encodeURIComponent(title)}`, external: true },
     ];
   }
   return [
@@ -58,6 +59,7 @@ export default function WatchPage() {
   const [selectedEpisode, setSelectedEpisode] = useState(1);
   const [imdbId, setImdbId] = useState<string | null>(null);
   const [tmdbId, setTmdbId] = useState<string | null>(null);
+  const [anilistId, setAnilistId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const [myServerFile, setMyServerFile] = useState<string | null>(null);
@@ -189,6 +191,23 @@ export default function WatchPage() {
           // Cache both IDs on the item for next time
           updateContent(item.id, { ...item, imdbId: imdb, tmdbId: String(tmdb) } as unknown as Partial<ContentItem>);
         }
+
+        // For anime, also fetch AniList ID (needed for 4Animo embed)
+        if (item.type === "anime") {
+          try {
+            const alRes = await fetch("https://graphql.anilist.co", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                query: `query{Media(search:"${item.title.replace(/"/g, '\\"')}",type:ANIME){id}}`
+              })
+            });
+            const alData = await alRes.json();
+            if (alData?.data?.Media?.id) {
+              setAnilistId(String(alData.data.Media.id));
+            }
+          } catch { /* AniList fetch failed, fallback servers still work */ }
+        }
       }
     } catch (e) {
       console.error("Failed to fetch IDs:", e);
@@ -197,8 +216,8 @@ export default function WatchPage() {
   }, [item, updateContent]);
 
   useEffect(() => {
-    if (item && (!imdbId || !tmdbId)) fetchIds();
-  }, [item, imdbId, tmdbId, fetchIds]);
+    if (item && (!imdbId || !tmdbId || (item.type === "anime" && !anilistId))) fetchIds();
+  }, [item, imdbId, tmdbId, anilistId, fetchIds]);
 
   // Fullscreen trailer
   const openTrailerFullscreen = () => {
@@ -238,7 +257,7 @@ export default function WatchPage() {
     }
   };
 
-  const servers = (imdbId || tmdbId) ? getServers(imdbId || "", tmdbId || "", item.type, selectedSeason, selectedEpisode, item.title) : [];
+  const servers = (imdbId || tmdbId || anilistId) ? getServers(imdbId || "", tmdbId || "", item.type, selectedSeason, selectedEpisode, item.title, anilistId || "") : [];
 
   const getPlayerUrl = () => {
     if (selectedServer === -2 && myServerFile) return myServerFile;
@@ -353,7 +372,7 @@ export default function WatchPage() {
             {/* Action Buttons */}
             <div className="flex flex-wrap items-center gap-3 mb-8">
               <button
-                onClick={() => { if (!imdbId && !tmdbId && !item.video) { fetchIds(); } setIsPlaying(true); }}
+                onClick={() => { if (!imdbId && !tmdbId && !anilistId && !item.video) { fetchIds(); } setIsPlaying(true); }}
                 disabled={loading}
                 className="flex items-center gap-2 px-6 py-3 rounded-lg bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-all hover:scale-105 active:scale-95 disabled:opacity-50"
               >
@@ -559,20 +578,20 @@ export default function WatchPage() {
                 animate={{ opacity: 1, y: 0 }}
                 className="mb-6"
               >
-                {!imdbId && !tmdbId && !item.video && !loading && (
+                {!imdbId && !tmdbId && !anilistId && !item.video && !loading && (
                   <div className="p-4 rounded-xl bg-muted border border-border text-center">
                     <p className="text-sm text-muted-foreground mb-3">Could not find streaming source for this title.</p>
                     <button onClick={() => fetchIds()} className="text-sm text-primary hover:underline">Try again</button>
                   </div>
                 )}
 
-                {(imdbId || tmdbId || item.video) && (
+                {(imdbId || tmdbId || anilistId || item.video) && (
                   <>
                     <div className="flex items-center justify-between mb-3">
                       <div>
                         <h3 className="text-sm font-semibold">Select Server</h3>
                         <p className="text-xs text-muted-foreground">If one server doesn&apos;t work, try another one.</p>
-                        <p className="text-[9px] text-muted-foreground/50 mt-0.5">TMDB: {tmdbId || "none"} | IMDB: {imdbId || "none"}</p>
+                        <p className="text-[9px] text-muted-foreground/50 mt-0.5">TMDB: {tmdbId || "none"} | IMDB: {imdbId || "none"}{anilistId ? ` | AniList: ${anilistId}` : ""}</p>
                       </div>
                       <button
                         onClick={() => { setImdbId(null); setTmdbId(null); fetchIds(true); }}
