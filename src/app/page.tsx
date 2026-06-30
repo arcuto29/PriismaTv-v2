@@ -151,12 +151,12 @@ export default function WelcomePage() {
   if (!authenticated) {
     return (
       <div className="fixed inset-0 z-[200] bg-[#020204] flex items-center justify-center overflow-hidden">
-        {/* Jin-Woo Background Image */}
+        {/* Jin-Woo Background GIF */}
         <div className="absolute inset-0">
           <img
-            src="https://image.tmdb.org/t/p/original/geCRueV3ElhRTr0xtJuEWJt6dJ1.jpg"
+            src="/jinwoo2.gif"
             alt=""
-            className="absolute inset-0 w-full h-full object-cover opacity-30"
+            className="absolute inset-0 w-full h-full object-cover opacity-40"
             style={{ objectPosition: "center top" }}
           />
           {/* Dark overlay */}
@@ -306,15 +306,15 @@ export default function WelcomePage() {
     <div className={`fixed inset-0 z-[200] bg-[#020204] overflow-hidden select-none ${glitch ? "translate-x-[1px] skew-x-[0.2deg]" : ""}`}
       style={{ transition: glitch ? "none" : "transform 0.1s" }}>
 
-      {/* Jin-Woo background - darker for splash */}
+      {/* Jin-Woo background GIF - splash */}
       <motion.div
         initial={{ scale: 1.1, opacity: 0 }}
-        animate={{ scale: 1, opacity: 0.4 }}
+        animate={{ scale: 1, opacity: 0.5 }}
         transition={{ duration: 2, ease: "easeOut" }}
         className="absolute inset-0"
       >
         <img
-          src="https://image.tmdb.org/t/p/original/geCRueV3ElhRTr0xtJuEWJt6dJ1.jpg"
+          src="/jinwoo1.gif"
           alt=""
           className="absolute inset-0 w-full h-full object-cover"
           style={{ objectPosition: "center top" }}
