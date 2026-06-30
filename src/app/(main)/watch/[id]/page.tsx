@@ -60,6 +60,7 @@ export default function WatchPage() {
   const [imdbId, setImdbId] = useState<string | null>(null);
   const [tmdbId, setTmdbId] = useState<string | null>(null);
   const [anilistId, setAnilistId] = useState<string | null>(null);
+  const [idsFetched, setIdsFetched] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const [myServerFile, setMyServerFile] = useState<string | null>(null);
@@ -213,12 +214,13 @@ export default function WatchPage() {
       console.error("Failed to fetch IDs:", e);
     }
     setLoading(false);
+    setIdsFetched(true);
   }, [item, updateContent]);
 
   useEffect(() => {
-    if (item && !loading && !imdbId && !tmdbId && !anilistId) fetchIds();
+    if (item && !loading && !idsFetched && !imdbId && !tmdbId && !anilistId) fetchIds();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [item, imdbId, tmdbId, anilistId, loading]);
+  }, [item, imdbId, tmdbId, anilistId, loading, idsFetched]);
 
   // Fullscreen trailer
   const openTrailerFullscreen = () => {
