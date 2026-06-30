@@ -215,8 +215,9 @@ export default function WatchPage() {
   }, [item, updateContent]);
 
   useEffect(() => {
-    if (item && (!imdbId || !tmdbId || (item.type === "anime" && !anilistId))) fetchIds();
-  }, [item, imdbId, tmdbId, anilistId, fetchIds]);
+    if (item && !loading && !imdbId && !tmdbId && !anilistId) fetchIds();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [item, imdbId, tmdbId, anilistId, loading]);
 
   // Fullscreen trailer
   const openTrailerFullscreen = () => {
