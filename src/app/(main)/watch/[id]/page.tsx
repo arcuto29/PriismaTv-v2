@@ -33,7 +33,6 @@ function getServers(imdbId: string, tmdbId: string, type: string, season = 1, ep
       { name: "Denshi Dub", url: `https://cdn.4animo.xyz/embed/hd-1/ani/${anilistId}/${episode}/dub?k=1` },
       { name: "Denshi S2", url: `https://cdn.4animo.xyz/embed/hd-2/ani/${anilistId}/${episode}/sub?k=1` },
       { name: "VidLink", url: `https://vidlink.pro/tv/${tmdbId || imdbId}/${season}/${episode}` },
-      { name: "AniWave", url: `https://aniwave.tf/?s=${encodeURIComponent(title)}`, external: true },
     ];
   }
   return [
