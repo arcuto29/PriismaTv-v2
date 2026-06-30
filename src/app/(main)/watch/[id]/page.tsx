@@ -18,9 +18,9 @@ const MY_SERVER_URL = "https://stream.priismatv.xyz";
 function getServers(imdbId: string, tmdbId: string, type: string, season = 1, episode = 1) {
   if (type === "movie") {
     return [
-      { name: "VidPlus", url: `https://player.vidplus.to/embed/movie/${tmdbId || imdbId}` },
-      { name: "VidSrc", url: `https://vidsrc.lol/embed/movie/${imdbId}` },
-      { name: "2Embed", url: `https://www.2embed.stream/embed/movie/${tmdbId || imdbId}` },
+      { name: "VidLink", url: `https://vidlink.pro/movie/${tmdbId || imdbId}` },
+      { name: "2Embed", url: `https://www.2embed.cc/embed/${tmdbId || imdbId}` },
+      { name: "SuperEmbed", url: `https://www.2embed.stream/embed/movie/${tmdbId || imdbId}` },
       { name: "AutoEmbed", url: `https://autoembed.co/movie/imdb/${imdbId}` },
       { name: "NontonGo", url: `https://www.nontongo.win/embed/movie/${imdbId}` },
     ];
@@ -28,17 +28,17 @@ function getServers(imdbId: string, tmdbId: string, type: string, season = 1, ep
   // For anime, use TMDB-based servers (IMDB IDs often return wrong content for anime)
   if (type === "anime") {
     return [
-      { name: "VidPlus", url: `https://player.vidplus.to/embed/tv/${tmdbId || imdbId}/${season}/${episode}` },
-      { name: "VidSrc", url: `https://vidsrc.lol/embed/tv/${tmdbId || imdbId}/${season}/${episode}` },
-      { name: "2Embed", url: `https://www.2embed.stream/embed/tv/${tmdbId || imdbId}/${season}/${episode}` },
+      { name: "VidLink", url: `https://vidlink.pro/tv/${tmdbId || imdbId}/${season}/${episode}` },
+      { name: "2Embed", url: `https://www.2embed.cc/embedtv/${tmdbId || imdbId}&s=${season}&e=${episode}` },
+      { name: "SuperEmbed", url: `https://www.2embed.stream/embed/tv/${tmdbId || imdbId}/${season}/${episode}` },
       { name: "AutoEmbed", url: `https://autoembed.co/tv/tmdb/${tmdbId}-${season}-${episode}` },
       { name: "NontonGo", url: `https://www.nontongo.win/embed/tv/${imdbId}/${season}/${episode}` },
     ];
   }
   return [
-    { name: "VidPlus", url: `https://player.vidplus.to/embed/tv/${tmdbId || imdbId}/${season}/${episode}` },
-    { name: "VidSrc", url: `https://vidsrc.lol/embed/tv/${imdbId}/${season}/${episode}` },
-    { name: "2Embed", url: `https://www.2embed.stream/embed/tv/${tmdbId || imdbId}/${season}/${episode}` },
+    { name: "VidLink", url: `https://vidlink.pro/tv/${tmdbId || imdbId}/${season}/${episode}` },
+    { name: "2Embed", url: `https://www.2embed.cc/embedtv/${tmdbId || imdbId}&s=${season}&e=${episode}` },
+    { name: "SuperEmbed", url: `https://www.2embed.stream/embed/tv/${tmdbId || imdbId}/${season}/${episode}` },
     { name: "AutoEmbed", url: `https://autoembed.co/tv/imdb/${imdbId}-${season}-${episode}` },
     { name: "NontonGo", url: `https://www.nontongo.win/embed/tv/${imdbId}/${season}/${episode}` },
   ];
@@ -235,7 +235,7 @@ export default function WatchPage() {
     }
   };
 
-  const servers = imdbId ? getServers(imdbId, tmdbId || "", item.type === "movie" ? "movie" : "tv", selectedSeason, selectedEpisode) : [];
+  const servers = (imdbId || tmdbId) ? getServers(imdbId || "", tmdbId || "", item.type === "movie" ? "movie" : "tv", selectedSeason, selectedEpisode) : [];
 
   const getPlayerUrl = () => {
     if (selectedServer === -2 && myServerFile) return myServerFile;
@@ -350,7 +350,7 @@ export default function WatchPage() {
             {/* Action Buttons */}
             <div className="flex flex-wrap items-center gap-3 mb-8">
               <button
-                onClick={() => { if (!imdbId && !item.video) { fetchIds(); } setIsPlaying(true); }}
+                onClick={() => { if (!imdbId && !tmdbId && !item.video) { fetchIds(); } setIsPlaying(true); }}
                 disabled={loading}
                 className="flex items-center gap-2 px-6 py-3 rounded-lg bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-all hover:scale-105 active:scale-95 disabled:opacity-50"
               >
@@ -556,14 +556,14 @@ export default function WatchPage() {
                 animate={{ opacity: 1, y: 0 }}
                 className="mb-6"
               >
-                {!imdbId && !item.video && !loading && (
+                {!imdbId && !tmdbId && !item.video && !loading && (
                   <div className="p-4 rounded-xl bg-muted border border-border text-center">
                     <p className="text-sm text-muted-foreground mb-3">Could not find streaming source for this title.</p>
                     <button onClick={() => fetchIds()} className="text-sm text-primary hover:underline">Try again</button>
                   </div>
                 )}
 
-                {(imdbId || item.video) && (
+                {(imdbId || tmdbId || item.video) && (
                   <>
                     <div className="flex items-center justify-between mb-3">
                       <div>
