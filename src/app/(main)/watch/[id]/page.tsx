@@ -263,7 +263,12 @@ export default function WatchPage() {
   const getPlayerUrl = () => {
     if (selectedServer === -2 && myServerFile) return myServerFile;
     if (selectedServer === -1 && item.video) return item.video;
-    if (servers[selectedServer]) return servers[selectedServer].url;
+    if (servers[selectedServer]) {
+      const url = servers[selectedServer].url;
+      // Add cache-buster to force reload when replaying same episode
+      const separator = url.includes("?") ? "&" : "?";
+      return `${url}${separator}_t=${playKey}`;
+    }
     return "";
   };
 
