@@ -153,12 +153,11 @@ export default function WelcomePage() {
           <img
             src="/jinwoo2.gif"
             alt=""
-            className="absolute inset-0 w-full h-full object-cover opacity-60"
+            className="absolute inset-0 w-full h-full object-cover opacity-80"
             style={{ objectPosition: "center top" }}
           />
-          {/* Lighter overlay - let Jin-Woo be visible */}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#020204]/95 via-[#020204]/40 to-[#020204]/30" />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#020204]/60 via-transparent to-[#020204]/60" />
+          {/* Minimal overlay - just enough for text readability */}
+          <div className="absolute inset-0 bg-gradient-to-t from-[#020204]/90 via-transparent to-transparent" />
         </div>
 
         {/* Aura particles - purple/blue energy */}
@@ -306,7 +305,7 @@ export default function WelcomePage() {
       {/* Jin-Woo background GIF - splash */}
       <motion.div
         initial={{ scale: 1.1, opacity: 0 }}
-        animate={{ scale: 1, opacity: 0.75 }}
+        animate={{ scale: 1, opacity: 0.9 }}
         transition={{ duration: 2, ease: "easeOut" }}
         className="absolute inset-0"
       >
@@ -318,9 +317,8 @@ export default function WelcomePage() {
         />
       </motion.div>
 
-      {/* Lighter overlays - let the gif shine */}
-      <div className="absolute inset-0 bg-[#020204]/30 z-[1]" />
-      <div className="absolute inset-0 bg-gradient-to-t from-[#020204]/90 via-transparent to-[#020204]/30 z-[1]" />
+      {/* Minimal overlay - just darken the bottom for text */}
+      <div className="absolute inset-0 bg-gradient-to-t from-[#020204]/80 via-transparent to-transparent z-[1]" />
 
       {/* Aura burst effect */}
       <motion.div
