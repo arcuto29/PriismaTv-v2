@@ -682,7 +682,7 @@ export default function WatchPage() {
                           allowFullScreen
                           allow="autoplay; encrypted-media; fullscreen; picture-in-picture; web-share"
                         />
-                      )}}
+                      )}
                       {/* Fullscreen button overlay */}
                       {selectedServer !== -2 && (
                         <button
