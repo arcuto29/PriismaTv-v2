@@ -173,7 +173,7 @@ export default function WatchPage() {
 
     setLoading(true);
     try {
-      // For anime, fetch AniList ID first (primary source for anime embeds)
+      // For anime, ONLY fetch AniList ID (skip TMDB — not needed for Priism Sub/Dub)
       if (item.type === "anime") {
         try {
           const alRes = await fetch("https://graphql.anilist.co", {
@@ -191,6 +191,9 @@ export default function WatchPage() {
             updateContent(item.id, { ...item, anilistId: alId } as unknown as Partial<ContentItem>);
           }
         } catch { /* AniList fetch failed, fallback servers still work */ }
+        setLoading(false);
+        setIdsFetched(true);
+        return; // Done — anime doesn't need TMDB/IMDB
       }
 
       const searchType = item.type === "movie" ? "movie" : "tv";
