@@ -30,8 +30,6 @@ function getServers(imdbId: string, tmdbId: string, type: string, season = 1, ep
     return [
       { name: "Priism Sub", url: `https://cdn.4animo.xyz/embed/hd-1/ani/${anilistId}/${episode}/sub?k=1` },
       { name: "Priism Dub", url: `https://cdn.4animo.xyz/embed/hd-1/ani/${anilistId}/${episode}/dub?k=1` },
-      { name: "VidLink", url: `https://vidlink.pro/tv/${tmdbId || imdbId}/${season}/${episode}` },
-      { name: "VidSrc.cc", url: `https://vidsrc.cc/v2/embed/tv/${tmdbId || imdbId}/${season}/${episode}` },
     ];
   }
   return [
