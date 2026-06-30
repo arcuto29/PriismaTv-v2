@@ -28,10 +28,10 @@ function getServers(imdbId: string, tmdbId: string, type: string, season = 1, ep
   // For anime, use TMDB-based servers (IMDB IDs often return wrong content for anime)
   if (type === "anime") {
     return [
-      { name: "VidLink", url: `https://vidlink.pro/tv/${tmdbId || imdbId}/${season}/${episode}` },
       { name: "2Embed", url: `https://www.2embed.cc/embedtv/${tmdbId || imdbId}&s=${season}&e=${episode}` },
       { name: "SuperEmbed", url: `https://www.2embed.stream/embed/tv/${tmdbId || imdbId}/${season}/${episode}` },
       { name: "AutoEmbed", url: `https://autoembed.co/tv/tmdb/${tmdbId}-${season}-${episode}` },
+      { name: "VidLink", url: `https://vidlink.pro/tv/${tmdbId || imdbId}/${season}/${episode}` },
       { name: "NontonGo", url: `https://www.nontongo.win/embed/tv/${imdbId}/${season}/${episode}` },
     ];
   }
@@ -628,12 +628,11 @@ export default function WatchPage() {
                         />
                       ) : (
                         <iframe
-                          key={`${selectedServer}-${selectedSeason}-${selectedEpisode}-${imdbId}`}
+                          key={`${selectedServer}-${selectedSeason}-${selectedEpisode}-${imdbId}-${tmdbId}`}
                           src={getPlayerUrl()}
                           className="w-full h-full border-0"
                           allowFullScreen
                           allow="autoplay; encrypted-media; fullscreen; picture-in-picture; web-share"
-                          referrerPolicy="no-referrer"
                         />
                       )}
                       {/* Fullscreen button overlay */}
