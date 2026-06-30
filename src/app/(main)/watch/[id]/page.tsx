@@ -564,7 +564,17 @@ export default function WatchPage() {
                   {Array.from({ length: Math.min(item.episodes ? Math.ceil(item.episodes / (item.seasons || 1)) : 12, 26) }, (_, i) => i + 1).map((ep) => (
                     <button
                       key={ep}
-                      onClick={() => { setSelectedEpisode(ep); setPlayerReloadKey(Date.now()); setIsPlaying(true); }}
+                      onClick={() => { 
+                        if (selectedEpisode === ep) {
+                          // Force reload: briefly unmount player
+                          setIsPlaying(false);
+                          setTimeout(() => { setPlayerReloadKey(Date.now()); setIsPlaying(true); }, 50);
+                        } else {
+                          setSelectedEpisode(ep); 
+                          setPlayerReloadKey(Date.now()); 
+                          setIsPlaying(true); 
+                        }
+                      }}
                       className={cn(
                         "px-3 py-1.5 rounded-lg text-xs font-medium transition-all",
                         selectedEpisode === ep ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-muted/80"
@@ -672,7 +682,7 @@ export default function WatchPage() {
                           allowFullScreen
                           allow="autoplay; encrypted-media; fullscreen; picture-in-picture; web-share"
                         />
-                      )}
+                      )}}
                       {/* Fullscreen button overlay */}
                       {selectedServer !== -2 && (
                         <button
