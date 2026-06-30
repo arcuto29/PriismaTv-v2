@@ -28,11 +28,10 @@ function getServers(imdbId: string, tmdbId: string, type: string, season = 1, ep
   // For anime, use dedicated anime embed (4Animo - same method as Seanime/Denshi)
   if (type === "anime") {
     return [
-      { name: "Megaplay", url: `https://megaplay.icu/embed/anime/${anilistId}/${episode}/sub` },
-      { name: "Megaplay Dub", url: `https://megaplay.icu/embed/anime/${anilistId}/${episode}/dub` },
       { name: "Priism Sub", url: `https://cdn.4animo.xyz/embed/hd-1/ani/${anilistId}/${episode}/sub?k=1` },
       { name: "Priism Dub", url: `https://cdn.4animo.xyz/embed/hd-1/ani/${anilistId}/${episode}/dub?k=1` },
       { name: "Priism S2", url: `https://cdn.4animo.xyz/embed/hd-2/ani/${anilistId}/${episode}/sub?k=1` },
+      { name: "Priism S2 Dub", url: `https://cdn.4animo.xyz/embed/hd-2/ani/${anilistId}/${episode}/dub?k=1` },
       { name: "VidLink", url: `https://vidlink.pro/tv/${tmdbId || imdbId}/${season}/${episode}` },
     ];
   }
