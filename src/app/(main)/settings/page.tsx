@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { Settings, Moon, Sun, Smartphone, Share2, Download, Shield, ImageOff, Palette, UserPlus, X, Check } from "lucide-react";
+import { Settings, Moon, Sun, Share2, Download, Shield, ImageOff, Palette, UserPlus, X, Check } from "lucide-react";
 import { useTheme } from "@/hooks/use-theme";
 import { useProfiles } from "@/hooks/use-profiles";
 import { useContentStore } from "@/hooks/use-content-store";
@@ -188,15 +188,6 @@ export default function SettingsPage() {
           <p className="text-sm text-muted-foreground mb-3">If covers aren&apos;t showing, click to reload fresh data.</p>
           <button onClick={handleFixImages} className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-all">
             Fix Images Now
-          </button>
-        </div>
-
-        {/* PWA */}
-        <div className="p-5 rounded-xl bg-card border border-border">
-          <h3 className="font-semibold mb-4 flex items-center gap-2"><Smartphone className="w-4 h-4" /> Install as App</h3>
-          <p className="text-sm text-muted-foreground mb-3">Install PriismaTv on your device for a native app experience.</p>
-          <button onClick={() => alert("Open in Chrome/Edge → Click install icon in address bar → Or go to menu → Install App")} className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-all">
-            Install PriismaTv
           </button>
         </div>
 

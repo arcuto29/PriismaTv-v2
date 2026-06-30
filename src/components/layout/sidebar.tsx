@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import {
-  Home, Film, Sword, Tv, Users, Video, MonitorPlay,
+  Home, Film, Sword, Tv, Video, MonitorPlay,
   Bookmark, Heart, UserPlus, Trophy, Calendar, History,
   Layers, Hand, PlusCircle, Settings, Menu, X, Play,
   Smile, BarChart3, Award, Shield
@@ -17,7 +17,6 @@ const navItems = [
   { href: "/anime", icon: Sword, label: "Anime" },
   { href: "/tvshows", icon: Tv, label: "TV Shows" },
   { href: "/mood", icon: Smile, label: "Mood Picker" },
-  { href: "/watch-together", icon: Users, label: "Watch Together" },
   { href: "/youtube", icon: Video, label: "YouTube" },
   { href: "/twitch", icon: MonitorPlay, label: "Twitch" },
   { href: "/watchlist", icon: Bookmark, label: "Watchlist" },
