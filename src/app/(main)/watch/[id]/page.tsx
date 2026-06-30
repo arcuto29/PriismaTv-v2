@@ -171,6 +171,23 @@ export default function WatchPage() {
 
     setLoading(true);
     try {
+      // For anime, fetch AniList ID first (primary source for anime embeds)
+      if (item.type === "anime") {
+        try {
+          const alRes = await fetch("https://graphql.anilist.co", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              query: `query{Media(search:"${item.title.replace(/"/g, '\\"')}",type:ANIME){id}}`
+            })
+          });
+          const alData = await alRes.json();
+          if (alData?.data?.Media?.id) {
+            setAnilistId(String(alData.data.Media.id));
+          }
+        } catch { /* AniList fetch failed, fallback servers still work */ }
+      }
+
       const searchType = item.type === "movie" ? "movie" : "tv";
       const searchRes = await fetch(
         `https://api.themoviedb.org/3/search/${searchType}?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(item.title)}&year=${item.year || ""}`
@@ -191,23 +208,6 @@ export default function WatchPage() {
           setImdbId(imdb);
           // Cache both IDs on the item for next time
           updateContent(item.id, { ...item, imdbId: imdb, tmdbId: String(tmdb) } as unknown as Partial<ContentItem>);
-        }
-
-        // For anime, also fetch AniList ID (needed for 4Animo embed)
-        if (item.type === "anime") {
-          try {
-            const alRes = await fetch("https://graphql.anilist.co", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                query: `query{Media(search:"${item.title.replace(/"/g, '\\"')}",type:ANIME){id}}`
-              })
-            });
-            const alData = await alRes.json();
-            if (alData?.data?.Media?.id) {
-              setAnilistId(String(alData.data.Media.id));
-            }
-          } catch { /* AniList fetch failed, fallback servers still work */ }
         }
       }
     } catch (e) {
