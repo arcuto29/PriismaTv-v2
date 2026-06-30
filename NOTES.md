@@ -148,17 +148,33 @@ Delete the old `.mkv` so the server doesn't match the wrong file. Keep only the 
 
 ---
 
-## 9. FULL AUTOMATION — auto-convert script
+## 9. FULL AUTOMATION — auto-convert + auto-rename
 
-Save the file below as `auto-convert.bat` in `D:\Movies`. Double-click it (or add to Startup).
-It watches the folder and automatically converts any new MKV to MP4 with English AAC audio, then deletes the MKV.
+Three scripts live in `scripts/` in this repo. Download them to `D:\Movies`:
 
-See `scripts/auto-convert.bat` in this repo for the full script.
+| Script | What it does |
+|--------|--------------|
+| `auto-convert.bat` | Watches D:\Movies. New MKV → converts to MP4 (English AAC) → cleans the name → deletes MKV. Set & forget. |
+| `clean-names.ps1` | Renames messy torrent files so the site matches them. Called automatically by auto-convert. Can also run alone. |
+| `convert-this.bat` | Drag any single file onto it to convert it manually. |
 
-### Make it run on PC startup (set once)
-1. Press `Win + R`, type `shell:startup`, press Enter
-2. Copy a shortcut to `auto-convert.bat` AND `start-priismatv.bat` into that folder
-3. Now both run automatically every time the PC turns on — you never touch them again
+### What auto-rename does
+Turns ugly names into clean ones the website matches reliably:
+- `The.Hobbit.Desolation.of.Smaug.2013.EXTENDED.2160p.UHD.BluRay.x265-SMAHAWUG.mkv`
+  → `The Hobbit Desolation of Smaug (2013).mp4`
+- `The.Witcher.S01E03.2019.NF.WEB-DL.1080p.HEVC.HDR.seleZen.mkv`
+  → `The Witcher S01E03.mp4`
+
+It strips quality/codec/source/audio/release-group junk, keeps the title + year (movies) or title + SxxExx (shows). It only RENAMES — never deletes or re-encodes.
+
+### Make everything run on PC startup (set once)
+1. Put `auto-convert.bat` + `clean-names.ps1` + `start-priismatv.bat` in `D:\Movies`
+2. Press `Win + R`, type `shell:startup`, press Enter
+3. Copy a shortcut to `auto-convert.bat` AND `start-priismatv.bat` into that folder
+4. Done. Every time the PC turns on, both run automatically. Just drop downloads into `D:\Movies` and they auto-convert, auto-rename, and auto-appear on the site. Zero effort.
+
+### Run the renamer alone (one-time cleanup of existing files)
+Right-click `clean-names.ps1` → "Run with PowerShell"
 
 ---
 

@@ -1,12 +1,13 @@
 @echo off
 REM ============================================================
-REM  PriismaTv Auto-Converter
-REM  Watches D:\Movies and converts new MKV files to MP4
-REM  with ENGLISH audio as AAC (browser-compatible).
-REM  Deletes the original MKV after a successful convert.
+REM  PriismaTv Auto-Converter + Auto-Renamer
+REM  Watches D:\Movies and:
+REM   1. Converts new MKV files to MP4 with ENGLISH AAC audio
+REM   2. Cleans up messy filenames so the website matches them
+REM   3. Deletes the original MKV
 REM
 REM  SETUP (one time):
-REM   1. Put this file in D:\Movies
+REM   1. Put this file AND clean-names.ps1 in D:\Movies
 REM   2. Make sure ffmpeg is installed and on PATH
 REM   3. Double-click to run, OR add a shortcut to it in
 REM      the Windows Startup folder (Win+R -> shell:startup)
@@ -14,8 +15,8 @@ REM ============================================================
 
 cd /d D:\Movies
 echo ========================================
-echo  PriismaTv Auto-Converter
-echo  Watching D:\Movies for new MKV files...
+echo  PriismaTv Auto-Converter + Renamer
+echo  Watching D:\Movies for new files...
 echo  Press Ctrl+C to stop.
 echo ========================================
 echo.
@@ -27,7 +28,6 @@ for %%F in (*.mkv) do (
         echo [CONVERTING] Picking English audio and converting to AAC...
 
         REM Try: copy video, English audio track -> AAC, drop subs.
-        REM Falls back to first audio track if no English tag exists.
         ffmpeg -y -i "%%F" -map 0:v:0 -map 0:m:language:eng -map -0:s -c:v copy -c:a aac -b:a 192k "%%~nF.mp4"
 
         if errorlevel 1 (
@@ -45,6 +45,9 @@ for %%F in (*.mkv) do (
         echo.
     )
 )
+
+REM Clean up filenames so the website auto-matcher finds them
+powershell -ExecutionPolicy Bypass -File "D:\Movies\clean-names.ps1"
 
 REM wait 30 seconds, then check again
 timeout /t 30 /nobreak >nul
