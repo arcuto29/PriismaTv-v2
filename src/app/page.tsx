@@ -143,7 +143,7 @@ export default function WelcomePage() {
     const autoEnter = setTimeout(() => {
       setExiting(true);
       setTimeout(() => router.push("/home"), 800);
-    }, 3000);
+    }, 7000);
     return () => clearTimeout(autoEnter);
   }, [authenticated]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -493,6 +493,21 @@ export default function WelcomePage() {
               <p className="text-[8px] md:text-[9px] tracking-[0.25em] text-white/25 mt-1 font-mono">{stat.label}</p>
             </motion.div>
           ))}
+        </motion.div>
+
+        {/* Continue button - appears after 3s */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={phase >= 5 ? { opacity: 1, y: 0 } : {}}
+          transition={{ delay: 0.5 }}
+          className="mt-8"
+        >
+          <button
+            onClick={() => { setExiting(true); setTimeout(() => router.push("/home"), 800); }}
+            className="px-8 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-primary text-white font-bold text-sm hover:opacity-90 transition-all hover:shadow-[0_0_30px_rgba(124,58,237,0.3)] hover:scale-105 active:scale-95"
+          >
+            CONTINUE →
+          </button>
         </motion.div>
 
         {/* Bottom text */}
