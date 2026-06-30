@@ -19,7 +19,6 @@ function getServers(imdbId: string, tmdbId: string, type: string, season = 1, ep
   if (type === "movie") {
     return [
       { name: "VidSrc", url: `https://vidsrc.me/embed/movie?imdb=${imdbId}` },
-      { name: "VidSrc Pro", url: `https://vidsrc.pro/embed/movie/${imdbId}` },
       { name: "Embed.su", url: `https://embed.su/embed/movie/${imdbId}` },
       { name: "AutoEmbed", url: `https://autoembed.co/movie/imdb/${imdbId}` },
       { name: "MoviesAPI", url: `https://moviesapi.to/movie/${imdbId}` },
@@ -28,7 +27,6 @@ function getServers(imdbId: string, tmdbId: string, type: string, season = 1, ep
   }
   return [
     { name: "VidSrc", url: `https://vidsrc.me/embed/tv?imdb=${imdbId}&season=${season}&episode=${episode}` },
-    { name: "VidSrc Pro", url: `https://vidsrc.pro/embed/tv/${imdbId}/${season}/${episode}` },
     { name: "Embed.su", url: `https://embed.su/embed/tv/${imdbId}/${season}/${episode}` },
     { name: "AutoEmbed", url: `https://autoembed.co/tv/imdb/${imdbId}-${season}-${episode}` },
     { name: "MoviesAPI", url: `https://moviesapi.to/tv/${imdbId}-${season}-${episode}` },
@@ -51,7 +49,7 @@ export default function WatchPage() {
   const [imdbId, setImdbId] = useState<string | null>(null);
   const [tmdbId, setTmdbId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [audioPref, setAudioPref] = useState<"sub" | "dub">("sub");
+
   const [myServerFile, setMyServerFile] = useState<string | null>(null);
 
   // Auto-select my server when match found
@@ -553,36 +551,6 @@ export default function WatchPage() {
 
                 {(imdbId || item.video) && (
                   <>
-                    {/* Sub/Dub Toggle for Anime */}
-                    {item.type === "anime" && (
-                      <div className="mb-4 flex items-center gap-2">
-                        <span className="text-xs text-muted-foreground font-medium">Audio:</span>
-                        <div className="flex rounded-lg overflow-hidden border border-border">
-                          <button
-                            onClick={() => setAudioPref("sub")}
-                            className={cn(
-                              "px-4 py-2 text-xs font-bold transition-all",
-                              audioPref === "sub" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-muted/80"
-                            )}
-                          >
-                            🇯🇵 SUB (Japanese)
-                          </button>
-                          <button
-                            onClick={() => setAudioPref("dub")}
-                            className={cn(
-                              "px-4 py-2 text-xs font-bold transition-all",
-                              audioPref === "dub" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-muted/80"
-                            )}
-                          >
-                            🇺🇸 DUB (English)
-                          </button>
-                        </div>
-                        <span className="text-[10px] text-muted-foreground ml-2">
-                          {audioPref === "sub" ? "Original Japanese with subtitles" : "English dubbed audio"}
-                        </span>
-                      </div>
-                    )}
-
                     <h3 className="text-sm font-semibold mb-3">Select Server</h3>
                     <p className="text-xs text-muted-foreground mb-3">If one server doesn&apos;t work, try another one.</p>
                     <div className="flex flex-wrap gap-2 mb-4">
