@@ -63,8 +63,19 @@ export function MoodSelector() {
                         : "border-white/5 hover:border-white/20 hover:bg-white/5"
                     )}
                   >
-                    {/* Mini preview gradient */}
-                    <div className={`absolute inset-0 bg-gradient-to-b ${m.bgGradient} opacity-50 rounded-xl`} />
+                    {/* GIF preview background */}
+                    {m.preview ? (
+                      <img 
+                        src={m.preview} 
+                        alt={m.name} 
+                        className="absolute inset-0 w-full h-full object-cover rounded-xl opacity-40 group-hover:opacity-60 transition-opacity"
+                      />
+                    ) : (
+                      <div className={`absolute inset-0 bg-gradient-to-b ${m.bgGradient} opacity-50 rounded-xl`} />
+                    )}
+
+                    {/* Dark overlay for readability */}
+                    <div className="absolute inset-0 bg-black/30 rounded-xl" />
 
                     {/* Content */}
                     <div className="relative z-10">

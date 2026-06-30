@@ -16,6 +16,7 @@ export interface MoodConfig {
   name: string;
   emoji: string;
   description: string;
+  preview?: string;             // GIF preview URL for the selector
   // Visual config
   bgGradient: string;          // CSS gradient for main background
   blobColors: string[];        // 3 blob accent colors (tailwind opacity classes)
@@ -33,6 +34,7 @@ export const MOOD_THEMES: MoodConfig[] = [
     name: "Shadow Monarch",
     emoji: "👑",
     description: "Solo Leveling dark energy",
+    preview: "https://media1.tenor.com/m/GF-omrvd_ykAAAAC/solo-leveling.gif",
     bgGradient: "from-[#0a0a1a] via-[#0d0d2b] to-[#000000]",
     blobColors: ["bg-primary/10", "bg-purple-600/10", "bg-cyan-500/5"],
     particleColor: "rgba(0,212,255,",
@@ -47,6 +49,7 @@ export const MOOD_THEMES: MoodConfig[] = [
     name: "Midnight Galaxy",
     emoji: "🌌",
     description: "Deep space nebula",
+    preview: "https://media1.tenor.com/m/9_URHWOvOCIAAAAC/space-galaxy.gif",
     bgGradient: "from-[#0a0015] via-[#1a0030] to-[#000010]",
     blobColors: ["bg-violet-600/15", "bg-blue-600/10", "bg-indigo-500/8"],
     particleColor: "rgba(167,139,250,",
@@ -59,6 +62,7 @@ export const MOOD_THEMES: MoodConfig[] = [
     name: "Crimson Abyss",
     emoji: "🔥",
     description: "Hellfire ember glow",
+    preview: "https://media1.tenor.com/m/Ze9wQPXGMioAAAAC/glowing-embers.gif",
     bgGradient: "from-[#1a0000] via-[#200808] to-[#0a0000]",
     blobColors: ["bg-red-600/15", "bg-orange-600/8", "bg-red-900/10"],
     particleColor: "rgba(239,68,68,",
@@ -71,6 +75,7 @@ export const MOOD_THEMES: MoodConfig[] = [
     name: "Neon City",
     emoji: "🌃",
     description: "Cyberpunk nightlife",
+    preview: "https://media1.tenor.com/m/JK1ahHABmYcAAAAC/rain-aesthetic.gif",
     bgGradient: "from-[#0a0014] via-[#14001a] to-[#000a14]",
     blobColors: ["bg-pink-500/12", "bg-cyan-400/10", "bg-purple-500/8"],
     particleColor: "rgba(236,72,153,",
@@ -83,6 +88,7 @@ export const MOOD_THEMES: MoodConfig[] = [
     name: "Arctic Frost",
     emoji: "❄️",
     description: "Frozen crystal ice",
+    preview: "https://media1.tenor.com/m/KRMpJnN8qxIAAAAC/snow-day-snow.gif",
     bgGradient: "from-[#001020] via-[#001530] to-[#000818]",
     blobColors: ["bg-sky-400/12", "bg-blue-300/8", "bg-white/5"],
     particleColor: "rgba(186,230,253,",
@@ -95,6 +101,7 @@ export const MOOD_THEMES: MoodConfig[] = [
     name: "Void",
     emoji: "🕳️",
     description: "Pure minimal darkness",
+    preview: "https://media1.tenor.com/m/EFtxSDVeHxkAAAAC/interstellar-blackhole.gif",
     bgGradient: "from-[#000000] via-[#050505] to-[#000000]",
     blobColors: ["bg-white/3", "bg-gray-800/5", "bg-white/2"],
     particleColor: "rgba(255,255,255,",
@@ -107,6 +114,7 @@ export const MOOD_THEMES: MoodConfig[] = [
     name: "Sakura Dream",
     emoji: "🌸",
     description: "Anime cherry blossom",
+    preview: "https://media1.tenor.com/m/AJi6wB_HSvcAAAAC/sakura-cherry-blossom.gif",
     bgGradient: "from-[#1a0010] via-[#200015] to-[#0a0008]",
     blobColors: ["bg-pink-400/12", "bg-rose-300/8", "bg-fuchsia-500/5"],
     particleColor: "rgba(244,114,182,",
@@ -119,6 +127,7 @@ export const MOOD_THEMES: MoodConfig[] = [
     name: "Dragon Fire",
     emoji: "🐉",
     description: "Golden flame power",
+    preview: "https://media1.tenor.com/m/FoBm9cS9dyAAAAAC/natsu-dragon.gif",
     bgGradient: "from-[#1a0f00] via-[#1a0800] to-[#0a0500]",
     blobColors: ["bg-amber-500/12", "bg-orange-600/10", "bg-yellow-500/5"],
     particleColor: "rgba(245,158,11,",
