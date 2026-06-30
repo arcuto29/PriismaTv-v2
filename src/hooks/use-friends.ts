@@ -24,9 +24,12 @@ export function useFriends() {
   const [allUsers, setAllUsers] = useState<Friend[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const currentUser = typeof window !== "undefined"
-    ? sessionStorage.getItem("priismatv_user") || localStorage.getItem("priismatv_user") || ""
-    : "";
+  const [currentUser, setCurrentUser] = useState("");
+
+  useEffect(() => {
+    const user = sessionStorage.getItem("priismatv_user") || localStorage.getItem("priismatv_user") || "";
+    setCurrentUser(user);
+  }, []);
 
   // Fetch friends list (accepted requests)
   const fetchFriends = useCallback(async () => {
@@ -88,16 +91,18 @@ export function useFriends() {
     const { data } = await supabase
       .from("visitors")
       .select("name, is_online, last_heartbeat, role")
-      .neq("name", currentUser)
       .order("last_heartbeat", { ascending: false });
 
     if (data) {
       const now = Date.now();
+      // Filter out current user (case-insensitive)
       setAllUsers(
-        data.map((v) => ({
-          ...v,
-          is_online: v.is_online && v.last_heartbeat && (now - new Date(v.last_heartbeat).getTime() < 60000),
-        }))
+        data
+          .filter((v) => v.name.toLowerCase() !== currentUser.toLowerCase())
+          .map((v) => ({
+            ...v,
+            is_online: v.is_online && v.last_heartbeat && (now - new Date(v.last_heartbeat).getTime() < 60000),
+          }))
       );
     }
   }, [currentUser]);

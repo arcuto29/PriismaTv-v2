@@ -15,7 +15,8 @@ export default function FriendsPage() {
   const [sending, setSending] = useState<string | null>(null);
 
   const filteredUsers = allUsers.filter((u) =>
-    u.name.toLowerCase().includes(searchQuery.toLowerCase())
+    u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    searchQuery === ""
   );
 
   const onlineFriends = friends.filter((f) => f.is_online);
