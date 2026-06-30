@@ -25,6 +25,17 @@ function getServers(imdbId: string, tmdbId: string, type: string, season = 1, ep
       { name: "NontonGo", url: `https://www.nontongo.win/embed/movie/${imdbId}` },
     ];
   }
+  // For anime, use anime-specific servers (free embed servers often have wrong content for anime IMDB IDs)
+  if (type === "anime") {
+    return [
+      { name: "2Embed", url: `https://www.2embed.stream/embed/tv/${tmdbId || imdbId}/${season}/${episode}` },
+      { name: "AutoEmbed (TMDB)", url: `https://autoembed.co/tv/tmdb/${tmdbId}-${season}-${episode}` },
+      { name: "AutoEmbed (IMDB)", url: `https://autoembed.co/tv/imdb/${imdbId}-${season}-${episode}` },
+      { name: "Embed.su", url: `https://embed.su/embed/tv/${imdbId}/${season}/${episode}` },
+      { name: "VidSrc", url: `https://vidsrc.me/embed/tv?imdb=${imdbId}&season=${season}&episode=${episode}` },
+      { name: "NontonGo", url: `https://www.nontongo.win/embed/tv/${imdbId}/${season}/${episode}` },
+    ];
+  }
   return [
     { name: "VidSrc", url: `https://vidsrc.me/embed/tv?imdb=${imdbId}&season=${season}&episode=${episode}` },
     { name: "Embed.su", url: `https://embed.su/embed/tv/${imdbId}/${season}/${episode}` },
@@ -139,11 +150,11 @@ export default function WatchPage() {
   }, [item, selectedSeason, selectedEpisode]);
 
   // Auto-fetch TMDB/IMDB IDs when item loads
-  const fetchIds = useCallback(async () => {
+  const fetchIds = useCallback(async (forceRefresh = false) => {
     if (!item) return;
     
-    // Check if already cached on the item
-    if ((item as unknown as Record<string, string>).imdbId) {
+    // Check if already cached on the item (skip if force refresh)
+    if (!forceRefresh && (item as unknown as Record<string, string>).imdbId) {
       setImdbId((item as unknown as Record<string, string>).imdbId);
       setTmdbId((item as unknown as Record<string, string>).tmdbId || null);
       return;
@@ -545,14 +556,25 @@ export default function WatchPage() {
                 {!imdbId && !item.video && !loading && (
                   <div className="p-4 rounded-xl bg-muted border border-border text-center">
                     <p className="text-sm text-muted-foreground mb-3">Could not find streaming source for this title.</p>
-                    <button onClick={fetchIds} className="text-sm text-primary hover:underline">Try again</button>
+                    <button onClick={() => fetchIds()} className="text-sm text-primary hover:underline">Try again</button>
                   </div>
                 )}
 
                 {(imdbId || item.video) && (
                   <>
-                    <h3 className="text-sm font-semibold mb-3">Select Server</h3>
-                    <p className="text-xs text-muted-foreground mb-3">If one server doesn&apos;t work, try another one.</p>
+                    <div className="flex items-center justify-between mb-3">
+                      <div>
+                        <h3 className="text-sm font-semibold">Select Server</h3>
+                        <p className="text-xs text-muted-foreground">If one server doesn&apos;t work, try another one.</p>
+                      </div>
+                      <button
+                        onClick={() => { setImdbId(null); setTmdbId(null); fetchIds(true); }}
+                        className="text-[10px] px-2 py-1 rounded bg-muted text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all border border-border"
+                        title="Re-fetch IMDB/TMDB ID if wrong content is playing"
+                      >
+                        🔄 Fix Wrong Content
+                      </button>
+                    </div>
                     <div className="flex flex-wrap gap-2 mb-4">
                       {myServerFile && (
                         <button
