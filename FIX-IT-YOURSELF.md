@@ -170,6 +170,21 @@ Then describe what's broken. ChatGPT can help fix code if you paste the relevant
 
 ## USEFUL COMMANDS
 
+### Fix "video plays but no audio" on My Server HD
+The file has audio that browsers can't play (TrueHD/DDP/Atmos/DTS). Convert to AAC:
+```powershell
+ffmpeg -i "FILENAME.mp4" -c:v copy -c:a aac -b:a 192k "FILENAME-fixed.mp4"
+```
+Then delete the old file and rename the fixed one (remove `-fixed` from the name).
+
+To check what audio a file has:
+```powershell
+ffmpeg -i "FILENAME.mp4"
+```
+If the audio line says `truehd`, `eac3`, `dts`, `dts-hd`, `ac3`, or `atmos` → that's the problem. Only `aac` works in browsers.
+
+**Prevent this:** When downloading, pick releases tagged `AAC`, `YTS`, `YIFY`, or `x264`. Avoid `TrueHD`, `Atmos`, `DDP`, `DTS`.
+
 ```bash
 # Check if build passes before pushing
 npm run build
