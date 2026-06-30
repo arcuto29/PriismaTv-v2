@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -39,15 +39,21 @@ export function Sidebar() {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [userName, setUserName] = useState("P");
+
+  useEffect(() => {
+    const name = sessionStorage.getItem("priismatv_user") || localStorage.getItem("priismatv_user") || "P";
+    setUserName(name);
+  }, []);
 
   return (
     <>
       {/* Mobile hamburger */}
       <button
         onClick={() => setMobileOpen(true)}
-        className="fixed top-4 left-4 z-50 lg:hidden p-2 rounded-lg glass"
+        className="fixed top-4 left-4 z-50 lg:hidden p-2.5 rounded-xl bg-black/60 backdrop-blur-xl border border-white/[0.06]"
       >
-        <Menu className="w-5 h-5 text-primary" />
+        <Menu className="w-5 h-5 text-white/80" />
       </button>
 
       {/* Mobile overlay */}
@@ -58,7 +64,7 @@ export function Sidebar() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setMobileOpen(false)}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40 lg:hidden"
           />
         )}
       </AnimatePresence>
@@ -69,46 +75,47 @@ export function Sidebar() {
         onMouseLeave={() => setCollapsed(true)}
         className={cn(
           "fixed top-0 left-0 h-full z-50 flex flex-col",
-          "bg-card/95 backdrop-blur-xl border-r border-border",
-          "transition-all duration-300",
-          collapsed ? "w-[72px]" : "w-[240px]",
+          "bg-[#08080d]/90 backdrop-blur-2xl",
+          "border-r border-white/[0.04]",
+          "transition-all duration-400 ease-[cubic-bezier(0.16,1,0.3,1)]",
+          collapsed ? "w-[72px]" : "w-[260px]",
           mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
+        style={{
+          boxShadow: collapsed
+            ? "none"
+            : "4px 0 40px rgba(0, 0, 0, 0.4), 1px 0 0 rgba(232, 180, 104, 0.03)",
+        }}
       >
-        {/* Logo */}
-        <div className="flex items-center gap-3 px-4 h-16 border-b border-border">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center flex-shrink-0">
+        {/* Logo Area */}
+        <div className="flex items-center gap-3 px-4 h-[72px] border-b border-white/[0.04]">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary/90 to-primary/60 flex items-center justify-center flex-shrink-0 shadow-[0_4px_20px_rgba(232,180,104,0.2)]">
             <Play className="w-4 h-4 text-black fill-black" />
           </div>
-          {!collapsed && (
-            <motion.span
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="font-bold text-lg tracking-tight glitch-text"
-            >
-              <span className="text-primary">Priisma</span>
-              <span className="text-foreground">Tv</span>
-            </motion.span>
-          )}
-          <button
-            onClick={() => {
-              setCollapsed(!collapsed);
-              setMobileOpen(false);
-            }}
-            className="ml-auto p-1.5 rounded-md hover:bg-muted transition-colors lg:block hidden"
-          >
-            <Menu className="w-4 h-4 text-muted-foreground" />
-          </button>
+          <AnimatePresence>
+            {!collapsed && (
+              <motion.span
+                initial={{ opacity: 0, x: -8 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -8 }}
+                transition={{ duration: 0.2 }}
+                className="font-bold text-lg tracking-tight"
+              >
+                <span className="text-primary">Priisma</span>
+                <span className="text-white/90">Tv</span>
+              </motion.span>
+            )}
+          </AnimatePresence>
           <button
             onClick={() => setMobileOpen(false)}
-            className="ml-auto p-1.5 rounded-md hover:bg-muted transition-colors lg:hidden"
+            className="ml-auto p-1.5 rounded-lg hover:bg-white/[0.04] transition-colors lg:hidden"
           >
-            <X className="w-4 h-4 text-muted-foreground" />
+            <X className="w-4 h-4 text-white/40" />
           </button>
         </div>
 
         {/* Nav Links */}
-        <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-0.5">
+        <nav className="flex-1 overflow-y-auto py-4 px-2.5 space-y-0.5 scrollbar-hide">
           {navItems.map((item) => {
             const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href));
             return (
@@ -117,39 +124,78 @@ export function Sidebar() {
                 href={item.href}
                 onClick={() => setMobileOpen(false)}
                 className={cn(
-                  "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group relative",
+                  "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-300 group relative overflow-hidden",
                   isActive
-                    ? "bg-primary/10 text-primary"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                    ? "text-primary"
+                    : "text-white/40 hover:text-white/80"
                 )}
               >
+                {/* Active background glow */}
                 {isActive && (
                   <motion.div
-                    layoutId="sidebar-active"
-                    className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-6 bg-primary rounded-r-full"
+                    layoutId="sidebar-active-bg"
+                    className="absolute inset-0 rounded-xl bg-primary/[0.08] border border-primary/[0.12]"
+                    transition={{ type: "spring", bounce: 0.15, duration: 0.5 }}
                   />
                 )}
-                <item.icon className={cn("w-5 h-5 flex-shrink-0", isActive && "text-primary")} />
-                {!collapsed && (
-                  <span className="text-sm font-medium truncate">{item.label}</span>
+                {/* Active indicator bar */}
+                {isActive && (
+                  <motion.div
+                    layoutId="sidebar-indicator"
+                    className="absolute left-0 top-1/2 -translate-y-1/2 w-[2.5px] h-5 bg-primary rounded-r-full shadow-[0_0_8px_rgba(232,180,104,0.5)]"
+                    transition={{ type: "spring", bounce: 0.15, duration: 0.5 }}
+                  />
+                )}
+                <item.icon className={cn(
+                  "w-[18px] h-[18px] flex-shrink-0 relative z-10 transition-transform duration-300",
+                  isActive ? "text-primary" : "group-hover:scale-110"
+                )} />
+                <AnimatePresence>
+                  {!collapsed && (
+                    <motion.span
+                      initial={{ opacity: 0, x: -5 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -5 }}
+                      transition={{ duration: 0.15 }}
+                      className={cn(
+                        "text-[13px] font-medium truncate relative z-10",
+                        isActive ? "text-primary" : ""
+                      )}
+                    >
+                      {item.label}
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+                {/* Tooltip for collapsed state */}
+                {collapsed && (
+                  <div className="absolute left-full ml-3 px-3 py-1.5 rounded-lg bg-[#12121a] border border-white/[0.06] text-white/80 text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none shadow-xl z-[100]">
+                    {item.label}
+                  </div>
                 )}
               </Link>
             );
           })}
         </nav>
 
-        {/* User avatar */}
-        <div className="px-3 py-4 border-t border-border">
+        {/* User Section */}
+        <div className="px-3 py-4 border-t border-white/[0.04]">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
-              P
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center text-xs font-bold text-primary flex-shrink-0 border border-primary/20">
+              {userName[0]?.toUpperCase() || "P"}
             </div>
-            {!collapsed && (
-              <div className="overflow-hidden">
-                <p className="text-sm font-medium truncate">PriismaTv User</p>
-                <p className="text-xs text-muted-foreground">Premium</p>
-              </div>
-            )}
+            <AnimatePresence>
+              {!collapsed && (
+                <motion.div
+                  initial={{ opacity: 0, x: -5 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -5 }}
+                  className="overflow-hidden"
+                >
+                  <p className="text-sm font-medium text-white/80 truncate">{userName}</p>
+                  <p className="text-[10px] text-primary/60 font-medium tracking-wide uppercase">Premium</p>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
       </motion.aside>

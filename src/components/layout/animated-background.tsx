@@ -10,6 +10,7 @@ export function AnimatedBackground() {
     setMounted(true);
   }, []);
 
+  // Cursor follow
   useEffect(() => {
     const cursor = cursorRef.current;
     if (cursor) {
@@ -22,6 +23,7 @@ export function AnimatedBackground() {
     }
   }, [mounted]);
 
+  // Particle canvas - subtle and premium
   useEffect(() => {
     if (!mounted) return;
     const canvas = canvasRef.current;
@@ -30,8 +32,8 @@ export function AnimatedBackground() {
     if (!ctx) return;
 
     let animationId: number;
-    const STAR_COUNT = 150;
-    const PARTICLE_COUNT = 30;
+    const STAR_COUNT = 80;
+    const PARTICLE_COUNT = 15;
 
     interface Star {
       x: number; y: number; radius: number;
@@ -39,7 +41,7 @@ export function AnimatedBackground() {
     }
     interface Particle {
       x: number; y: number; vx: number; vy: number;
-      radius: number; alpha: number; color: string;
+      radius: number; alpha: number;
     }
 
     let stars: Star[] = [];
@@ -56,9 +58,9 @@ export function AnimatedBackground() {
         stars.push({
           x: Math.random() * canvas.width,
           y: Math.random() * canvas.height,
-          radius: Math.random() * 1.5 + 0.3,
-          alpha: Math.random() * 0.8 + 0.2,
-          alphaSpeed: Math.random() * 0.008 + 0.003,
+          radius: Math.random() * 1 + 0.2,
+          alpha: Math.random() * 0.5 + 0.1,
+          alphaSpeed: Math.random() * 0.005 + 0.002,
           alphaDir: Math.random() > 0.5 ? 1 : -1,
         });
       }
@@ -66,16 +68,14 @@ export function AnimatedBackground() {
 
     const createParticles = () => {
       particles = [];
-      const colors = ["rgba(0,212,255,", "rgba(124,58,237,", "rgba(14,165,233,", "rgba(168,85,247,"];
       for (let i = 0; i < PARTICLE_COUNT; i++) {
         particles.push({
           x: Math.random() * canvas.width,
           y: Math.random() * canvas.height,
-          vx: (Math.random() - 0.5) * 0.3,
-          vy: (Math.random() - 0.5) * 0.2 - 0.1,
-          radius: Math.random() * 2 + 1,
-          alpha: Math.random() * 0.4 + 0.1,
-          color: colors[Math.floor(Math.random() * colors.length)],
+          vx: (Math.random() - 0.5) * 0.15,
+          vy: (Math.random() - 0.5) * 0.1 - 0.05,
+          radius: Math.random() * 1.5 + 0.5,
+          alpha: Math.random() * 0.2 + 0.05,
         });
       }
     };
@@ -83,18 +83,18 @@ export function AnimatedBackground() {
     const animate = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Stars
+      // Stars - warm gold tint
       stars.forEach((star) => {
         star.alpha += star.alphaSpeed * star.alphaDir;
-        if (star.alpha >= 1) { star.alpha = 1; star.alphaDir = -1; }
-        if (star.alpha <= 0.1) { star.alpha = 0.1; star.alphaDir = 1; }
+        if (star.alpha >= 0.6) { star.alpha = 0.6; star.alphaDir = -1; }
+        if (star.alpha <= 0.05) { star.alpha = 0.05; star.alphaDir = 1; }
         ctx.beginPath();
         ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(0, 212, 255, ${star.alpha * 0.35})`;
+        ctx.fillStyle = `rgba(232, 180, 104, ${star.alpha * 0.2})`;
         ctx.fill();
       });
 
-      // Floating particles
+      // Floating particles - warm tones
       particles.forEach((p) => {
         p.x += p.vx;
         p.y += p.vy;
@@ -105,27 +105,27 @@ export function AnimatedBackground() {
 
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-        ctx.fillStyle = `${p.color}${p.alpha})`;
+        ctx.fillStyle = `rgba(232, 180, 104, ${p.alpha})`;
         ctx.fill();
 
-        // Glow
+        // Soft glow
         ctx.beginPath();
-        ctx.arc(p.x, p.y, p.radius * 3, 0, Math.PI * 2);
-        ctx.fillStyle = `${p.color}${p.alpha * 0.2})`;
+        ctx.arc(p.x, p.y, p.radius * 4, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(232, 180, 104, ${p.alpha * 0.1})`;
         ctx.fill();
       });
 
-      // Draw connecting lines between close particles
+      // Very subtle connecting lines between close particles
       for (let i = 0; i < particles.length; i++) {
         for (let j = i + 1; j < particles.length; j++) {
           const dx = particles[i].x - particles[j].x;
           const dy = particles[i].y - particles[j].y;
           const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist < 150) {
+          if (dist < 200) {
             ctx.beginPath();
             ctx.moveTo(particles[i].x, particles[i].y);
             ctx.lineTo(particles[j].x, particles[j].y);
-            ctx.strokeStyle = `rgba(0, 212, 255, ${0.08 * (1 - dist / 150)})`;
+            ctx.strokeStyle = `rgba(232, 180, 104, ${0.03 * (1 - dist / 200)})`;
             ctx.lineWidth = 0.5;
             ctx.stroke();
           }
@@ -152,26 +152,15 @@ export function AnimatedBackground() {
 
   return (
     <>
-      {/* Cursor glow */}
+      {/* Cursor glow - warm gold */}
       <div ref={cursorRef} className="cursor-light hidden lg:block" />
 
-      {/* Morphing gradient blobs */}
+      {/* Subtle ambient blobs - warm tones */}
       <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
-        <div className="absolute -top-1/4 -left-1/4 w-[600px] h-[600px] rounded-full bg-primary/10 blur-[120px] animate-blob" />
-        <div className="absolute -bottom-1/4 -right-1/4 w-[500px] h-[500px] rounded-full bg-purple-600/10 blur-[120px] animate-blob animation-delay-2000" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] rounded-full bg-cyan-500/5 blur-[100px] animate-blob animation-delay-4000" />
+        <div className="absolute -top-1/4 -left-1/4 w-[700px] h-[700px] rounded-full bg-primary/[0.02] blur-[150px] animate-blob" />
+        <div className="absolute -bottom-1/4 -right-1/4 w-[500px] h-[500px] rounded-full bg-primary/[0.015] blur-[130px] animate-blob animation-delay-2000" />
+        <div className="absolute top-1/3 right-1/4 w-[400px] h-[400px] rounded-full bg-primary/[0.01] blur-[100px] animate-blob animation-delay-4000" />
       </div>
-
-      {/* Jin-Woo Video Background */}
-      <video
-        autoPlay
-        muted
-        loop
-        playsInline
-        className="fixed inset-0 w-full h-full object-cover z-0 pointer-events-none opacity-25"
-      >
-        <source src="/jinwoo-bg.mp4" type="video/mp4" />
-      </video>
 
       {/* Particle canvas */}
       <canvas
@@ -179,8 +168,14 @@ export function AnimatedBackground() {
         className="fixed inset-0 z-0 pointer-events-none"
       />
 
-      {/* Overlay */}
-      <div className="fixed inset-0 z-0 pointer-events-none bg-gradient-to-b from-background/60 via-background/50 to-background/80" />
+      {/* Film grain texture overlay */}
+      <div className="film-grain" />
+
+      {/* Cinematic vignette */}
+      <div className="cinematic-vignette" />
+
+      {/* Base overlay for content readability */}
+      <div className="fixed inset-0 z-0 pointer-events-none bg-gradient-to-b from-[#06060a]/40 via-transparent to-[#06060a]/60" />
     </>
   );
 }
