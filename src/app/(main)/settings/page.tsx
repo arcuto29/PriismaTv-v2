@@ -1,23 +1,17 @@
 "use client";
 import { useState } from "react";
-import { Settings, Moon, Sun, Smartphone, Share2, Download, Shield, ImageOff, Palette, UserPlus, X } from "lucide-react";
-import { useTheme, ThemeColor } from "@/hooks/use-theme";
+import { Settings, Moon, Sun, Smartphone, Share2, Download, Shield, ImageOff, Palette, UserPlus, X, Check } from "lucide-react";
+import { useTheme } from "@/hooks/use-theme";
 import { useProfiles } from "@/hooks/use-profiles";
 import { useContentStore } from "@/hooks/use-content-store";
-
-const THEME_OPTIONS: { id: ThemeColor; label: string; color: string }[] = [
-  { id: "cyan", label: "Cyan (Default)", color: "bg-cyan-500" },
-  { id: "purple", label: "Purple", color: "bg-purple-500" },
-  { id: "red", label: "Red", color: "bg-red-500" },
-  { id: "green", label: "Green", color: "bg-green-500" },
-  { id: "gold", label: "Gold", color: "bg-yellow-500" },
-  { id: "seasonal", label: "Seasonal Auto", color: "bg-gradient-to-r from-orange-500 to-red-500" },
-];
+import { useMood, MoodTheme, MOOD_THEMES } from "@/hooks/use-mood";
+import { cn } from "@/lib/utils";
 
 export default function SettingsPage() {
-  const { theme, toggleTheme, themeColor, changeColor, seasonalName } = useTheme();
+  const { theme, toggleTheme } = useTheme();
   const { profiles, activeProfile, addProfile, removeProfile, switchProfile, updateProfile, AVATARS, COLORS } = useProfiles();
   const { content } = useContentStore();
+  const { mood, changeMood } = useMood();
   const [newName, setNewName] = useState("");
   const [newAvatar, setNewAvatar] = useState("🐉");
   const [newColor, setNewColor] = useState("from-cyan-500 to-blue-600");
@@ -68,26 +62,40 @@ export default function SettingsPage() {
       </div>
 
       <div className="max-w-2xl space-y-4">
-        {/* Theme Color */}
+        {/* Mood & Background */}
         <div className="p-5 rounded-xl bg-card border border-border">
-          <h3 className="font-semibold mb-4 flex items-center gap-2"><Palette className="w-4 h-4" /> Theme Color</h3>
-          <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 mb-3">
-            {THEME_OPTIONS.map((t) => (
+          <h3 className="font-semibold mb-2 flex items-center gap-2"><Palette className="w-4 h-4" /> Mood & Background</h3>
+          <p className="text-xs text-muted-foreground mb-4">Choose your vibe — changes background, particles, and accent color</p>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {MOOD_THEMES.map((m) => (
               <button
-                key={t.id}
-                onClick={() => changeColor(t.id)}
-                className={`p-3 rounded-xl text-center transition-all border-2 ${
-                  themeColor === t.id ? "border-foreground scale-105" : "border-transparent hover:border-white/20"
-                }`}
+                key={m.id}
+                onClick={() => changeMood(m.id as MoodTheme)}
+                className={cn(
+                  "relative p-4 rounded-xl text-center transition-all border-2 group overflow-hidden h-28",
+                  mood === m.id
+                    ? "border-primary bg-primary/10 scale-[1.02]"
+                    : "border-white/5 hover:border-white/20 hover:bg-white/5"
+                )}
               >
-                <div className={`w-8 h-8 rounded-full ${t.color} mx-auto mb-1`} />
-                <p className="text-[10px] font-medium">{t.label}</p>
+                {m.preview ? (
+                  <img src={m.preview} alt={m.name} className="absolute inset-0 w-full h-full object-cover rounded-xl opacity-40 group-hover:opacity-60 transition-opacity" />
+                ) : (
+                  <div className={`absolute inset-0 bg-gradient-to-b ${m.bgGradient} opacity-50 rounded-xl`} />
+                )}
+                <div className="absolute inset-0 bg-black/30 rounded-xl" />
+                <div className="relative z-10">
+                  <span className="text-2xl block mb-1">{m.emoji}</span>
+                  <p className="text-[10px] font-bold">{m.name}</p>
+                </div>
+                {mood === m.id && (
+                  <div className="absolute top-2 right-2 w-4 h-4 rounded-full bg-primary flex items-center justify-center">
+                    <Check className="w-2.5 h-2.5 text-white" />
+                  </div>
+                )}
               </button>
             ))}
           </div>
-          {themeColor === "seasonal" && (
-            <p className="text-xs text-muted-foreground">Current season: {seasonalName}</p>
-          )}
         </div>
 
         {/* Dark/Light Mode */}
