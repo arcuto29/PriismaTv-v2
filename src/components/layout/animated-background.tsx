@@ -158,6 +158,15 @@ export function AnimatedBackground() {
       {/* Background gradient — changes with mood */}
       <div className={`fixed inset-0 z-0 pointer-events-none bg-gradient-to-b ${currentMood.bgGradient}`} />
 
+      {/* GIF Background (from mood selection — only when no video bg) */}
+      {currentMood.preview && !currentMood.videoSrc && (
+        <img
+          src={currentMood.preview}
+          alt=""
+          className="fixed inset-0 w-full h-full object-cover z-0 pointer-events-none opacity-30 blur-[2px] scale-110"
+        />
+      )}
+
       {/* Morphing gradient blobs — colors from mood */}
       <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
         <div className={`absolute -top-1/4 -left-1/4 w-[600px] h-[600px] rounded-full ${currentMood.blobColors[0]} blur-[120px] animate-blob`} />
