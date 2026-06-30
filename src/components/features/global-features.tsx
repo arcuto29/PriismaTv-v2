@@ -1,10 +1,8 @@
 "use client";
 import { useContentStore } from "@/hooks/use-content-store";
 import { SpinWheel } from "./spin-wheel";
-import { ChatWidget } from "./chat-widget";
 import { SpotlightSearch } from "./spotlight-search";
 import { AriseEasterEgg } from "./arise-easter-egg";
-import { LoadingScreen } from "./loading-screen";
 import { KeyboardShortcuts } from "./keyboard-shortcuts";
 import { PipPlayer } from "./pip-player";
 import { WhatsNewPopup } from "./whats-new-popup";
@@ -17,11 +15,9 @@ export function GlobalFeatures() {
 
   return (
     <>
-      {/* Removed LoadingScreen - welcome page already serves as intro */}
       {isLoaded && (
         <>
           <SpinWheel items={movies} />
-          <ChatWidget />
           <SpotlightSearch />
           <AriseEasterEgg />
           <KeyboardShortcuts />
