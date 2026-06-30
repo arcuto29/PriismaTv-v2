@@ -47,7 +47,7 @@ function getServers(imdbId: string, tmdbId: string, type: string, season = 1, ep
 export default function WatchPage() {
   const params = useParams();
   const router = useRouter();
-  const { getContentById, toggleFavorite, toggleWatchlist, addToHistory, favorites, watchlist, removeContent, updateContent } = useContentStore();
+  const { getContentById, toggleFavorite, toggleWatchlist, addToHistory, favorites, watchlist, removeContent, updateContent, trackEpisodeProgress } = useContentStore();
   const { getRating, rateContent } = useRatings();
   const [item, setItem] = useState<ContentItem | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -576,6 +576,8 @@ export default function WatchPage() {
                           setPlayerReloadKey(Date.now()); 
                           setIsPlaying(true); 
                         }
+                        // Track episode progress for resume
+                        if (item) trackEpisodeProgress(item.id, selectedSeason, ep);
                       }}
                       className={cn(
                         "px-3 py-1.5 rounded-lg text-xs font-medium transition-all",

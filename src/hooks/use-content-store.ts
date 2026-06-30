@@ -92,6 +92,9 @@ export function useContentStore() {
   const [continueWatching, setContinueWatching] = useState<
     { id: string; progress: number; timestamp: string }[]
   >([]);
+  const [episodeProgress, setEpisodeProgress] = useState<
+    Record<string, { season: number; episode: number; timestamp: string }>
+  >({});
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
@@ -101,6 +104,7 @@ export function useContentStore() {
     setFavorites(JSON.parse(localStorage.getItem(STORAGE_KEYS.FAVORITES) || "[]"));
     setHistory(JSON.parse(localStorage.getItem(STORAGE_KEYS.HISTORY) || "[]"));
     setContinueWatching(JSON.parse(localStorage.getItem(STORAGE_KEYS.CONTINUE_WATCHING) || "[]"));
+    setEpisodeProgress(JSON.parse(localStorage.getItem("priismatv_episode_progress") || "{}"));
     setIsLoaded(true);
   }, []);
 
@@ -219,6 +223,20 @@ export function useContentStore() {
     [content]
   );
 
+  // Track which episode was last watched for a show/anime
+  const trackEpisodeProgress = useCallback((contentId: string, season: number, episode: number) => {
+    setEpisodeProgress((prev) => {
+      const updated = { ...prev, [contentId]: { season, episode, timestamp: new Date().toISOString() } };
+      localStorage.setItem("priismatv_episode_progress", JSON.stringify(updated));
+      return updated;
+    });
+  }, []);
+
+  // Get the last watched episode for a show/anime
+  const getEpisodeProgress = useCallback((contentId: string) => {
+    return episodeProgress[contentId] || null;
+  }, [episodeProgress]);
+
   const movies = content.filter((i) => i.type === "movie");
   const anime = content.filter((i) => i.type === "anime");
   const tvshows = content.filter((i) => i.type === "tvshow");
@@ -228,9 +246,9 @@ export function useContentStore() {
 
   return {
     content, movies, anime, tvshows, trending, topRated, recentlyAdded,
-    watchlist, favorites, history, continueWatching, isLoaded,
+    watchlist, favorites, history, continueWatching, episodeProgress, isLoaded,
     saveContent, addContent, removeContent, updateContent,
     toggleWatchlist, toggleFavorite, addToHistory,
-    getContentById, setContinueWatching,
+    getContentById, setContinueWatching, trackEpisodeProgress, getEpisodeProgress,
   };
 }
