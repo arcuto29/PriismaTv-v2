@@ -153,9 +153,12 @@ export default function WelcomePage() {
       <div className="fixed inset-0 z-[200] bg-[#020204] flex items-center justify-center overflow-hidden">
         {/* Jin-Woo Background GIF */}
         <div className="absolute inset-0">
-          <img
-            src="/jinwoo1.gif"
-            alt=""
+          <video
+            src="/jinwoo-bg.mp4"
+            autoPlay
+            muted
+            loop
+            playsInline
             className="absolute inset-0 w-full h-full object-cover opacity-80"
             style={{ objectPosition: "center top" }}
           />
@@ -312,9 +315,12 @@ export default function WelcomePage() {
         transition={{ duration: 2, ease: "easeOut" }}
         className="absolute inset-0"
       >
-        <img
-          src="/jinwoo1.gif"
-          alt=""
+        <video
+          src="/jinwoo-bg.mp4"
+          autoPlay
+          muted
+          loop
+          playsInline
           className="absolute inset-0 w-full h-full object-cover"
           style={{ objectPosition: "center top" }}
         />
