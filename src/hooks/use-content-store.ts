@@ -232,43 +232,60 @@ export function useContentStore() {
       let didFix = false;
       const updated = [...content];
 
-      // Process in batches of 10 to avoid hammering the API
-      for (let batch = 0; batch < animeWithoutPoster.length; batch += 10) {
-        const slice = animeWithoutPoster.slice(batch, batch + 10);
-        
-        const promises = slice.map(async (anime) => {
+      const fetchOne = async (anime: ContentItem) => {
+        const queries = [
+          // Try with year first (more accurate)
+          { search: anime.title, year: anime.year || null },
+          // Fallback: without year (catches sequels, spinoffs, alternate years)
+          { search: anime.title, year: null },
+          // Fallback: simplified title (remove subtitles/season info)
+          { search: anime.title.replace(/:.*/,'').replace(/ Season \d+/,'').replace(/ \d+(st|nd|rd|th) Season/,'').trim(), year: null },
+        ];
+
+        for (const variables of queries) {
           try {
             const res = await fetch("https://graphql.anilist.co", {
               method: "POST",
               headers: { "Content-Type": "application/json", "Accept": "application/json" },
               body: JSON.stringify({
                 query: `query($search:String,$year:Int){Media(search:$search,type:ANIME,seasonYear:$year,sort:SEARCH_MATCH){id bannerImage coverImage{extraLarge}}}`,
-                variables: { search: anime.title, year: anime.year || null }
+                variables
               })
             });
+            if (res.status === 429) {
+              // Rate limited — wait and retry
+              await new Promise((r) => setTimeout(r, 2000));
+              continue;
+            }
             const data = await res.json();
-            if (data?.data?.Media) {
+            if (data?.data?.Media?.coverImage?.extraLarge) {
               const media = data.data.Media;
               const idx = updated.findIndex((i) => i.id === anime.id);
               if (idx !== -1) {
-                if (media.coverImage?.extraLarge) {
-                  updated[idx] = { ...updated[idx], poster: media.coverImage.extraLarge };
-                  didFix = true;
-                }
+                updated[idx] = { ...updated[idx], poster: media.coverImage.extraLarge };
+                didFix = true;
                 if (media.bannerImage && !updated[idx].backdrop) {
                   updated[idx] = { ...updated[idx], backdrop: media.bannerImage };
                 }
                 (updated[idx] as unknown as Record<string, unknown>).anilistId = String(media.id);
                 (updated[idx] as unknown as Record<string, boolean>).posterOk = true;
               }
+              return; // Success — stop trying other queries
             }
-          } catch { /* skip failures */ }
-        });
+          } catch { /* continue to next query */ }
+        }
+        // Mark as checked even if not found (avoid re-trying endlessly)
+        const idx = updated.findIndex((i) => i.id === anime.id);
+        if (idx !== -1) (updated[idx] as unknown as Record<string, boolean>).posterOk = true;
+      };
 
-        await Promise.all(promises);
-        // Brief pause between batches to respect rate limits
-        if (batch + 10 < animeWithoutPoster.length) {
-          await new Promise((r) => setTimeout(r, 800));
+      // Process in batches of 5 (smaller batches = fewer rate limit issues)
+      for (let batch = 0; batch < animeWithoutPoster.length; batch += 5) {
+        const slice = animeWithoutPoster.slice(batch, batch + 5);
+        await Promise.all(slice.map(fetchOne));
+        // Pause between batches to respect AniList rate limits (90 req/min)
+        if (batch + 5 < animeWithoutPoster.length) {
+          await new Promise((r) => setTimeout(r, 1000));
         }
       }
 
