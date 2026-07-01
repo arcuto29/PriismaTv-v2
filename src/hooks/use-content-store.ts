@@ -173,13 +173,17 @@ export function useContentStore() {
         const item = updated[i];
         if ((item as unknown as Record<string, boolean>).posterOk) continue;
 
+        // Skip items with no poster — they use the gradient fallback intentionally
+        if (!item.poster) {
+          (item as unknown as Record<string, boolean>).posterOk = true;
+          continue;
+        }
+
         try {
-          if (item.poster) {
-            const test = await fetch(item.poster, { method: "HEAD" });
-            if (test.ok) {
-              (item as unknown as Record<string, boolean>).posterOk = true;
-              continue;
-            }
+          const test = await fetch(item.poster, { method: "HEAD" });
+          if (test.ok) {
+            (item as unknown as Record<string, boolean>).posterOk = true;
+            continue;
           }
 
           const searchType = item.type === "movie" ? "movie" : "tv";
