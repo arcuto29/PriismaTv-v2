@@ -175,7 +175,7 @@ export default function WelcomePage() {
           <motion.div
             animate={{ rotateY: 360 }}
             transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-            className="absolute w-[250px] h-[250px] md:w-[350px] md:h-[350px]"
+            className="absolute w-[300px] h-[300px] md:w-[420px] md:h-[420px]"
             style={{ transformStyle: "preserve-3d" }}
           >
             {Array.from({ length: 8 }).map((_, i) => (
@@ -186,7 +186,7 @@ export default function WelcomePage() {
           <motion.div
             animate={{ rotateX: 360 }}
             transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
-            className="absolute w-[250px] h-[250px] md:w-[350px] md:h-[350px]"
+            className="absolute w-[300px] h-[300px] md:w-[420px] md:h-[420px]"
             style={{ transformStyle: "preserve-3d" }}
           >
             {Array.from({ length: 8 }).map((_, i) => (
@@ -197,14 +197,14 @@ export default function WelcomePage() {
           <motion.div
             animate={{ scale: [1, 1.15, 1], opacity: [0.3, 0.6, 0.3] }}
             transition={{ duration: 3, repeat: Infinity }}
-            className="absolute w-[80px] h-[80px] md:w-[100px] md:h-[100px] rounded-full"
+            className="absolute w-[100px] h-[100px] md:w-[130px] md:h-[130px] rounded-full"
             style={{ background: "radial-gradient(circle, rgba(0,212,255,0.3) 0%, rgba(124,58,237,0.15) 50%, transparent 70%)", boxShadow: "0 0 40px rgba(0,212,255,0.2), 0 0 80px rgba(0,212,255,0.1)" }}
           />
           {/* Center dot */}
           <motion.div
             animate={{ scale: [1, 1.3, 1] }}
             transition={{ duration: 2, repeat: Infinity }}
-            className="absolute w-3 h-3 rounded-full bg-white/70"
+            className="absolute w-4 h-4 rounded-full bg-white/70"
             style={{ boxShadow: "0 0 15px #00d4ff, 0 0 30px #00d4ff" }}
           />
         </div>
@@ -245,14 +245,14 @@ export default function WelcomePage() {
               ]
             }}
             transition={{ duration: 3, repeat: Infinity }}
-            className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-purple-600/30 to-cyan-500/20 border border-purple-500/30 flex items-center justify-center backdrop-blur-sm"
+            className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-purple-600/30 to-cyan-500/20 border border-purple-500/30 flex items-center justify-center backdrop-blur-sm"
           >
-            <svg className="w-7 h-7 text-primary" fill="currentColor" viewBox="0 0 24 24">
+            <svg className="w-9 h-9 text-primary" fill="currentColor" viewBox="0 0 24 24">
               <path d="M8 5v14l11-7z"/>
             </svg>
           </motion.div>
 
-          <h2 className="text-2xl font-black text-white mb-1">
+          <h2 className="text-3xl font-black text-white mb-1">
             <span className="text-primary">Priisma</span>Tv
           </h2>
           <p className="text-white/30 text-xs font-mono mb-6">ENTER YOUR NAME & ACCESS CODE</p>
