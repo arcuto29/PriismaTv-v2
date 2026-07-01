@@ -15,6 +15,7 @@ export default function WelcomePage() {
   const [userName, setUserName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [musicMuted, setMusicMuted] = useState(false);
+  const [transitioning, setTransitioning] = useState(false);
 
   const MASTER_PASSWORD = "shadowmonarch";
 
@@ -43,7 +44,7 @@ export default function WelcomePage() {
       .single();
 
     if (ownerData) {
-      setAuthenticated(true);
+      setTransitioning(true);
       sessionStorage.setItem("priismatv_auth", "true");
       sessionStorage.setItem("priismatv_user", displayName);
       sessionStorage.setItem("priismatv_owner", "true");
@@ -56,7 +57,7 @@ export default function WelcomePage() {
     }
 
     if (code === MASTER_PASSWORD) {
-      setAuthenticated(true);
+      setTransitioning(true);
       sessionStorage.setItem("priismatv_auth", "true");
       sessionStorage.setItem("priismatv_user", displayName);
       sessionStorage.setItem("priismatv_owner", "true");
@@ -70,7 +71,7 @@ export default function WelcomePage() {
 
     const valid = await validateInviteCode(code, displayName);
     if (valid) {
-      setAuthenticated(true);
+      setTransitioning(true);
       sessionStorage.setItem("priismatv_auth", "true");
       sessionStorage.setItem("priismatv_user", displayName);
       localStorage.setItem("priismatv_remember", "true");
@@ -144,7 +145,27 @@ export default function WelcomePage() {
     // No auto-redirect - video plays until user clicks Continue
   }, [authenticated]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // === LOGIN SCREEN WITH JIN-WOO ===
+  // When transitioning starts, wait for fade then show splash
+  useEffect(() => {
+    if (transitioning && !authenticated) {
+      const timer = setTimeout(() => setAuthenticated(true), 800);
+      return () => clearTimeout(timer);
+    }
+  }, [transitioning, authenticated]);
+
+  // === TRANSITION OVERLAY (fade to black between login and splash) ===
+  if (transitioning && !authenticated) {
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.8 }}
+        className="fixed inset-0 z-[200] bg-[#020204]"
+      />
+    );
+  }
+
+  // === LOGIN SCREEN ===
   if (!authenticated) {
     return (
       <div className="fixed inset-0 z-[200] bg-[#020204] flex items-center justify-center overflow-hidden">
