@@ -43,23 +43,80 @@ export default function RequestsPage() {
 
         if (data.results && data.results[0]) {
           const r = data.results[0];
+          const tmdbId = r.id;
+
+          let seasons: number | undefined;
+          let episodes: number | undefined;
+          let genre = "action";
+
+          // For TV shows and anime, fetch full details to get seasons & episodes
+          if (searchType === "tv" && tmdbId) {
+            try {
+              const detailRes = await fetch(`https://api.themoviedb.org/3/tv/${tmdbId}?api_key=${TMDB_KEY}`);
+              const detail = await detailRes.json();
+              if (detail) {
+                seasons = detail.number_of_seasons || undefined;
+                episodes = detail.number_of_episodes || undefined;
+                // Get first genre
+                if (detail.genres && detail.genres.length > 0) {
+                  genre = detail.genres[0].name.toLowerCase();
+                }
+              }
+            } catch { /* detail fetch failed, use defaults */ }
+          } else {
+            // For movies, get runtime and genre
+            try {
+              const detailRes = await fetch(`https://api.themoviedb.org/3/movie/${tmdbId}?api_key=${TMDB_KEY}`);
+              const detail = await detailRes.json();
+              if (detail && detail.genres && detail.genres.length > 0) {
+                genre = detail.genres[0].name.toLowerCase();
+              }
+            } catch { /* detail fetch failed */ }
+          }
+
+          // For anime, also fetch AniList ID for instant playback
+          let anilistId: string | undefined;
+          if (type === "anime") {
+            try {
+              const alRes = await fetch("https://graphql.anilist.co", {
+                method: "POST",
+                headers: { "Content-Type": "application/json", "Accept": "application/json" },
+                body: JSON.stringify({
+                  query: `query($search:String){Media(search:$search,type:ANIME,sort:SEARCH_MATCH){id episodes}}`,
+                  variables: { search: r.name || title }
+                })
+              });
+              const alData = await alRes.json();
+              if (alData?.data?.Media?.id) {
+                anilistId = String(alData.data.Media.id);
+                // Use AniList episode count if TMDB didn't have it
+                if (!episodes && alData.data.Media.episodes) {
+                  episodes = alData.data.Media.episodes;
+                }
+              }
+            } catch { /* AniList fetch failed */ }
+          }
+
           const newItem: ContentItem = {
             id: `req_${Date.now()}`,
             title: r.title || r.name || title,
             type: (type as ContentItem["type"]) || "movie",
             year: new Date(r.release_date || r.first_air_date || "").getFullYear() || 2025,
             rating: r.vote_average ? parseFloat(r.vote_average.toFixed(1)) : null,
-            genre: "action",
+            genre,
             description: r.overview || "No description available.",
             poster: r.poster_path ? `https://image.tmdb.org/t/p/w500${r.poster_path}` : null,
             backdrop: r.backdrop_path ? `https://image.tmdb.org/t/p/original${r.backdrop_path}` : null,
             trailer: null,
             duration: null,
+            seasons,
+            episodes,
             tags: ["trending"],
             dateAdded: new Date().toISOString().split("T")[0],
-          };
+            ...(anilistId ? { anilistId } : {}),
+            ...(tmdbId ? { tmdbId: String(tmdbId) } : {}),
+          } as ContentItem;
 
-          // Use the content store - persists permanently in the browser
           addContent(newItem);
           setAutoAddSuccess(title);
           setTimeout(() => setAutoAddSuccess(null), 3000);
