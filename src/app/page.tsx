@@ -148,63 +148,49 @@ export default function WelcomePage() {
   if (!authenticated) {
     return (
       <div className="fixed inset-0 z-[200] bg-[#020204] flex items-center justify-center overflow-hidden">
-        {/* Jin-Woo Background GIF */}
-        <div className="absolute inset-0">
-          <video
-            src="/jinwoo-bg.mp4"
-            autoPlay
-            muted
-            loop
-            playsInline
-            className="absolute inset-0 w-full h-full object-cover opacity-80"
-            style={{ objectPosition: "center top" }}
+        {/* Sci-fi sphere/wireframe background */}
+        <div className="absolute inset-0 flex items-center justify-center" style={{ perspective: "800px" }}>
+          {/* Outer wireframe sphere */}
+          <motion.div
+            animate={{ rotateY: 360 }}
+            transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+            className="absolute w-[250px] h-[250px] md:w-[350px] md:h-[350px]"
+            style={{ transformStyle: "preserve-3d" }}
+          >
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={`h-${i}`} className="absolute inset-0 rounded-full border border-primary/15" style={{ transform: `rotateX(${i * 22.5}deg)`, transformStyle: "preserve-3d" }} />
+            ))}
+          </motion.div>
+          {/* Vertical lines */}
+          <motion.div
+            animate={{ rotateX: 360 }}
+            transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+            className="absolute w-[250px] h-[250px] md:w-[350px] md:h-[350px]"
+            style={{ transformStyle: "preserve-3d" }}
+          >
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={`v-${i}`} className="absolute inset-0 rounded-full border border-purple-500/10" style={{ transform: `rotateY(${i * 22.5}deg)`, transformStyle: "preserve-3d" }} />
+            ))}
+          </motion.div>
+          {/* Inner glowing core */}
+          <motion.div
+            animate={{ scale: [1, 1.15, 1], opacity: [0.3, 0.6, 0.3] }}
+            transition={{ duration: 3, repeat: Infinity }}
+            className="absolute w-[80px] h-[80px] md:w-[100px] md:h-[100px] rounded-full"
+            style={{ background: "radial-gradient(circle, rgba(0,212,255,0.3) 0%, rgba(124,58,237,0.15) 50%, transparent 70%)", boxShadow: "0 0 40px rgba(0,212,255,0.2), 0 0 80px rgba(0,212,255,0.1)" }}
           />
-          {/* Minimal overlay - just enough for text readability */}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#020204]/90 via-transparent to-transparent" />
+          {/* Center dot */}
+          <motion.div
+            animate={{ scale: [1, 1.3, 1] }}
+            transition={{ duration: 2, repeat: Infinity }}
+            className="absolute w-3 h-3 rounded-full bg-white/70"
+            style={{ boxShadow: "0 0 15px #00d4ff, 0 0 30px #00d4ff" }}
+          />
         </div>
 
-        {/* Aura particles - purple/blue energy */}
-        <div className="absolute inset-0 pointer-events-none">
-          {[...Array(25)].map((_, i) => (
-            <motion.div
-              key={i}
-              animate={{
-                y: [0, -(30 + Math.random() * 60), 0],
-                x: [0, (Math.random() - 0.5) * 40, 0],
-                opacity: [0, 0.6, 0],
-                scale: [0.5, 1, 0.5],
-              }}
-              transition={{
-                duration: 3 + Math.random() * 4,
-                repeat: Infinity,
-                delay: Math.random() * 3,
-                ease: "easeInOut",
-              }}
-              className="absolute rounded-full"
-              style={{
-                left: `${20 + Math.random() * 60}%`,
-                top: `${30 + Math.random() * 50}%`,
-                width: `${2 + Math.random() * 4}px`,
-                height: `${2 + Math.random() * 4}px`,
-                background: i % 3 === 0 ? "#7c3aed" : i % 3 === 1 ? "#00d4ff" : "#a855f7",
-                boxShadow: `0 0 ${8 + Math.random() * 12}px ${i % 3 === 0 ? "#7c3aed" : "#00d4ff"}`,
-              }}
-            />
-          ))}
-        </div>
-
-        {/* Rising aura effect from bottom */}
-        <div className="absolute bottom-0 left-0 right-0 h-[60%] pointer-events-none overflow-hidden">
-          <motion.div
-            animate={{ y: [0, -30, 0], opacity: [0.2, 0.5, 0.2] }}
-            transition={{ duration: 4, repeat: Infinity }}
-            className="w-full h-full bg-gradient-to-t from-purple-900/20 via-blue-900/10 to-transparent blur-2xl"
-          />
-          <motion.div
-            animate={{ y: [0, -20, 0], opacity: [0.1, 0.3, 0.1] }}
-            transition={{ duration: 6, repeat: Infinity, delay: 1 }}
-            className="absolute inset-0 bg-gradient-to-t from-cyan-900/15 to-transparent blur-3xl"
-          />
+        {/* 3D Grid floor */}
+        <div className="absolute bottom-0 left-0 right-0 h-[30%] overflow-hidden" style={{ perspective: "500px" }}>
+          <div className="w-full h-full origin-bottom" style={{ transform: "rotateX(60deg)", backgroundImage: "linear-gradient(rgba(0,212,255,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(0,212,255,0.06) 1px, transparent 1px)", backgroundSize: "50px 50px" }} />
         </div>
 
         {/* Scanning line */}
