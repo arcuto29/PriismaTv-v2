@@ -643,15 +643,7 @@ export default function WatchPage() {
                       <div>
                         <h3 className="text-sm font-semibold">Select Server</h3>
                         <p className="text-xs text-muted-foreground">If one server doesn&apos;t work, try another one.</p>
-                        <p className="text-[9px] text-muted-foreground/50 mt-0.5">TMDB: {tmdbId || "none"} | IMDB: {imdbId || "none"}{anilistId ? ` | AniList: ${anilistId}` : ""}</p>
                       </div>
-                      <button
-                        onClick={() => { setImdbId(null); setTmdbId(null); fetchIds(true); }}
-                        className="text-[10px] px-2 py-1 rounded bg-muted text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all border border-border"
-                        title="Re-fetch IMDB/TMDB ID if wrong content is playing"
-                      >
-                        🔄 Fix Wrong Content
-                      </button>
                     </div>
                     <div className="flex flex-wrap gap-2 mb-4">
                       {myServerFile && (
