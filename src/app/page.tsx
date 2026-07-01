@@ -307,7 +307,7 @@ export default function WelcomePage() {
       style={{ transition: glitch ? "none" : "transform 0.1s" }}>
 
       {/* Background music */}
-      <audio src="/welcome-music.MP3" autoPlay loop muted={musicMuted} />
+      <audio src="/welcome-music.MP3" autoPlay loop muted={musicMuted} style={{ display: "none" }} ref={(el) => { if (el) el.volume = 0.3; }} />
 
       {/* Jin-Woo background GIF - splash */}
       <motion.div
