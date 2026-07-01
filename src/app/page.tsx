@@ -14,6 +14,7 @@ export default function WelcomePage() {
   const [passwordError, setPasswordError] = useState(false);
   const [userName, setUserName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [musicMuted, setMusicMuted] = useState(false);
 
   const MASTER_PASSWORD = "shadowmonarch";
 
@@ -305,6 +306,9 @@ export default function WelcomePage() {
     <div className={`fixed inset-0 z-[200] bg-[#020204] overflow-hidden select-none ${glitch ? "translate-x-[1px] skew-x-[0.2deg]" : ""}`}
       style={{ transition: glitch ? "none" : "transform 0.1s" }}>
 
+      {/* Background music */}
+      <audio src="/welcome-music.MP3" autoPlay loop muted={musicMuted} />
+
       {/* Jin-Woo background GIF - splash */}
       <motion.div
         initial={{ scale: 1.1, opacity: 0 }}
@@ -508,6 +512,12 @@ export default function WelcomePage() {
             className="px-8 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-primary text-white font-bold text-sm hover:opacity-90 transition-all hover:shadow-[0_0_30px_rgba(124,58,237,0.3)] hover:scale-105 active:scale-95"
           >
             CONTINUE →
+          </button>
+          <button
+            onClick={() => setMusicMuted(!musicMuted)}
+            className="ml-3 p-3 rounded-xl bg-white/10 backdrop-blur-sm border border-white/10 text-white/60 hover:text-white hover:bg-white/20 transition-all"
+          >
+            {musicMuted ? "🔇" : "🔊"}
           </button>
         </motion.div>
 
