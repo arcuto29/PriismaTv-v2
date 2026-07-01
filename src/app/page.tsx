@@ -307,20 +307,18 @@ export default function WelcomePage() {
     );
   }
 
-  // === AUTHENTICATED SPLASH - JIN-WOO ARISE ===
+  // === AUTHENTICATED SPLASH - JUST VIBES ===
 
   return (
-    <div className={`fixed inset-0 z-[200] bg-[#020204] overflow-hidden select-none ${glitch ? "translate-x-[1px] skew-x-[0.2deg]" : ""}`}
-      style={{ transition: glitch ? "none" : "transform 0.1s" }}>
-
+    <div className="fixed inset-0 z-[200] bg-[#020204] overflow-hidden select-none">
       {/* Background music */}
       <audio src="/welcome-music.MP3" autoPlay loop muted={musicMuted} style={{ display: "none" }} ref={(el) => { if (el) el.volume = 0.3; }} />
 
-      {/* Jin-Woo background GIF - splash */}
+      {/* Jin-Woo video - full screen, no overlay */}
       <motion.div
-        initial={{ scale: 1.1, opacity: 0 }}
-        animate={{ scale: 1, opacity: 0.9 }}
-        transition={{ duration: 2, ease: "easeOut" }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 1.5 }}
         className="absolute inset-0"
       >
         <video
@@ -334,81 +332,8 @@ export default function WelcomePage() {
         />
       </motion.div>
 
-      {/* Minimal overlay - just darken the bottom for text */}
-      <div className="absolute inset-0 bg-gradient-to-t from-[#020204]/80 via-transparent to-transparent z-[1]" />
-
-      {/* Aura burst effect */}
-      <motion.div
-        initial={{ scale: 0.5, opacity: 0 }}
-        animate={phase >= 3 ? { scale: 1.5, opacity: [0, 0.3, 0] } : {}}
-        transition={{ duration: 2, delay: 0.5 }}
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full z-[2]"
-        style={{ background: "radial-gradient(circle, rgba(124,58,237,0.4) 0%, rgba(0,212,255,0.1) 40%, transparent 70%)" }}
-      />
-
-      {/* Rising energy particles */}
-      <div className="absolute inset-0 pointer-events-none z-[3]">
-        {[...Array(30)].map((_, i) => (
-          <motion.div
-            key={i}
-            initial={{ opacity: 0, y: 50 }}
-            animate={phase >= 2 ? {
-              y: [0, -(100 + Math.random() * 200)],
-              opacity: [0, 0.8, 0],
-              x: [(Math.random() - 0.5) * 30, (Math.random() - 0.5) * 60],
-            } : {}}
-            transition={{
-              duration: 2 + Math.random() * 3,
-              repeat: Infinity,
-              delay: Math.random() * 2,
-              ease: "easeOut",
-            }}
-            className="absolute rounded-full"
-            style={{
-              left: `${30 + Math.random() * 40}%`,
-              bottom: `${10 + Math.random() * 30}%`,
-              width: `${1 + Math.random() * 3}px`,
-              height: `${1 + Math.random() * 3}px`,
-              background: i % 2 === 0 ? "#7c3aed" : "#00d4ff",
-              boxShadow: `0 0 ${6 + Math.random() * 10}px ${i % 2 === 0 ? "#7c3aed" : "#00d4ff"}`,
-            }}
-          />
-        ))}
-      </div>
-
-      {/* Fog from bottom */}
-      <div className="absolute bottom-0 left-0 right-0 h-[40%] pointer-events-none z-[2] overflow-hidden">
-        <motion.div
-          animate={{ y: [0, -20, 0], opacity: [0.3, 0.6, 0.3] }}
-          transition={{ duration: 5, repeat: Infinity }}
-          className="w-full h-full bg-gradient-to-t from-purple-900/20 via-blue-900/5 to-transparent blur-xl"
-        />
-      </div>
-
-      {/* Glitch lines */}
-      {glitch && (
-        <div className="absolute inset-0 pointer-events-none z-[10]">
-          {[20, 45, 70].map((top) => (
-            <div key={top} className="absolute left-0 right-0 h-[1px] bg-primary/40" style={{ top: `${top}%` }} />
-          ))}
-        </div>
-      )}
-
-      {/* Corner HUD */}
-      <motion.div initial={{ opacity: 0 }} animate={phase >= 1 ? { opacity: 1 } : {}} className="absolute top-5 left-5 z-20">
-        <div className="w-10 h-10 border-l-2 border-t-2 border-purple-500/40" />
-        <p className="text-[8px] font-mono text-purple-400/40 mt-1">SYS.ONLINE</p>
-      </motion.div>
-      <motion.div initial={{ opacity: 0 }} animate={phase >= 1 ? { opacity: 1 } : {}} className="absolute top-5 right-5 z-20">
-        <div className="w-10 h-10 border-r-2 border-t-2 border-purple-500/40 ml-auto" />
-        <p className="text-[8px] font-mono text-purple-400/40 mt-1 text-right">V2.0</p>
-      </motion.div>
-      <motion.div initial={{ opacity: 0 }} animate={phase >= 1 ? { opacity: 1 } : {}} className="absolute bottom-5 left-5 z-20">
-        <div className="w-10 h-10 border-l-2 border-b-2 border-purple-500/40" />
-      </motion.div>
-      <motion.div initial={{ opacity: 0 }} animate={phase >= 1 ? { opacity: 1 } : {}} className="absolute bottom-5 right-5 z-20">
-        <div className="w-10 h-10 border-r-2 border-b-2 border-purple-500/40 ml-auto" />
-      </motion.div>
+      {/* Very subtle bottom gradient for button readability */}
+      <div className="absolute bottom-0 left-0 right-0 h-[20%] bg-gradient-to-t from-black/60 to-transparent z-[1]" />
 
       {/* Fade exit */}
       <AnimatePresence>
@@ -417,122 +342,30 @@ export default function WelcomePage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.8, ease: "easeInOut" }}
-            className="fixed inset-0 bg-background z-[100]"
+            className="fixed inset-0 bg-[#020204] z-[100]"
           />
         )}
       </AnimatePresence>
 
-      {/* Main content */}
+      {/* Bottom-right controls */}
       <motion.div
-        animate={{ opacity: exiting ? 0 : 1, scale: exiting ? 0.95 : 1 }}
-        transition={{ duration: 0.5 }}
-        className="relative z-30 h-full flex flex-col items-center justify-center px-6"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: exiting ? 0 : 1 }}
+        transition={{ delay: 0.5, duration: 0.5 }}
+        className="fixed bottom-6 right-6 z-30 flex items-center gap-3"
       >
-        {/* Typing text - ARISE */}
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={phase >= 2 ? { opacity: 1 } : {}}
-          className="text-purple-400/70 text-xs font-mono mb-6 h-5"
+        <button
+          onClick={() => setMusicMuted(!musicMuted)}
+          className="p-3 rounded-full bg-white/10 backdrop-blur-sm border border-white/10 text-white/60 hover:text-white hover:bg-white/20 transition-all"
         >
-          {typedText}<span className="animate-pulse text-primary">|</span>
-        </motion.p>
-
-        {/* Logo with purple aura */}
-        <motion.div
-          initial={{ scale: 0, rotateY: 180, opacity: 0 }}
-          animate={phase >= 2 ? { scale: 1, rotateY: 0, opacity: 1 } : {}}
-          transition={{ duration: 0.8, type: "spring", bounce: 0.3 }}
-          className="mb-6 relative"
+          {musicMuted ? "🔇" : "🔊"}
+        </button>
+        <button
+          onClick={() => { setExiting(true); setTimeout(() => router.push("/home"), 800); }}
+          className="px-6 py-3 rounded-full bg-white/10 backdrop-blur-sm border border-white/10 text-white font-medium text-sm hover:bg-white/20 transition-all"
         >
-          <div className="w-24 h-24 md:w-32 md:h-32 rounded-3xl bg-gradient-to-br from-purple-600 via-blue-500 to-primary flex items-center justify-center shadow-[0_0_80px_rgba(124,58,237,0.4)] relative overflow-hidden">
-            <svg className="w-12 h-12 md:w-16 md:h-16 text-white relative z-10" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M8 5v14l11-7z"/>
-            </svg>
-            <motion.div initial={{ x: "-100%" }} animate={phase >= 3 ? { x: "200%" } : {}} transition={{ duration: 0.8, delay: 0.3 }}
-              className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-12" />
-          </div>
-          {/* Aura ring */}
-          <motion.div
-            animate={{ scale: [1, 1.5, 1], opacity: [0.4, 0, 0.4] }}
-            transition={{ duration: 2, repeat: Infinity }}
-            className="absolute inset-0 rounded-3xl border border-purple-500/50"
-          />
-          <motion.div
-            animate={{ scale: [1.2, 1.8, 1.2], opacity: [0.2, 0, 0.2] }}
-            transition={{ duration: 2.5, repeat: Infinity, delay: 0.3 }}
-            className="absolute inset-0 rounded-3xl border border-cyan-400/30"
-          />
-        </motion.div>
-
-        {/* Title - PRIISMATV with glow */}
-        <motion.div initial={{ opacity: 0 }} animate={phase >= 3 ? { opacity: 1 } : {}} className="mb-2">
-          <h1 className={`text-5xl md:text-8xl font-black tracking-tighter ${glitch ? "skew-x-1" : ""}`}>
-            {"PRIISMA".split("").map((letter, i) => (
-              <motion.span key={i} initial={{ y: 50, opacity: 0, rotateX: -90 }}
-                animate={phase >= 3 ? { y: 0, opacity: 1, rotateX: 0 } : {}}
-                transition={{ delay: i * 0.08, duration: 0.5, type: "spring" }}
-                className="inline-block text-primary"
-                style={{ textShadow: "0 0 30px rgba(0,212,255,0.5), 0 0 60px rgba(124,58,237,0.3)" }}>
-                {letter}
-              </motion.span>
-            ))}
-            {"TV".split("").map((letter, i) => (
-              <motion.span key={`tv-${i}`} initial={{ y: 50, opacity: 0, rotateX: -90 }}
-                animate={phase >= 3 ? { y: 0, opacity: 1, rotateX: 0 } : {}}
-                transition={{ delay: 0.56 + i * 0.08, duration: 0.5, type: "spring" }}
-                className="inline-block text-white">
-                {letter}
-              </motion.span>
-            ))}
-          </h1>
-        </motion.div>
-
-        {/* Subtitle */}
-        <motion.p initial={{ opacity: 0, y: 10 }} animate={phase >= 4 ? { opacity: 1, y: 0 } : {}}
-          className="text-white/30 text-xs md:text-sm font-mono tracking-[0.3em] uppercase mb-8">
-          [ SHADOW MONARCH&apos;S COLLECTION ]
-        </motion.p>
-
-        {/* Stats */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={phase >= 4 ? { opacity: 1, y: 0 } : {}} transition={{ delay: 0.3 }}
-          className="flex items-center gap-6 md:gap-10 mb-10">
-          {[{ value: "423+", label: "TITLES" }, { value: "4K", label: "QUALITY" }, { value: "∞", label: "FREE" }].map((stat, i) => (
-            <motion.div key={stat.label} initial={{ scale: 0, rotateZ: -10 }}
-              animate={phase >= 4 ? { scale: 1, rotateZ: 0 } : {}}
-              transition={{ delay: 0.4 + i * 0.12, type: "spring", bounce: 0.4 }}
-              className="text-center">
-              <p className="text-3xl md:text-4xl font-black text-white">{stat.value}</p>
-              <p className="text-[8px] md:text-[9px] tracking-[0.25em] text-white/25 mt-1 font-mono">{stat.label}</p>
-            </motion.div>
-          ))}
-        </motion.div>
-
-        {/* Continue button - appears after 3s */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={phase >= 1 ? { opacity: 1, y: 0 } : {}}
-          transition={{ delay: 0.3 }}
-          className="mt-8 flex items-center"
-        >
-          <button
-            onClick={() => { setExiting(true); setTimeout(() => router.push("/home"), 800); }}
-            className="px-8 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-primary text-white font-bold text-sm hover:opacity-90 transition-all hover:shadow-[0_0_30px_rgba(124,58,237,0.3)] hover:scale-105 active:scale-95"
-          >
-            CONTINUE →
-          </button>
-          <button
-            onClick={() => setMusicMuted(!musicMuted)}
-            className="ml-3 p-3 rounded-xl bg-white/10 backdrop-blur-sm border border-white/10 text-white/60 hover:text-white hover:bg-white/20 transition-all"
-          >
-            {musicMuted ? "🔇" : "🔊"}
-          </button>
-        </motion.div>
-
-        {/* Bottom text */}
-        <motion.p initial={{ opacity: 0 }} animate={phase >= 5 ? { opacity: 1 } : {}} transition={{ delay: 0.5 }}
-          className="absolute bottom-8 text-[9px] font-mono text-white/10 tracking-widest">
-          priismatv.com
-        </motion.p>
+          CONTINUE →
+        </button>
       </motion.div>
     </div>
   );
