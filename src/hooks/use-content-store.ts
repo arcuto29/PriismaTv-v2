@@ -218,6 +218,70 @@ export function useContentStore() {
     fixPosters();
   }, [isLoaded]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Auto-fetch AniList cover images for anime with null posters
+  useEffect(() => {
+    if (!isLoaded || content.length === 0) return;
+
+    const fetchAnimePosters = async () => {
+      const animeWithoutPoster = content.filter(
+        (item) => item.type === "anime" && !item.poster && !(item as unknown as Record<string, boolean>).posterOk
+      );
+      if (animeWithoutPoster.length === 0) return;
+
+      console.log(`[PriismaTv] Fetching posters for ${animeWithoutPoster.length} anime from AniList...`);
+      let didFix = false;
+      const updated = [...content];
+
+      // Process in batches of 10 to avoid hammering the API
+      for (let batch = 0; batch < animeWithoutPoster.length; batch += 10) {
+        const slice = animeWithoutPoster.slice(batch, batch + 10);
+        
+        const promises = slice.map(async (anime) => {
+          try {
+            const res = await fetch("https://graphql.anilist.co", {
+              method: "POST",
+              headers: { "Content-Type": "application/json", "Accept": "application/json" },
+              body: JSON.stringify({
+                query: `query($search:String,$year:Int){Media(search:$search,type:ANIME,seasonYear:$year,sort:SEARCH_MATCH){id bannerImage coverImage{extraLarge}}}`,
+                variables: { search: anime.title, year: anime.year || null }
+              })
+            });
+            const data = await res.json();
+            if (data?.data?.Media) {
+              const media = data.data.Media;
+              const idx = updated.findIndex((i) => i.id === anime.id);
+              if (idx !== -1) {
+                if (media.coverImage?.extraLarge) {
+                  updated[idx] = { ...updated[idx], poster: media.coverImage.extraLarge };
+                  didFix = true;
+                }
+                if (media.bannerImage && !updated[idx].backdrop) {
+                  updated[idx] = { ...updated[idx], backdrop: media.bannerImage };
+                }
+                (updated[idx] as unknown as Record<string, unknown>).anilistId = String(media.id);
+                (updated[idx] as unknown as Record<string, boolean>).posterOk = true;
+              }
+            }
+          } catch { /* skip failures */ }
+        });
+
+        await Promise.all(promises);
+        // Brief pause between batches to respect rate limits
+        if (batch + 10 < animeWithoutPoster.length) {
+          await new Promise((r) => setTimeout(r, 800));
+        }
+      }
+
+      if (didFix) {
+        setContent(updated);
+        persistFromContent(updated);
+        console.log("[PriismaTv] Auto-fetched anime posters from AniList");
+      }
+    };
+
+    fetchAnimePosters();
+  }, [isLoaded]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const addContent = useCallback((item: ContentItem) => {
     setContent((prev) => {
       const without = prev.filter((i) => i.id !== item.id);
