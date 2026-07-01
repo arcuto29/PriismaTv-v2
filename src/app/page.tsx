@@ -503,9 +503,9 @@ export default function WelcomePage() {
         {/* Continue button - appears after 3s */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
-          animate={phase >= 5 ? { opacity: 1, y: 0 } : {}}
-          transition={{ delay: 0.5 }}
-          className="mt-8"
+          animate={phase >= 1 ? { opacity: 1, y: 0 } : {}}
+          transition={{ delay: 0.3 }}
+          className="mt-8 flex items-center"
         >
           <button
             onClick={() => { setExiting(true); setTimeout(() => router.push("/home"), 800); }}
