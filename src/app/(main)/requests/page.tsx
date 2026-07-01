@@ -82,17 +82,36 @@ export default function RequestsPage() {
                 method: "POST",
                 headers: { "Content-Type": "application/json", "Accept": "application/json" },
                 body: JSON.stringify({
-                  query: `query($search:String){Media(search:$search,type:ANIME,sort:SEARCH_MATCH){id episodes}}`,
+                  query: `query($search:String){Media(search:$search,type:ANIME,sort:SEARCH_MATCH){id episodes nextAiringEpisode{episode} relations{edges{relationType node{id episodes format}}}}}`,
                   variables: { search: r.name || title }
                 })
               });
               const alData = await alRes.json();
               if (alData?.data?.Media?.id) {
                 anilistId = String(alData.data.Media.id);
-                // Use AniList episode count if TMDB didn't have it
-                if (!episodes && alData.data.Media.episodes) {
-                  episodes = alData.data.Media.episodes;
+                const media = alData.data.Media;
+                
+                // Count total episodes across all seasons/sequels
+                let totalEpisodes = media.episodes || 0;
+                let totalSeasons = 1;
+                
+                // Check for sequels in relations
+                if (media.relations?.edges) {
+                  for (const edge of media.relations.edges) {
+                    if (edge.relationType === "SEQUEL" && edge.node?.format === "TV" && edge.node?.episodes) {
+                      totalEpisodes += edge.node.episodes;
+                      totalSeasons++;
+                    }
+                  }
                 }
+                
+                // If currently airing, use next airing episode count
+                if (!totalEpisodes && media.nextAiringEpisode?.episode) {
+                  totalEpisodes = media.nextAiringEpisode.episode - 1;
+                }
+                
+                if (totalEpisodes > 0) episodes = totalEpisodes;
+                if (totalSeasons > 1) seasons = totalSeasons;
               }
             } catch { /* AniList fetch failed */ }
           }
