@@ -40,7 +40,7 @@ export function useRequests() {
   const [requests, setRequests] = useState<Array<{ id: string; title: string; type: string; requested_by: string; status: string; created_at: string }>>([]);
 
   const fetchRequests = useCallback(async () => {
-    const { data } = await supabase.from("requests").select("*").order("created_at", { ascending: false });
+    const { data } = await supabase.from("requests").select("*").eq("status", "pending").order("created_at", { ascending: false });
     if (data) setRequests(data);
   }, []);
 
