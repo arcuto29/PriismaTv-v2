@@ -2,15 +2,15 @@
 import { useState, useEffect, useCallback } from "react";
 import { ContentItem, STORAGE_KEYS } from "@/data/content";
 import { SAMPLE_CONTENT } from "@/data/sample-content";
+import { supabase } from "@/lib/supabase";
 
 // ====================================================================
-//  PERSISTENCE MODEL (no more wiping!)
-//  - priismatv_user_content : items YOU added/approved. NEVER wiped.
-//  - priismatv_overrides    : edits to built-in items (posters, IDs, edits)
-//  - priismatv_removed      : built-in items you deleted
-//  The visible library = userContent + (SAMPLE_CONTENT - removed + overrides)
-//  This means: new built-in titles always appear after an update, AND
-//  your added/approved content survives forever (stored in your browser).
+//  PERSISTENCE MODEL
+//  - SAMPLE_CONTENT         : built-in items (in code)
+//  - Supabase shared_content: items added via requests/admin (shared for ALL users)
+//  - priismatv_overrides    : local edits to items (posters, IDs, etc.)
+//  - priismatv_removed      : built-in items you deleted locally
+//  The visible library = shared_content + SAMPLE_CONTENT - removed + overrides
 // ====================================================================
 
 const SAMPLE_BY_ID = new Map(SAMPLE_CONTENT.map((i) => [i.id, i]));
@@ -98,14 +98,61 @@ export function useContentStore() {
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    migrateIfNeeded();
-    setContent(buildLibrary());
-    setWatchlist(JSON.parse(localStorage.getItem(STORAGE_KEYS.WATCHLIST) || "[]"));
-    setFavorites(JSON.parse(localStorage.getItem(STORAGE_KEYS.FAVORITES) || "[]"));
-    setHistory(JSON.parse(localStorage.getItem(STORAGE_KEYS.HISTORY) || "[]"));
-    setContinueWatching(JSON.parse(localStorage.getItem(STORAGE_KEYS.CONTINUE_WATCHING) || "[]"));
-    setEpisodeProgress(JSON.parse(localStorage.getItem("priismatv_episode_progress") || "{}"));
-    setIsLoaded(true);
+    const init = async () => {
+      migrateIfNeeded();
+
+      // Pull shared content from Supabase (what everyone sees)
+      try {
+        const { data: sharedData } = await supabase
+          .from("shared_content")
+          .select("*")
+          .order("date_added", { ascending: false });
+
+        if (sharedData && sharedData.length > 0) {
+          // Convert from Supabase format to ContentItem
+          const sharedItems: ContentItem[] = sharedData.map((row: Record<string, unknown>) => ({
+            id: row.id as string,
+            title: row.title as string,
+            type: row.type as ContentItem["type"],
+            year: row.year as number,
+            rating: row.rating as number | null,
+            genre: row.genre as string,
+            description: row.description as string,
+            poster: row.poster as string | null,
+            backdrop: row.backdrop as string | null,
+            trailer: row.trailer as string | null,
+            video: row.video as string | null,
+            duration: row.duration as string | null,
+            episodes: row.episodes as number | undefined,
+            seasons: row.seasons as number | undefined,
+            tags: (row.tags as string[]) || ["trending"],
+            dateAdded: row.date_added as string,
+            ...(row.anilist_id ? { anilistId: row.anilist_id as string } : {}),
+            ...(row.tmdb_id ? { tmdbId: row.tmdb_id as string } : {}),
+          }));
+
+          // Save shared content locally so it merges into the library
+          const existingUser = readJSON<ContentItem[]>(USER_KEY, []);
+          const existingIds = new Set(existingUser.map((i) => i.id));
+          const newItems = sharedItems.filter((i) => !existingIds.has(i.id) && !SAMPLE_BY_ID.has(i.id));
+          if (newItems.length > 0) {
+            const merged = [...newItems, ...existingUser];
+            localStorage.setItem(USER_KEY, JSON.stringify(merged));
+          }
+        }
+      } catch {
+        // Supabase fetch failed (paused/offline) — use local data only
+      }
+
+      setContent(buildLibrary());
+      setWatchlist(JSON.parse(localStorage.getItem(STORAGE_KEYS.WATCHLIST) || "[]"));
+      setFavorites(JSON.parse(localStorage.getItem(STORAGE_KEYS.FAVORITES) || "[]"));
+      setHistory(JSON.parse(localStorage.getItem(STORAGE_KEYS.HISTORY) || "[]"));
+      setContinueWatching(JSON.parse(localStorage.getItem(STORAGE_KEYS.CONTINUE_WATCHING) || "[]"));
+      setEpisodeProgress(JSON.parse(localStorage.getItem("priismatv_episode_progress") || "{}"));
+      setIsLoaded(true);
+    };
+    init();
   }, []);
 
   const saveContent = useCallback((items: ContentItem[]) => {
@@ -169,12 +216,40 @@ export function useContentStore() {
 
   const addContent = useCallback((item: ContentItem) => {
     setContent((prev) => {
-      // Avoid duplicates by id
       const without = prev.filter((i) => i.id !== item.id);
       const updated = [item, ...without];
       persistFromContent(updated);
       return updated;
     });
+
+    // Also save to Supabase so ALL users get it
+    const saveToSupabase = async () => {
+      try {
+        await supabase.from("shared_content").upsert({
+          id: item.id,
+          title: item.title,
+          type: item.type,
+          year: item.year,
+          rating: item.rating,
+          genre: item.genre,
+          description: item.description,
+          poster: item.poster,
+          backdrop: item.backdrop,
+          trailer: item.trailer,
+          video: item.video || null,
+          duration: item.duration,
+          episodes: item.episodes || null,
+          seasons: item.seasons || null,
+          tags: item.tags,
+          date_added: item.dateAdded,
+          anilist_id: (item as unknown as Record<string, string>).anilistId || null,
+          tmdb_id: (item as unknown as Record<string, string>).tmdbId || null,
+        });
+      } catch {
+        // Supabase save failed — content still saved locally
+      }
+    };
+    saveToSupabase();
   }, []);
 
   const removeContent = useCallback((id: string) => {
@@ -183,6 +258,8 @@ export function useContentStore() {
       persistFromContent(updated);
       return updated;
     });
+    // Also remove from Supabase
+    supabase.from("shared_content").delete().eq("id", id).then(() => {});
   }, []);
 
   const updateContent = useCallback((id: string, data: Partial<ContentItem>) => {
