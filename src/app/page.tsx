@@ -302,14 +302,20 @@ export default function WelcomePage() {
   }
 
   // === AUTHENTICATED SPLASH - JIN-WOO ARISE ===
-  // Start music when splash loads
+  // Start music when splash loads (only after user has clicked login)
   useEffect(() => {
-    if (authenticated && !audioRef.current) {
+    if (!authenticated) return;
+    try {
       const audio = new Audio("/welcome-music.MP3");
       audio.loop = true;
-      audio.volume = 0.5;
-      audio.play().catch(() => {});
+      audio.volume = 0.4;
+      const playPromise = audio.play();
+      if (playPromise) {
+        playPromise.catch(() => { setMusicPlaying(false); });
+      }
       audioRef.current = audio;
+    } catch {
+      setMusicPlaying(false);
     }
     return () => {
       if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
@@ -318,8 +324,8 @@ export default function WelcomePage() {
 
   const toggleMusic = () => {
     if (audioRef.current) {
-      if (musicPlaying) { audioRef.current.pause(); } 
-      else { audioRef.current.play(); }
+      if (musicPlaying) { audioRef.current.pause(); }
+      else { audioRef.current.play().catch(() => {}); }
       setMusicPlaying(!musicPlaying);
     }
   };
