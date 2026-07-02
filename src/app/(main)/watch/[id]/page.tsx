@@ -44,7 +44,7 @@ function getServers(imdbId: string, tmdbId: string, type: string, season = 1, ep
 export default function WatchPage() {
   const params = useParams();
   const router = useRouter();
-  const { getContentById, toggleFavorite, toggleWatchlist, addToHistory, favorites, watchlist, removeContent, updateContent, trackEpisodeProgress } = useContentStore();
+  const { getContentById, toggleFavorite, toggleWatchlist, addToHistory, favorites, watchlist, removeContent, updateContent, trackEpisodeProgress, isLoaded } = useContentStore();
   const { getRating, rateContent } = useRatings();
   const [item, setItem] = useState<ContentItem | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -267,6 +267,16 @@ export default function WatchPage() {
   };
 
   if (!item) {
+    if (!isLoaded) {
+      return (
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-center">
+            <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+            <p className="text-muted-foreground">Loading...</p>
+          </div>
+        </div>
+      );
+    }
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
